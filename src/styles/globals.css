@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-gold: #B8944A;
+  --color-brand-navy: #1A2335;
+  --color-brand-ivory: #F5EFE6;
+  --color-brand-gold-lt: #F5E6C8;
+
+  --color-status-available: #22C55E;
+  --color-status-pending: #F59E0B;
+  --color-status-sold: #EF4444;
+  --color-status-rented: #3B82F6;
+
+  --color-neutral-50: #FAFAFA;
+  --color-neutral-100: #F4F4F5;
+  --color-neutral-300: #D4D4D8;
+  --color-neutral-500: #71717A;
+  --color-neutral-900: #18181B;
+
+  --font-heading: var(--font-playfair), serif;
+  --font-body: var(--font-inter), sans-serif;
+  --font-arabic: var(--font-tajawal), sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: var(--color-neutral-50);
+    --foreground: var(--color-neutral-900);
+  }
+  html[dir="rtl"] {
+    --font-heading: var(--font-tajawal), sans-serif;
+    --font-body: var(--font-tajawal), sans-serif;
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-body);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+}
+
+@layer utilities {
+  .container-custom {
+    width: 100%;
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  .section-padding {
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+  }
+  @media (min-width: 768px) {
+    .section-padding {
+      padding-top: 6rem;
+      padding-bottom: 6rem;
+    }
+  }
+  .

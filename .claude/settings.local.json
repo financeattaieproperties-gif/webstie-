@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({k: d[k] for k in [''''scripts'''',''''dependencies''''] if k in d}, indent=2\\)\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\(''''scripts'''',{}\\), indent=2\\)\\)\")",
+      "Bash(mkdir -p C:/projects/ATTAIE-PROPERTIES-WEBSITE/plans)",
+      "Bash(mv C:/projects/ATTAIE-PROPERTIES-WEBSITE/ai_code_detection_summary.md C:/projects/ATTAIE-PROPERTIES-WEBSITE/plans/)",
+      "WebFetch(domain:ausmarhomes.com.au)",
+      "Bash(C:\\\\Users\\\\RoheenAhmadi\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\superpowers\\\\5.0.7\\\\skills\\\\brainstorming\\\\scripts\\\\start-server.sh --project-dir \"C:\\\\projects\\\\ATTAIE-PROPERTIES-WEBSITE\")",
+      "PowerShell(node $scriptPath --project-dir $projectDir)",
+      "PowerShell($scriptPath = \"C:\\\\Users\\\\RoheenAhmadi\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\superpowers\\\\5.0.7\\\\skills\\\\brainstorming\\\\scripts\\\\server.cjs\")",
+      "PowerShell($projectDir = \"C:\\\\projects\\\\ATTAIE-PROPERTIES-WEBSITE\")",
+      "Bash(xargs cat *)",
+      "PowerShell(head *)",
+      "PowerShell(Get-ChildItem \"C:\\\\projects\\\\ATTAIE-PROPERTIES-WEBSITE\\\\src\" -Recurse | Select-Object FullName, PSIsContainer | Where-Object { $_.PSIsContainer -eq $false } | Select-Object -First 50)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
+    ]
+  }
+}
