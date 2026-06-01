@@ -6,6 +6,10 @@ import { InquiryForm } from '../../../../components/forms/InquiryForm';
 import { Badge } from '../../../../components/ui/Badge';
 import { MapPin, Bed, Bath, Maximize2, Building } from 'lucide-react';
 
+export function generateStaticParams() {
+  return ['1', '2', '3', '4', '5', '6', '7', '8'].map((id) => ({ id }));
+}
+
 export default async function PropertyDetailPage({
   params,
 }: {

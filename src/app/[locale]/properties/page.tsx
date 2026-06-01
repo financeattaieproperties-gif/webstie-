@@ -1,4 +1,7 @@
-import React from 'react';
+'use client';
+
+import React, { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Navbar } from '../../../components/layout/Navbar';
 import { Footer } from '../../../components/layout/Footer';
 import { SearchBar } from '../../../components/forms/SearchBar';
@@ -90,26 +93,21 @@ const projectListings = [
   },
 ];
 
-export default async function PropertiesPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
-  const params = await searchParams;
-  const category = (params.category as string) || 'individual';
+const defaultFilters: FilterState = {
+  purpose: 'buy',
+  type: [],
+  minPrice: 0,
+  maxPrice: 2000000,
+  minArea: 0,
+  maxArea: 1000,
+  beds: [],
+  baths: [],
+  status: []
+};
 
-  const initialFilters: FilterState = {
-    purpose: (params.purpose as any) || 'buy',
-    type: params.type ? (Array.isArray(params.type) ? params.type : [params.type]) : [],
-    minPrice: Number(params.minPrice) || 0,
-    maxPrice: Number(params.maxPrice) || 2000000,
-    minArea: Number(params.minArea) || 0,
-    maxArea: Number(params.maxArea) || 1000,
-    beds: params.beds ? (Array.isArray(params.beds) ? params.beds : [params.beds]) : [],
-    baths: params.baths ? (Array.isArray(params.baths) ? params.baths : [params.baths]) : [],
-    status: params.status ? (Array.isArray(params.status) ? params.status : [params.status]) : []
-  };
-
+function PropertiesContent() {
+  const searchParams = useSearchParams();
+  const category = searchParams.get('category') || 'individual';
   const isProjects = category === 'projects';
 
   return (
@@ -150,14 +148,12 @@ export default async function PropertiesPage({
       {/* Main Content */}
       <div className="container-custom py-12 flex-grow">
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar — only show for individual properties */}
           {!isProjects && (
             <aside className="w-full lg:w-72 shrink-0">
-              <FilterSidebar filters={initialFilters} onChange={() => {}} className="sticky top-24" />
+              <FilterSidebar filters={defaultFilters} onChange={() => {}} className="sticky top-24" />
             </aside>
           )}
 
-          {/* Results */}
           <div className="flex-1">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-brand-navy">
@@ -200,5 +196,13 @@ export default async function PropertiesPage({
 
       <Footer />
     </main>
+  );
+}
+
+export default function PropertiesPage() {
+  return (
+    <Suspense>
+      <PropertiesContent />
+    </Suspense>
   );
 }

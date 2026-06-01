@@ -1,0 +1,22 @@
+Options -Indexes
+RewriteEngine On
+
+# Redirect bare root to default locale
+RewriteRule ^$ /en/ [R=302,L]
+
+# Let PHP files in /api/ pass through normally
+RewriteRule ^api/ - [L]
+
+# Serve existing files and directories directly
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# For paths without a trailing slash, redirect to add one
+# (matches Next.js trailingSlash: true output)
+RewriteCond %{REQUEST_URI} !/$
+RewriteCond %{REQUEST_FILENAME}/ -d
+RewriteRule ^(.+)$ /$1/ [R=301,L]
+
+# Custom error pages
+ErrorDocument 404 /en/404.html

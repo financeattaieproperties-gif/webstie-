@@ -1,8 +1,11 @@
-import createMiddleware from 'next-intl/middleware';
-import { routing } from './src/i18n/routing';
+import { NextRequest, NextResponse } from 'next/server';
 
-export default createMiddleware(routing);
+// Locale detection/redirect is handled by .htaccess on cPanel.
+// This middleware is a no-op passthrough; it is not executed in static export.
+export function middleware(_req: NextRequest) {
+  return NextResponse.next();
+}
 
 export const config = {
-  matcher: ['/', '/(ar|en)/:path*']
+  matcher: [],
 };
