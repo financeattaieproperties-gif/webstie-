@@ -3,8 +3,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, ShieldCheck, Globe, MessageCircle } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
-const PILLARS = [
+interface Pillar {
+  Icon: LucideIcon;
+  title: string;
+  desc: string;
+}
+
+const PILLARS: Pillar[] = [
   {
     Icon: MapPin,
     title: 'Local Expertise',

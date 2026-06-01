@@ -55,7 +55,7 @@ const CountUp = ({
 };
 
 export const StatsTicker = () => (
-  <section className="bg-brand-navy py-14">
+  <section className="bg-brand-navy py-14" aria-label="Key statistics">
     <div className="container-custom grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
       {STATS.map(({ target, decimals, suffix, label }) => (
         <div key={label}>
