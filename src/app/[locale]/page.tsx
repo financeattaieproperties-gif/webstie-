@@ -12,6 +12,8 @@ import { ProjectCard } from '../../components/ui/ProjectCard';
 import { Button } from '../../components/ui/Button';
 import { ArrowRight, Home, Building2, MessageCircle, Phone, Star } from 'lucide-react';
 
+const WHATSAPP_NUMBER = '93700123456';
+
 const FEATURED_PROPERTIES = [
   {
     id: '1',
@@ -241,16 +243,20 @@ const HomePage = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="https://wa.me/93700123456"
+              href={`https://wa.me/${WHATSAPP_NUMBER}`}
+              aria-label="Contact us via WhatsApp"
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-bold text-lg bg-[#25D366] text-white hover:bg-[#1EB85B] transition-colors shadow-lg"
             >
-              <MessageCircle size={22} /> WhatsApp Us
+              <MessageCircle size={22} aria-hidden="true" /> WhatsApp Us
             </a>
             <a
-              href="tel:+93700123456"
+              href={`tel:+${WHATSAPP_NUMBER}`}
+              aria-label="Call us at +93 700 123 456"
               className="flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-bold text-lg bg-brand-gold text-white hover:bg-brand-gold/90 transition-colors shadow-lg"
             >
-              <Phone size={22} /> +93 700 123 456
+              <Phone size={22} aria-hidden="true" /> +93 700 123 456
             </a>
           </div>
         </div>
@@ -276,9 +282,9 @@ const HomePage = () => {
                 variants={cardVariants}
                 className="bg-neutral-50 p-8 rounded-2xl border border-neutral-100"
               >
-                <div className="flex gap-1 text-brand-gold mb-6">
+                <div className="flex gap-1 text-brand-gold mb-6" aria-label="5 out of 5 stars">
                   {[...Array(5)].map((_, j) => (
-                    <Star key={j} size={18} fill="currentColor" />
+                    <Star key={j} size={18} fill="currentColor" aria-hidden="true" />
                   ))}
                 </div>
                 <p className="text-neutral-700 italic mb-8 leading-relaxed">
