@@ -18,13 +18,14 @@ export const HeroSection = () => {
 
   useEffect(() => {
     const target = PLACEHOLDERS[idx];
+    let pauseId: ReturnType<typeof setTimeout>;
     const id = setTimeout(
       () => {
         if (!deleting) {
           if (text.length < target.length) {
             setText(target.slice(0, text.length + 1));
           } else {
-            setTimeout(() => setDeleting(true), 2200);
+            pauseId = setTimeout(() => setDeleting(true), 2200);
           }
         } else {
           if (text.length > 0) {
@@ -37,7 +38,10 @@ export const HeroSection = () => {
       },
       deleting ? 45 : 80
     );
-    return () => clearTimeout(id);
+    return () => {
+      clearTimeout(id);
+      clearTimeout(pauseId);
+    };
   }, [text, deleting, idx]);
 
   return (
@@ -97,12 +101,13 @@ export const HeroSection = () => {
               <MapPin className="text-brand-gold shrink-0" size={20} />
               <input
                 type="text"
-                placeholder={text || ' '}
+                aria-label="Search location or property"
+                placeholder={text || PLACEHOLDERS[idx].slice(0, 1)}
                 className="w-full bg-transparent border-none outline-none text-brand-navy font-medium placeholder:text-neutral-400 text-base"
               />
             </div>
             <div className="w-full md:w-44 px-4 py-3 border-b md:border-b-0 md:border-r border-neutral-100 flex items-center">
-              <select className="w-full bg-transparent border-none outline-none text-brand-navy font-bold appearance-none cursor-pointer">
+              <select aria-label="Property type" className="w-full bg-transparent border-none outline-none text-brand-navy font-bold appearance-none cursor-pointer">
                 <option>Buy</option>
                 <option>Rent</option>
                 <option>Commercial</option>
