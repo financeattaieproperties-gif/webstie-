@@ -1,13 +1,18 @@
+"use client";
+
 import React from 'react';
+import { motion } from 'framer-motion';
 import { Navbar } from '../../components/layout/Navbar';
 import { Footer } from '../../components/layout/Footer';
 import { HeroSection } from '../../components/sections/HeroSection';
+import { StatsTicker } from '../../components/sections/StatsTicker';
+import { WhyAttaieSection } from '../../components/sections/WhyAttaieSection';
 import { PropertyCard } from '../../components/ui/PropertyCard';
 import { ProjectCard } from '../../components/ui/ProjectCard';
 import { Button } from '../../components/ui/Button';
-import { ArrowRight, Star, Building2, Home } from 'lucide-react';
+import { ArrowRight, Home, Building2, MessageCircle, Phone, Star } from 'lucide-react';
 
-const featuredProperties = [
+const FEATURED_PROPERTIES = [
   {
     id: '1',
     title: 'Modern Villa with Mountain Views',
@@ -49,7 +54,7 @@ const featuredProperties = [
   },
 ];
 
-const featuredProjects = [
+const FEATURED_PROJECTS = [
   {
     id: 'p1',
     name: 'Aria Residences',
@@ -78,62 +83,89 @@ const featuredProjects = [
   },
 ];
 
+const TESTIMONIALS = [
+  {
+    name: 'Ahmad Karimi',
+    role: 'Property Investor, Kabul',
+    quote:
+      'Attaie Properties helped me acquire two villas in Wazir Akbar Khan at the right price. Their market knowledge and honesty are unmatched.',
+  },
+  {
+    name: 'Fatima Ahmadi',
+    role: 'First-time Buyer, Shahr-e-Naw',
+    quote:
+      'As a first-time buyer I was nervous, but the team guided me every step. Found my perfect apartment within two weeks.',
+  },
+  {
+    name: 'Tariq Noori',
+    role: 'Business Owner, Taimani',
+    quote:
+      'Needed a commercial space quickly. They showed me three options in one day and closed the deal in a week. Highly professional.',
+  },
+];
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.1, duration: 0.5 },
+  }),
+};
+
 const HomePage = () => {
   return (
     <main className="min-h-screen">
       <Navbar />
-
       <HeroSection />
+      <StatsTicker />
 
-      {/* Stats Bar */}
-      <section className="bg-brand-navy py-12">
-        <div className="container-custom grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          <div>
-            <p className="text-4xl font-bold text-brand-gold mb-2">200+</p>
-            <p className="text-neutral-400 text-sm uppercase tracking-widest font-bold">Properties Listed</p>
-          </div>
-          <div>
-            <p className="text-4xl font-bold text-brand-gold mb-2">15+</p>
-            <p className="text-neutral-400 text-sm uppercase tracking-widest font-bold">Signature Projects</p>
-          </div>
-          <div>
-            <p className="text-4xl font-bold text-brand-gold mb-2">10+</p>
-            <p className="text-neutral-400 text-sm uppercase tracking-widest font-bold">Years in Kabul</p>
-          </div>
-          <div>
-            <p className="text-4xl font-bold text-brand-gold mb-2">4.8/5</p>
-            <p className="text-neutral-400 text-sm uppercase tracking-widest font-bold">Client Rating</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Browse by Category */}
-      <section className="section-padding bg-neutral-50">
+      {/* Featured Properties */}
+      <section className="section-padding bg-brand-ivory">
         <div className="container-custom">
-          {/* Category Tab Headers */}
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
             <div>
-              <p className="text-brand-gold text-sm font-bold uppercase tracking-widest mb-2">Browse Listings</p>
+              <p className="text-brand-gold text-sm font-bold uppercase tracking-widest mb-2">
+                Browse Listings
+              </p>
               <h2 className="text-4xl font-bold text-brand-navy">Individual Properties</h2>
-              <p className="text-neutral-500 mt-3 max-w-xl">Standalone homes, apartments and commercial spaces available for sale or rent across Kabul's top districts.</p>
+              <p className="text-neutral-500 mt-3 max-w-xl">
+                Standalone homes, apartments and commercial spaces available for sale or rent
+                across Kabul&apos;s top districts.
+              </p>
             </div>
-            <div className="flex items-center gap-4">
-              <a href="/properties?category=individual" className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-brand-navy text-white text-sm font-bold">
+            <div className="flex items-center gap-3 shrink-0">
+              <a
+                href="/properties?category=individual"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-brand-navy text-white text-sm font-bold"
+              >
                 <Home size={16} /> Individual
               </a>
-              <a href="/properties?category=projects" className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-brand-navy text-brand-navy text-sm font-bold hover:bg-brand-navy hover:text-white transition-colors">
+              <a
+                href="/properties?category=projects"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-brand-navy text-brand-navy text-sm font-bold hover:bg-brand-navy hover:text-white transition-colors"
+              >
                 <Building2 size={16} /> Projects
               </a>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredProperties.map((prop) => (
-              <PropertyCard key={prop.id} {...prop} />
+            {FEATURED_PROPERTIES.map((prop, i) => (
+              <motion.div
+                key={prop.id}
+                custom={i}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={cardVariants}
+              >
+                <PropertyCard {...prop} />
+              </motion.div>
             ))}
           </div>
 
-          <div className="mt-10 flex justify-center md:justify-start">
+          <div className="mt-10">
             <a href="/properties?category=individual">
               <Button variant="ghost" className="gap-2">
                 View All Individual Properties <ArrowRight size={18} />
@@ -143,16 +175,23 @@ const HomePage = () => {
         </div>
       </section>
 
+      <WhyAttaieSection />
+
       {/* Signature Projects */}
       <section className="section-padding bg-brand-ivory">
         <div className="container-custom">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
             <div>
-              <p className="text-brand-gold text-sm font-bold uppercase tracking-widest mb-2">Developments</p>
+              <p className="text-brand-gold text-sm font-bold uppercase tracking-widest mb-2">
+                Developments
+              </p>
               <h2 className="text-4xl font-bold text-brand-navy">Signature Projects</h2>
-              <p className="text-neutral-500 mt-3 max-w-xl">Multi-unit residential developments offering off-plan and ready units across Kabul's growth corridors.</p>
+              <p className="text-neutral-500 mt-3 max-w-xl">
+                Multi-unit residential developments offering off-plan and ready units across
+                Kabul&apos;s growth corridors.
+              </p>
             </div>
-            <a href="/properties?category=projects">
+            <a href="/properties?category=projects" className="shrink-0">
               <Button variant="ghost" className="hidden md:flex gap-2">
                 View All Projects <ArrowRight size={18} />
               </Button>
@@ -160,8 +199,17 @@ const HomePage = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredProjects.map((proj) => (
-              <ProjectCard key={proj.id} {...proj} />
+            {FEATURED_PROJECTS.map((proj, i) => (
+              <motion.div
+                key={proj.id}
+                custom={i}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={cardVariants}
+              >
+                <ProjectCard {...proj} />
+              </motion.div>
             ))}
           </div>
 
@@ -175,66 +223,69 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* CTA Banner */}
-      <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <img
-            src="https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=1920&q=80"
-            alt="Kabul"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-brand-navy/85"></div>
-        </div>
-
+      {/* CTA Strip */}
+      <section className="py-24 bg-brand-navy relative overflow-hidden">
+        <div className="absolute inset-0 islamic-pattern" />
         <div className="container-custom relative z-10 text-center text-white">
-          <h2 className="text-4xl md:text-5xl font-bold mb-8">Ready to Find Your Home in Kabul?</h2>
-          <p className="text-xl mb-12 max-w-2xl mx-auto opacity-90">
-            Our local experts know every district in Kabul. Whether buying, renting, or investing — we'll find the right property for you.
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-4xl md:text-5xl font-bold mb-6"
+          >
+            Ready to Find Your Property in Kabul?
+          </motion.h2>
+          <p className="text-xl mb-12 max-w-2xl mx-auto text-neutral-300 leading-relaxed">
+            Our local experts know every district. Whether buying, renting, or investing —
+            we&apos;ll find the right property for you.
           </p>
-          <div className="flex flex-col md:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-brand-gold text-white hover:bg-brand-gold/90 shadow-xl">
-              Contact an Agent
-            </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-brand-navy">
-              WhatsApp Us Now
-            </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="https://wa.me/93700123456"
+              className="flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-bold text-lg bg-[#25D366] text-white hover:bg-[#1EB85B] transition-colors shadow-lg"
+            >
+              <MessageCircle size={22} /> WhatsApp Us
+            </a>
+            <a
+              href="tel:+93700123456"
+              className="flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-bold text-lg bg-brand-gold text-white hover:bg-brand-gold/90 transition-colors shadow-lg"
+            >
+              <Phone size={22} /> +93 700 123 456
+            </a>
           </div>
         </div>
       </section>
 
       {/* Testimonials */}
-      <section className="section-padding bg-neutral-50">
+      <section className="section-padding bg-white">
         <div className="container-custom">
           <div className="text-center mb-16">
-            <p className="text-brand-gold text-sm font-bold uppercase tracking-widest mb-2">Client Stories</p>
+            <p className="text-brand-gold text-sm font-bold uppercase tracking-widest mb-2">
+              Client Stories
+            </p>
             <h2 className="text-4xl font-bold text-brand-navy">What Our Clients Say</h2>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                name: 'Ahmad Karimi',
-                role: 'Property Investor, Kabul',
-                quote: 'Attaie Properties helped me acquire two villas in Wazir Akbar Khan at the right price. Their market knowledge and honesty are unmatched.'
-              },
-              {
-                name: 'Fatima Ahmadi',
-                role: 'First-time Buyer, Shahr-e-Naw',
-                quote: 'As a first-time buyer I was nervous, but the team guided me every step of the way. Found my perfect apartment within two weeks.'
-              },
-              {
-                name: 'Tariq Noori',
-                role: 'Business Owner, Taimani',
-                quote: 'Needed a commercial space quickly. They showed me three options in one day and closed the deal in a week. Highly professional.'
-              }
-            ].map((t, i) => (
-              <div key={i} className="bg-white p-8 rounded-card shadow-sm border border-neutral-100">
+            {TESTIMONIALS.map((t, i) => (
+              <motion.div
+                key={t.name}
+                custom={i}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={cardVariants}
+                className="bg-neutral-50 p-8 rounded-2xl border border-neutral-100"
+              >
                 <div className="flex gap-1 text-brand-gold mb-6">
-                  {[...Array(5)].map((_, j) => <Star key={j} size={18} fill="currentColor" />)}
+                  {[...Array(5)].map((_, j) => (
+                    <Star key={j} size={18} fill="currentColor" />
+                  ))}
                 </div>
-                <p className="text-neutral-700 italic mb-8 leading-relaxed">"{t.quote}"</p>
+                <p className="text-neutral-700 italic mb-8 leading-relaxed">
+                  &ldquo;{t.quote}&rdquo;
+                </p>
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-brand-gold/20 rounded-full flex items-center justify-center text-brand-gold font-bold text-lg">
+                  <div className="w-12 h-12 bg-brand-gold/15 rounded-full flex items-center justify-center text-brand-gold font-bold text-lg">
                     {t.name[0]}
                   </div>
                   <div>
@@ -242,7 +293,7 @@ const HomePage = () => {
                     <p className="text-sm text-neutral-500">{t.role}</p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
