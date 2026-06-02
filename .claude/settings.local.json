@@ -42,7 +42,10 @@
       "Bash(git stash *)",
       "Bash(FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch --index-filter \"git rm -r --cached --ignore-unmatch node_modules/ .next/ tsconfig.tsbuildinfo\" --prune-empty HEAD)",
       "Bash(dir /b)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(powershell -Command \"Compress-Archive -Path 'out\\\\*' -DestinationPath 'attaie-deploy.zip' -Force\")",
+      "Bash(powershell -Command \"\\(Get-Item attaie-deploy.zip\\).Length / 1MB\")",
+      "Bash(xargs printf \"%.2f MB\\\\n\")"
     ]
   }
 }
