@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Navbar } from '../../../components/layout/Navbar';
 import { Footer } from '../../../components/layout/Footer';
@@ -8,90 +8,10 @@ import { SearchBar } from '../../../components/forms/SearchBar';
 import { FilterSidebar, FilterState } from '../../../components/property/FilterSidebar';
 import { PropertyCard } from '../../../components/ui/PropertyCard';
 import { ProjectCard } from '../../../components/ui/ProjectCard';
+import { PropertyCardSkeleton } from '../../../components/ui/PropertyCardSkeleton';
+import { getProperties, getProjects, type Property, type Project } from '../../../lib/dbService';
 
-const individualProperties = [
-  {
-    id: '1', title: 'Modern Villa with Mountain Views', price: 450000,
-    location: 'Wazir Akbar Khan, Kabul', beds: 6, baths: 5, area: 380,
-    status: 'available' as const, type: 'Villa', listingType: 'sale' as const,
-    image: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: '2', title: 'Luxury Apartment in City Centre', price: 1200,
-    location: 'Shahr-e-Naw, Kabul', beds: 3, baths: 2, area: 175,
-    status: 'available' as const, type: 'Apartment', listingType: 'rent' as const,
-    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: '3', title: 'Executive Villa with Private Garden', price: 320000,
-    location: 'Karte Seh, Kabul', beds: 5, baths: 4, area: 310,
-    status: 'available' as const, type: 'Villa', listingType: 'sale' as const,
-    image: 'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: '4', title: 'Furnished Apartment Near Ministries', price: 800,
-    location: 'Taimani, Kabul', beds: 2, baths: 1, area: 120,
-    status: 'available' as const, type: 'Apartment', listingType: 'rent' as const,
-    image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: '5', title: 'Spacious Family House', price: 280000,
-    location: 'Karte Char, Kabul', beds: 4, baths: 3, area: 260,
-    status: 'available' as const, type: 'House', listingType: 'sale' as const,
-    image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: '6', title: 'Premium Office Space', price: 3500,
-    location: 'Shahr-e-Naw, Kabul', area: 250,
-    status: 'available' as const, type: 'Commercial', listingType: 'rent' as const,
-    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: '7', title: 'Corner Villa — Quiet Street', price: 195000,
-    location: 'Karte Parwan, Kabul', beds: 4, baths: 3, area: 240,
-    status: 'pending' as const, type: 'Villa', listingType: 'sale' as const,
-    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: '8', title: 'Studio Apartment — New Build', price: 450,
-    location: 'Macroyan, Kabul', beds: 1, baths: 1, area: 55,
-    status: 'available' as const, type: 'Apartment', listingType: 'rent' as const,
-    image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80',
-  },
-];
-
-const projectListings = [
-  {
-    id: 'p1', name: 'Aria Residences', location: 'Macroyan, Kabul',
-    deliveryDate: 'Q2 2027', status: 'Under Construction' as const, availableUnits: 32,
-    image: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'p2', name: 'Kabul Heights', location: 'Karte Parwan, Kabul',
-    status: 'Ready' as const, availableUnits: 12,
-    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'p3', name: 'Green Valley Villas', location: 'Qala-e-Fatullah, Kabul',
-    deliveryDate: 'Q4 2027', status: 'Under Construction' as const, availableUnits: 8,
-    image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'p4', name: 'Taimani Business Tower', location: 'Taimani, Kabul',
-    deliveryDate: 'Q1 2026', status: 'Under Construction' as const, availableUnits: 18,
-    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'p5', name: 'Shahr-e-Naw Luxury Flats', location: 'Shahr-e-Naw, Kabul',
-    status: 'Ready' as const, availableUnits: 6,
-    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'p6', name: 'Paghman Garden Estates', location: 'Paghman, Kabul',
-    deliveryDate: 'Q3 2027', status: 'Under Construction' as const, availableUnits: 24,
-    image: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80',
-  },
-];
+const FALLBACK_IMG = 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80';
 
 const defaultFilters: FilterState = {
   purpose: 'buy',
@@ -102,7 +22,7 @@ const defaultFilters: FilterState = {
   maxArea: 1000,
   beds: [],
   baths: [],
-  status: []
+  status: [],
 };
 
 function PropertiesContent() {
@@ -110,11 +30,28 @@ function PropertiesContent() {
   const category = searchParams.get('category') || 'individual';
   const isProjects = category === 'projects';
 
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [projects, setProjects]     = useState<Project[]>([]);
+  const [loading, setLoading]       = useState(true);
+  const [error, setError]           = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    const fetcher = isProjects ? getProjects() : getProperties();
+    fetcher
+      .then((data) => {
+        if (isProjects) setProjects(data as Project[]);
+        else setProperties(data as Property[]);
+      })
+      .catch(() => setError('Failed to load. Please try again.'))
+      .finally(() => setLoading(false));
+  }, [isProjects]);
+
   return (
     <main className="min-h-screen bg-neutral-50 flex flex-col">
       <Navbar />
 
-      {/* Page Header */}
       <div className="bg-brand-navy pt-32 pb-12">
         <div className="container-custom">
           <div className="mb-8">
@@ -127,7 +64,6 @@ function PropertiesContent() {
         </div>
       </div>
 
-      {/* Category Tabs */}
       <div className="bg-white border-b border-neutral-200 sticky top-0 z-40">
         <div className="container-custom flex gap-1 py-2">
           <a
@@ -145,7 +81,6 @@ function PropertiesContent() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="container-custom py-12 flex-grow">
         <div className="flex flex-col lg:flex-row gap-8">
           {!isProjects && (
@@ -155,41 +90,59 @@ function PropertiesContent() {
           )}
 
           <div className="flex-1">
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">{error}</div>
+            )}
+
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-brand-navy">
-                {isProjects
-                  ? `${projectListings.length} Projects Available`
-                  : `${individualProperties.length} Properties Found`}
+                {loading
+                  ? 'Loading…'
+                  : isProjects
+                  ? `${projects.length} Projects Available`
+                  : `${properties.length} Properties Found`}
               </h2>
-              {!isProjects && (
-                <select className="px-4 py-2 border border-neutral-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-gold">
-                  <option>Newest First</option>
-                  <option>Price: Low to High</option>
-                  <option>Price: High to Low</option>
-                  <option>Area: Largest First</option>
-                </select>
-              )}
             </div>
 
-            {isProjects ? (
+            {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {projectListings.map((proj) => (
-                  <ProjectCard key={proj.id} {...proj} />
+                {Array.from({ length: 6 }).map((_, i) => <PropertyCardSkeleton key={i} />)}
+              </div>
+            ) : isProjects ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {projects.map((proj) => (
+                  <ProjectCard
+                    key={proj.id}
+                    id={String(proj.id)}
+                    name={proj.name}
+                    location={proj.location}
+                    deliveryDate={proj.delivery_date ?? undefined}
+                    status={proj.status}
+                    availableUnits={proj.available_units}
+                    image={proj.image_url ?? FALLBACK_IMG}
+                  />
                 ))}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {individualProperties.map((prop) => (
-                  <PropertyCard key={prop.id} {...prop} />
+                {properties.map((prop) => (
+                  <PropertyCard
+                    key={prop.id}
+                    id={String(prop.id)}
+                    title={prop.title}
+                    price={prop.price}
+                    location={prop.location}
+                    beds={prop.beds ?? undefined}
+                    baths={prop.baths ?? undefined}
+                    area={prop.area ?? undefined}
+                    status={prop.status}
+                    type={prop.type}
+                    listingType={prop.listing_type}
+                    image={prop.image_url ?? FALLBACK_IMG}
+                  />
                 ))}
               </div>
             )}
-
-            <div className="mt-12 text-center">
-              <button className="px-8 py-3 border border-brand-gold text-brand-gold font-bold rounded-lg hover:bg-brand-gold hover:text-white transition-colors">
-                Load More
-              </button>
-            </div>
           </div>
         </div>
       </div>

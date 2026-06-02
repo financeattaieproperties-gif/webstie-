@@ -4,3 +4,5 @@ out/
 .env.local
 .env*.local
 *.tsbuildinfo
+public/api/db.php
+admin-panel/node_modules/

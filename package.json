@@ -9,6 +9,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:admin": "cd admin-panel && npm install && npm run build",
+    "build:all": "npm run build:admin && next build",
     "start": "next start",
     "lint": "next lint"
   },

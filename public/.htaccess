@@ -4,6 +4,17 @@ RewriteEngine On
 # Redirect bare root to default locale
 RewriteRule ^$ /en/ [R=302,L]
 
+# Admin SPA — serve index.html for all /admin/* paths (React Router handles client-side)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^admin/(.*)$ /admin/index.html [L]
+
+# Property detail — serve the placeholder shell for any property ID not pre-generated
+# The client component reads the real ID via useParams() from the URL
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(en|ar)/properties/([^/]+)/?$ /$1/properties/1/index.html [L]
+
 # Let PHP files in /api/ pass through normally
 RewriteRule ^api/ - [L]
 
