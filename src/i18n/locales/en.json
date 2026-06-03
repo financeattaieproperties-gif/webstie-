@@ -1,0 +1,38 @@
+{
+  "nav": {
+    "home": "Home",
+    "properties": "Properties",
+    "projects": "Projects",
+    "about": "About",
+    "contact": "Contact",
+    "enquire": "Enquire Now",
+    "langToggle": "فارسی"
+  },
+  "search": {
+    "placeholder": "Search by location or project...",
+    "buy": "Buy",
+    "rent": "Rent",
+    "commercial": "Commercial",
+    "button": "Search"
+  },
+  "properties": {
+    "title": "Browse Properties",
+    "subtitle": "Kabul, Afghanistan",
+    "individual": "Individual Properties",
+    "projects": "Projects",
+    "found": "{{count}} Properties Found",
+    "available": "{{count}} Projects Available",
+    "loading": "Loading…",
+    "error": "Failed to load. Please try again."
+  },
+  "footer": {
+    "tagline": "Kabul's trusted real estate partner. We connect buyers, renters, and investors with premium properties and signature projects across Afghanistan's capital.",
+    "quickLinks": "Quick Links",
+    "propertiesSection": "Properties",
+    "contactUs": "Contact Us",
+    "rights": "© 2026 ATTAIE PROPERTIES. All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "langToggle": "فارسی"
+  }
+}
