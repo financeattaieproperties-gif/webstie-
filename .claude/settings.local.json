@@ -45,7 +45,15 @@
       "Bash(npm install *)",
       "Bash(powershell -Command \"Compress-Archive -Path 'out\\\\*' -DestinationPath 'attaie-deploy.zip' -Force\")",
       "Bash(powershell -Command \"\\(Get-Item attaie-deploy.zip\\).Length / 1MB\")",
-      "Bash(xargs printf \"%.2f MB\\\\n\")"
+      "Bash(xargs printf \"%.2f MB\\\\n\")",
+      "Bash(npm ls *)",
+      "Bash(sed -n '/\"scripts\":/,/^  }/p')",
+      "Bash(sed -n '/\"scripts\":/,/^  }/p' package.json)",
+      "Bash(node *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\projects\\\\ATTAIE-PROPERTIES-WEBSITE\" -Force)",
+      "Bash(Select-Object Name, FullName)",
+      "PowerShell(New-Item *)",
+      "PowerShell(if \\(-not \\(Test-Path \"C:\\\\projects\\\\ATTAIE-PROPERTIES-WEBSITE\\\\public\"\\)\\) { New-Item -ItemType Directory -Path \"C:\\\\projects\\\\ATTAIE-PROPERTIES-WEBSITE\\\\public\" } else { Write-Output \"public folder already exists\" })"
     ]
   }
 }
