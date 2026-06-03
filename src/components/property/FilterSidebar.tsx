@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/Button';
 
 export interface FilterState {
@@ -21,7 +21,7 @@ interface FilterSidebarProps {
 }
 
 export const FilterSidebar = ({ filters, onChange, className }: FilterSidebarProps) => {
-  const t = useTranslations('filters');
+  const { t } = useTranslation();
 
   const updateFilter = <K extends keyof FilterState>(key: K, value: FilterState[K]) => {
     onChange({ ...filters, [key]: value });
