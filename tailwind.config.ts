@@ -2,9 +2,8 @@ import type { Config } from 'tailwindcss';
 
 const config: Config = {
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './index.html',
+    './src/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {
@@ -34,29 +33,22 @@ const config: Config = {
         sans: ['var(--font-inter)', 'sans-serif'],
         arabic: ['var(--font-tajawal)', 'sans-serif'],
       },
-      maxWidth: {
-        'container': '1280px',
-      },
-      spacing: {
-        'section-ds': '96px',
-        'section-tb': '64px',
-        'section-mb': '48px',
-      },
+      maxWidth: { container: '1280px' },
       borderRadius: {
-        'btn': '8px',
-        'card': '16px',
-        'modal': '20px',
-        'input': '10px',
-        'img': '12px',
+        btn: '8px',
+        card: '16px',
+        modal: '20px',
+        input: '10px',
+        img: '12px',
       },
       boxShadow: {
-        'sm': '0 1px 3px rgba(0,0,0,0.08)',
-        'md': '0 4px 16px rgba(0,0,0,0.10)',
-        'lg': '0 8px 32px rgba(0,0,0,0.14)',
-        'gold': '0 4px 20px rgba(184,148,74,0.25)',
+        sm: '0 1px 3px rgba(0,0,0,0.08)',
+        md: '0 4px 16px rgba(0,0,0,0.10)',
+        lg: '0 8px 32px rgba(0,0,0,0.14)',
+        gold: '0 4px 20px rgba(184,148,74,0.25)',
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [],
 };
 export default config;
