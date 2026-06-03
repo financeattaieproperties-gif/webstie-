@@ -1,4 +1,4 @@
-const API = process.env.NEXT_PUBLIC_API_URL || '/api';
+const API = (import.meta.env.VITE_API_URL as string) || '/api';
 
 export interface Property {
   id: number;
