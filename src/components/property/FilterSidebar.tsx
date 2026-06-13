@@ -36,10 +36,13 @@ export const FilterSidebar = ({ filters, onChange, className }: FilterSidebarPro
   };
 
   return (
-    <div className={`bg-white rounded-xl shadow-sm border border-neutral-300 p-6 ${className || ''}`}>
-      <div className="flex justify-between items-center mb-6 border-b border-neutral-100 pb-4">
-        <h3 className="font-bold text-lg text-brand-navy">Filters</h3>
-        <button 
+    <div className={`bg-white rounded-2xl shadow-sm border border-neutral-200 p-6 ${className || ''}`}>
+      <div className="flex justify-between items-center mb-6 pb-4 border-b border-brand-gold/15">
+        <div className="flex items-center gap-3">
+          <div className="w-1 h-5 bg-brand-gold rounded-full" />
+          <h3 className="font-bold text-brand-navy text-base uppercase tracking-wide">Filters</h3>
+        </div>
+        <button
           onClick={() => onChange({
             purpose: 'buy', type: [], minPrice: 0, maxPrice: 2000000, minArea: 0, maxArea: 1000, beds: [], baths: [], status: []
           })}
@@ -52,13 +55,13 @@ export const FilterSidebar = ({ filters, onChange, className }: FilterSidebarPro
       <div className="space-y-6">
         {/* Purpose */}
         <div>
-          <h4 className="font-semibold mb-3 text-sm">{t('purpose')}</h4>
+          <h4 className="uppercase tracking-wide text-xs font-bold text-neutral-500 mb-3">{t('purpose')}</h4>
           <div className="flex bg-neutral-100 rounded-lg p-1">
             {(['buy', 'rent', 'commercial'] as const).map(p => (
               <button
                 key={p}
                 onClick={() => updateFilter('purpose', p)}
-                className={`flex-1 py-1.5 text-sm font-medium rounded-md capitalize ${filters.purpose === p ? 'bg-white text-brand-gold shadow-sm' : 'text-neutral-500'}`}
+                className={`flex-1 py-1.5 text-sm font-medium rounded-md capitalize ${filters.purpose === p ? 'bg-white text-brand-navy shadow-sm' : 'text-neutral-500'}`}
               >
                 {p}
               </button>
@@ -68,7 +71,7 @@ export const FilterSidebar = ({ filters, onChange, className }: FilterSidebarPro
 
         {/* Type */}
         <div>
-          <h4 className="font-semibold mb-3 text-sm">{t('type')}</h4>
+          <h4 className="uppercase tracking-wide text-xs font-bold text-neutral-500 mb-3">{t('type')}</h4>
           <div className="space-y-2">
             {['Apartment', 'Villa', 'House', 'Townhouse', 'Commercial', 'Land'].map(type => (
               <label key={type} className="flex items-center gap-2 cursor-pointer">
@@ -86,13 +89,13 @@ export const FilterSidebar = ({ filters, onChange, className }: FilterSidebarPro
 
         {/* Beds */}
         <div>
-          <h4 className="font-semibold mb-3 text-sm">{t('beds')}</h4>
+          <h4 className="uppercase tracking-wide text-xs font-bold text-neutral-500 mb-3">{t('beds')}</h4>
           <div className="flex flex-wrap gap-2">
             {['Studio', '1', '2', '3', '4', '5+'].map(bed => (
               <button
                 key={bed}
                 onClick={() => handleArrayToggle('beds', bed)}
-                className={`px-3 py-1.5 text-sm rounded-md border ${filters.beds.includes(bed) ? 'bg-brand-gold text-white border-brand-gold' : 'bg-white text-neutral-700 border-neutral-300 hover:border-brand-gold'}`}
+                className={`px-3 py-1.5 text-sm rounded-md border ${filters.beds.includes(bed) ? 'bg-brand-navy text-white border-brand-navy' : 'bg-white text-neutral-700 border-neutral-300 hover:border-brand-gold'}`}
               >
                 {bed}
               </button>
@@ -100,7 +103,6 @@ export const FilterSidebar = ({ filters, onChange, className }: FilterSidebarPro
           </div>
         </div>
 
-        <Button className="w-full mt-4">Apply Filters</Button>
       </div>
     </div>
   );
