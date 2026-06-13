@@ -5,7 +5,7 @@ import { Footer } from '../components/layout/Footer';
 import { InquiryForm } from '../components/forms/InquiryForm';
 import { Badge } from '../components/ui/Badge';
 import { Skeleton } from '../components/ui/Skeleton';
-import { MapPin, Bed, Bath, Maximize2, Building } from 'lucide-react';
+import { MapPin, Bed, Bath, Maximize2, Building, ArrowLeft } from 'lucide-react';
 import { getProperty, type Property } from '../lib/dbService';
 
 export default function PropertyDetailPage() {
@@ -29,20 +29,41 @@ export default function PropertyDetailPage() {
       <Navbar />
 
       {loading ? (
-        <div className="w-full h-[50vh] md:h-[70vh] bg-neutral-200 mt-20 animate-pulse" />
-      ) : property?.image_url ? (
-        <div className="w-full h-[50vh] md:h-[70vh] relative bg-neutral-900 mt-20">
-          <img
-            src={property.image_url}
-            alt={property.title}
-            className="w-full h-full object-cover opacity-80"
-          />
-        </div>
+        <div className="w-full h-[60vh] min-h-[420px] bg-neutral-200 mt-20 animate-pulse" />
       ) : (
-        <div className="w-full h-[50vh] md:h-[70vh] bg-neutral-200 mt-20" />
+        <div className="relative w-full h-[60vh] min-h-[420px] overflow-hidden mt-20">
+          {property?.image_url ? (
+            <img
+              src={property.image_url}
+              alt={property?.title ?? ''}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-neutral-200" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-brand-navy/80 via-brand-navy/30 to-transparent" />
+          <div className="absolute inset-0 islamic-pattern opacity-20" />
+          {/* Breadcrumb overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
+            <div className="container-custom">
+              <a
+                href="/properties"
+                className="inline-flex items-center gap-2 text-white/80 hover:text-brand-gold transition-colors text-sm font-medium"
+              >
+                <ArrowLeft size={16} />
+                Back to Properties
+              </a>
+              {property && (
+                <h1 className="text-3xl md:text-5xl font-display font-bold text-white mt-3 drop-shadow-md">
+                  {property.title}
+                </h1>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
-      <div className="container-custom py-12 flex-grow">
+      <div className="container-custom pt-8 pb-16 flex-grow">
         {error && (
           <div className="p-6 bg-red-50 border border-red-200 rounded-lg text-red-700">{error}</div>
         )}
@@ -73,42 +94,43 @@ export default function PropertyDetailPage() {
                   : `$${property.price.toLocaleString()}`}
               </p>
 
-              <div className="flex flex-wrap gap-6 py-6 border-y border-neutral-200 mb-8">
+              <div className="flex flex-wrap gap-3 py-6 border-y border-neutral-200 mb-8">
                 {property.beds != null && (
-                  <div className="flex items-center gap-2 text-neutral-700">
-                    <Bed size={24} className="text-brand-gold" />
+                  <div className="flex items-center gap-2 text-neutral-700 bg-brand-ivory px-4 py-2 rounded-xl">
+                    <Bed size={20} className="text-brand-gold" />
                     <span className="font-bold">{property.beds}</span> Beds
                   </div>
                 )}
                 {property.baths != null && (
-                  <div className="flex items-center gap-2 text-neutral-700">
-                    <Bath size={24} className="text-brand-gold" />
+                  <div className="flex items-center gap-2 text-neutral-700 bg-brand-ivory px-4 py-2 rounded-xl">
+                    <Bath size={20} className="text-brand-gold" />
                     <span className="font-bold">{property.baths}</span> Baths
                   </div>
                 )}
                 {property.area != null && (
-                  <div className="flex items-center gap-2 text-neutral-700">
-                    <Maximize2 size={24} className="text-brand-gold" />
+                  <div className="flex items-center gap-2 text-neutral-700 bg-brand-ivory px-4 py-2 rounded-xl">
+                    <Maximize2 size={20} className="text-brand-gold" />
                     <span className="font-bold">{property.area}</span> m²
                   </div>
                 )}
                 {property.floor != null && (
-                  <div className="flex items-center gap-2 text-neutral-700">
-                    <Building size={24} className="text-brand-gold" />
+                  <div className="flex items-center gap-2 text-neutral-700 bg-brand-ivory px-4 py-2 rounded-xl">
+                    <Building size={20} className="text-brand-gold" />
                     Floor <span className="font-bold ml-1">{property.floor}</span>
                   </div>
                 )}
-                <div className="flex items-center gap-2 text-neutral-700">
-                  <MapPin size={24} className="text-brand-gold" />
+                <div className="flex items-center gap-2 text-neutral-700 bg-brand-ivory px-4 py-2 rounded-xl">
+                  <MapPin size={20} className="text-brand-gold" />
                   <span className="font-bold">{property.location}</span>
                 </div>
               </div>
 
               {property.description && (
-                <div className="bg-white p-8 rounded-xl shadow-sm border border-neutral-200">
-                  <h2 className="text-2xl font-bold text-brand-navy mb-4 border-b border-neutral-100 pb-4">
-                    Description
-                  </h2>
+                <div className="bg-white p-8 rounded-2xl shadow-sm border border-brand-gold/10">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-1 h-5 bg-brand-gold rounded-full" />
+                    <h2 className="text-xl font-bold text-brand-navy">Description</h2>
+                  </div>
                   <p className="text-neutral-600 leading-relaxed text-lg">{property.description}</p>
                 </div>
               )}
