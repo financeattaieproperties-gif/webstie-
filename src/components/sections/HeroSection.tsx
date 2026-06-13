@@ -1,8 +1,6 @@
-"use client";
-
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Search, MapPin } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, MapPin, ChevronDown } from 'lucide-react';
 import { Button } from '../ui/Button';
 
 const PLACEHOLDERS = [
@@ -45,45 +43,53 @@ export const HeroSection = () => {
   }, [text, deleting, idx]);
 
   return (
-    <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
-      {/* Background layers: photo → navy overlay → geometric pattern */}
+    <section className="relative w-full min-h-screen flex flex-col justify-center overflow-hidden">
+
+      {/* Background photo */}
       <div className="absolute inset-0 z-0">
         <img
-          src="https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=1920&q=80"
-          alt="Kabul"
+          src="https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=1800&q=80"
+          alt=""
+          aria-hidden="true"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-brand-navy/65" />
+        {/* Navy gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-brand-navy/80 via-brand-navy/70 to-brand-navy/85" />
+        {/* Islamic pattern */}
         <div className="absolute inset-0 islamic-pattern" />
       </div>
 
       {/* Content */}
-      <div className="container-custom relative z-10 text-center text-white">
+      <div className="relative z-10 flex flex-col items-center text-center px-6 pt-28 pb-32">
+
         <motion.p
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-brand-gold text-sm font-bold uppercase tracking-[0.2em] mb-5"
+          className="text-brand-gold text-xs font-bold uppercase tracking-[0.3em] mb-6 flex items-center gap-3"
         >
+          <span className="inline-block w-10 h-[1px] bg-brand-gold/60" />
           Kabul&apos;s Premier Real Estate
+          <span className="inline-block w-10 h-[1px] bg-brand-gold/60" />
         </motion.p>
 
         <motion.h1
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-5xl md:text-7xl font-bold mb-6 leading-tight"
+          transition={{ duration: 0.7, delay: 0.1 }}
+          className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 leading-[1.05] max-w-4xl"
         >
-          Find Your Home
-          <br />
-          <span className="text-brand-gold">in Kabul</span>
+          Find Your Home{' '}
+          <span className="text-brand-gold italic font-display block md:inline">
+            in Kabul
+          </span>
         </motion.h1>
 
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-xl md:text-2xl mb-12 max-w-2xl mx-auto text-neutral-200 leading-relaxed"
+          transition={{ duration: 0.6, delay: 0.25 }}
+          className="text-lg text-neutral-300 mb-10 max-w-xl leading-relaxed"
         >
           Browse premium homes, apartments &amp; commercial spaces across
           Kabul&apos;s finest neighbourhoods — for sale and for rent.
@@ -91,45 +97,68 @@ export const HeroSection = () => {
 
         {/* Search bar */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.35 }}
-          className="max-w-3xl mx-auto"
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="w-full max-w-2xl"
         >
-          <div className="bg-white rounded-2xl p-2 flex flex-col md:flex-row items-stretch gap-2 shadow-2xl">
-            <div className="flex-1 flex items-center gap-3 px-4 py-3 border-b md:border-b-0 md:border-r border-neutral-100">
-              <MapPin className="text-brand-gold shrink-0" size={20} />
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2 flex flex-col sm:flex-row items-stretch gap-2 border border-white/20 shadow-2xl">
+            <div className="flex-1 flex items-center gap-3 px-4 py-3 border-b sm:border-b-0 sm:border-r border-white/15">
+              <MapPin className="text-brand-gold shrink-0" size={18} />
               <input
                 type="text"
                 aria-label="Search location or property"
                 placeholder={text || PLACEHOLDERS[idx].slice(0, 1)}
-                className="w-full bg-transparent border-none outline-none text-brand-navy font-medium placeholder:text-neutral-400 text-base"
+                className="w-full bg-transparent border-none outline-none text-white font-medium placeholder:text-white/50 text-sm"
               />
             </div>
-            <div className="w-full md:w-44 px-4 py-3 border-b md:border-b-0 md:border-r border-neutral-100 flex items-center">
-              <select aria-label="Property type" className="w-full bg-transparent border-none outline-none text-brand-navy font-bold appearance-none cursor-pointer">
-                <option>Buy</option>
-                <option>Rent</option>
-                <option>Commercial</option>
+            <div className="w-full sm:w-36 px-4 py-3 border-b sm:border-b-0 sm:border-r border-white/15 flex items-center">
+              <select
+                aria-label="Property type"
+                className="w-full bg-transparent border-none outline-none text-white font-bold appearance-none cursor-pointer text-sm"
+              >
+                <option className="text-brand-navy">Buy</option>
+                <option className="text-brand-navy">Rent</option>
+                <option className="text-brand-navy">Commercial</option>
               </select>
             </div>
-            <Button className="w-full md:w-auto px-8 gap-2 rounded-xl">
-              <Search size={18} /> Search
+            <Button className="w-full sm:w-auto px-6 gap-2 rounded-xl text-sm">
+              <Search size={16} /> Search
             </Button>
           </div>
         </motion.div>
+
+        {/* Trust badges */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7, duration: 0.5 }}
+          className="flex flex-wrap justify-center gap-8 mt-12"
+        >
+          {[['200+', 'Properties'], ['15+', 'Projects'], ['10+', 'Years']].map(([val, lbl]) => (
+            <div key={lbl} className="flex flex-col items-center gap-1">
+              <span className="text-3xl font-bold text-brand-gold">{val}</span>
+              <span className="text-xs text-white/60 font-medium uppercase tracking-widest">{lbl}</span>
+            </div>
+          ))}
+        </motion.div>
       </div>
 
-      {/* Scroll cue */}
+      {/* Scroll chevron */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.7, duration: 0.5 }}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce"
+        transition={{ delay: 1, duration: 0.6 }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
       >
-        <div className="w-6 h-10 rounded-full border-2 border-white/30 flex justify-center pt-2">
-          <div className="w-1 h-2 bg-white/70 rounded-full" />
-        </div>
+        <motion.div
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+          className="flex flex-col items-center gap-1 text-white/40"
+        >
+          <span className="text-[10px] uppercase tracking-[0.2em] font-medium">Scroll</span>
+          <ChevronDown size={20} />
+        </motion.div>
       </motion.div>
     </section>
   );

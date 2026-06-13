@@ -10,7 +10,7 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    const handleScroll = () => setIsScrolled(window.scrollY > 60);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -24,82 +24,88 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-white shadow-md py-3' : 'bg-transparent py-5'
+      className={`fixed top-0 w-full z-50 transition-all duration-500 ${
+        isScrolled
+          ? 'bg-brand-navy/95 backdrop-blur-md shadow-lg shadow-black/20 py-3'
+          : 'bg-transparent py-5'
       }`}
     >
       <div className="container-custom flex justify-between items-center">
+        {/* Logo */}
         <div className="flex items-center">
-          <a href="/" className={`text-2xl font-display font-bold ${isScrolled ? 'text-brand-navy' : 'text-white'}`}>
+          <a href="/" className="text-2xl font-display font-bold text-white">
             ATTAIE <span className="text-brand-gold">PROPERTIES</span>
           </a>
         </div>
 
+        {/* Desktop nav links */}
         <div className="hidden lg:flex items-center gap-8">
           {navLinks.map((link) => (
             <a
               key={link.name}
               href={link.href}
-              className={`font-medium transition-colors hover:text-brand-gold ${
-                isScrolled ? 'text-brand-navy' : 'text-white'
-              }`}
+              className="font-medium text-white/75 transition-colors hover:text-brand-gold text-sm tracking-wide"
             >
               {link.name}
             </a>
           ))}
         </div>
 
+        {/* Desktop actions */}
         <div className="hidden lg:flex items-center gap-4">
-          <div className={`flex items-center gap-2 ${isScrolled ? 'text-brand-navy' : 'text-white'}`}>
-            <Phone size={18} />
-            <span className="font-bold">+93 700 123 456</span>
+          <div className="flex items-center gap-2 text-white">
+            <Phone size={16} className="text-brand-gold" />
+            <span className="font-bold text-sm">+93 700 123 456</span>
           </div>
-          <div className="h-6 w-[1px] bg-neutral-300" />
+          <div className="h-4 w-[1px] bg-white/20" />
           <button
             onClick={toggleLanguage}
-            className={`flex items-center gap-1.5 p-2 text-sm font-medium transition-colors hover:text-brand-gold ${isScrolled ? 'text-brand-navy' : 'text-white'}`}
+            className="flex items-center gap-1.5 p-2 text-sm font-medium text-white/70 transition-colors hover:text-brand-gold"
             aria-label="Switch language"
           >
-            <Globe size={18} />
+            <Globe size={16} />
             {t('nav.langToggle')}
           </button>
-          <Button variant={isScrolled ? 'primary' : 'outline'} className={!isScrolled ? 'border-white text-white hover:bg-white hover:text-brand-navy' : ''}>
+          <Button variant="primary">
             {t('nav.enquire')}
           </Button>
         </div>
 
+        {/* Mobile hamburger */}
         <button
-          className="lg:hidden p-2 text-brand-gold"
+          className="lg:hidden p-2 text-white"
           onClick={() => setIsOpen(!isOpen)}
+          aria-label={isOpen ? 'Close menu' : 'Open menu'}
         >
-          {isOpen ? <X size={28} /> : <Menu size={28} />}
+          {isOpen ? <X size={26} /> : <Menu size={26} />}
         </button>
       </div>
 
+      {/* Mobile menu */}
       {isOpen && (
-        <div className="lg:hidden absolute top-full left-0 w-full bg-white shadow-xl">
+        <div className="lg:hidden absolute top-full left-0 w-full bg-brand-navy/98 backdrop-blur-md border-t border-white/10 shadow-2xl">
           <div className="container-custom py-6 flex flex-col gap-4">
             {navLinks.map((link) => (
               <a
                 key={link.name}
                 href={link.href}
-                className="text-lg font-bold text-brand-navy border-b border-neutral-100 pb-3"
+                className="text-lg font-bold text-white border-b border-white/10 pb-3 hover:text-brand-gold transition-colors"
                 onClick={() => setIsOpen(false)}
               >
                 {link.name}
               </a>
             ))}
             <div className="flex flex-col gap-4 pt-4">
-              <div className="flex items-center gap-3 text-brand-navy">
-                <Phone size={20} />
+              <div className="flex items-center gap-3 text-white">
+                <Phone size={18} className="text-brand-gold" />
                 <span className="font-bold">+93 700 123 456</span>
               </div>
               <Button className="w-full">{t('nav.enquire')}</Button>
               <button
                 onClick={toggleLanguage}
-                className="w-full flex items-center justify-center gap-2 py-2.5 border border-neutral-200 rounded-lg text-brand-navy font-medium"
+                className="w-full flex items-center justify-center gap-2 py-2.5 border border-white/20 rounded-lg text-white font-medium hover:border-brand-gold hover:text-brand-gold transition-colors"
               >
-                <Globe size={18} /> {t('nav.langToggle')}
+                <Globe size={16} /> {t('nav.langToggle')}
               </button>
             </div>
           </div>

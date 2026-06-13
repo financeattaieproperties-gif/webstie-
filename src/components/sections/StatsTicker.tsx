@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useEffect, useRef, useState } from 'react';
 import { useInView } from 'framer-motion';
 
@@ -33,7 +31,7 @@ const CountUp = ({
   useEffect(() => {
     if (!inView) return;
     const start = Date.now();
-    const duration = 1400;
+    const duration = 1600;
     const id = setInterval(() => {
       const t = Math.min((Date.now() - start) / duration, 1);
       const eased = 1 - Math.pow(1 - t, 3);
@@ -55,16 +53,27 @@ const CountUp = ({
 };
 
 export const StatsTicker = () => (
-  <section className="bg-brand-navy py-14" aria-label="Key statistics">
-    <div className="container-custom grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-      {STATS.map(({ target, decimals, suffix, label }) => (
-        <div key={label}>
-          <p className="text-5xl font-bold text-brand-gold mb-2">
-            <CountUp target={target} decimals={decimals} suffix={suffix} />
-          </p>
-          <p className="text-neutral-400 text-xs uppercase tracking-widest font-bold">{label}</p>
-        </div>
-      ))}
+  <section className="relative bg-brand-navy islamic-pattern py-16 overflow-hidden" aria-label="Key statistics">
+    {/* Subtle gold glow top */}
+    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-gold/40 to-transparent" />
+    <div className="container-custom">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-0">
+        {STATS.map(({ target, decimals, suffix, label }, i) => (
+          <div
+            key={label}
+            className={`flex flex-col items-center text-center px-6 py-4 ${
+              i < STATS.length - 1 ? 'md:border-r md:border-white/10' : ''
+            } ${i < 2 ? 'border-b md:border-b-0 border-white/10 pb-10 md:pb-4' : 'pt-10 md:pt-4'}`}
+          >
+            <div className="w-8 h-[2px] bg-brand-gold/50 rounded-full mb-5" />
+            <p className="text-5xl font-bold text-white mb-2 tabular-nums">
+              <CountUp target={target} decimals={decimals} suffix={suffix} />
+            </p>
+            <p className="text-brand-gold/70 text-[10px] uppercase tracking-[0.2em] font-bold">{label}</p>
+          </div>
+        ))}
+      </div>
     </div>
+    <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-brand-gold/40 to-transparent" />
   </section>
 );

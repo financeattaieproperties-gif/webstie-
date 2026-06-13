@@ -1,5 +1,3 @@
-"use client";
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { HeroSection } from './HeroSection';
@@ -225,16 +223,28 @@ export const LandingPageContent = () => {
       {/* CTA Strip */}
       <section className="py-24 bg-brand-navy relative overflow-hidden">
         <div className="absolute inset-0 islamic-pattern" />
-        <div className="container-custom relative z-10 text-center text-white">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-gold/40 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-brand-gold/40 to-transparent" />
+        <div className="container-custom relative z-10 text-center">
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-brand-gold text-xs font-bold uppercase tracking-[0.25em] mb-4 flex items-center justify-center gap-3"
+          >
+            <span className="inline-block w-8 h-[1px] bg-brand-gold/50" />
+            Get in Touch
+            <span className="inline-block w-8 h-[1px] bg-brand-gold/50" />
+          </motion.p>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-bold mb-6"
+            className="text-4xl md:text-5xl font-bold mb-6 text-white"
           >
             Ready to Find Your Property in Kabul?
           </motion.h2>
-          <p className="text-xl mb-12 max-w-2xl mx-auto text-neutral-300 leading-relaxed">
+          <p className="text-lg mb-12 max-w-2xl mx-auto text-white/60 leading-relaxed">
             Our local experts know every district. Whether buying, renting, or investing —
             we&apos;ll find the right property for you.
           </p>
@@ -260,15 +270,17 @@ export const LandingPageContent = () => {
       </section>
 
       {/* Testimonials */}
-      <section className="section-padding bg-white">
+      <section className="section-padding bg-brand-ivory">
         <div className="container-custom">
           <div className="text-center mb-16">
-            <p className="text-brand-gold text-sm font-bold uppercase tracking-widest mb-2">
+            <p className="text-brand-gold text-xs font-bold uppercase tracking-[0.3em] mb-3 flex items-center justify-center gap-3">
+              <span className="inline-block w-8 h-[1px] bg-brand-gold/50" />
               Client Stories
+              <span className="inline-block w-8 h-[1px] bg-brand-gold/50" />
             </p>
             <h2 className="text-4xl font-bold text-brand-navy">What Our Clients Say</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {TESTIMONIALS.map((t, i) => (
               <motion.div
                 key={t.name}
@@ -277,23 +289,23 @@ export const LandingPageContent = () => {
                 whileInView="visible"
                 viewport={{ once: true }}
                 variants={cardVariants}
-                className="bg-neutral-50 p-8 rounded-2xl border border-neutral-100"
+                className="bg-white p-8 rounded-2xl border border-brand-gold/10 shadow-sm hover:shadow-md hover:border-brand-gold/25 transition-all duration-300"
               >
-                <div className="flex gap-1 text-brand-gold mb-6" aria-label="5 out of 5 stars">
+                <div className="flex gap-1 text-brand-gold mb-5" aria-label="5 out of 5 stars">
                   {[...Array(5)].map((_, j) => (
-                    <Star key={j} size={18} fill="currentColor" aria-hidden="true" />
+                    <Star key={j} size={16} fill="currentColor" aria-hidden="true" />
                   ))}
                 </div>
-                <p className="text-neutral-700 italic mb-8 leading-relaxed">
+                <p className="text-neutral-600 italic mb-8 leading-relaxed text-sm">
                   &ldquo;{t.quote}&rdquo;
                 </p>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-brand-gold/15 rounded-full flex items-center justify-center text-brand-gold font-bold text-lg">
+                <div className="flex items-center gap-3 pt-5 border-t border-neutral-100">
+                  <div className="w-11 h-11 bg-brand-navy rounded-full flex items-center justify-center text-brand-gold font-bold text-base shrink-0">
                     {t.name[0]}
                   </div>
                   <div>
-                    <p className="font-bold text-brand-navy">{t.name}</p>
-                    <p className="text-sm text-neutral-500">{t.role}</p>
+                    <p className="font-bold text-brand-navy text-sm">{t.name}</p>
+                    <p className="text-xs text-neutral-400">{t.role}</p>
                   </div>
                 </div>
               </motion.div>

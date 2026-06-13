@@ -1,9 +1,7 @@
-"use client";
-
 import React from 'react';
 
 export const WhatsAppButton = () => {
-  const phoneNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '971500000000';
+  const phoneNumber = import.meta.env.VITE_WHATSAPP_NUMBER || '971500000000';
   const whatsappUrl = `https://wa.me/${phoneNumber}`;
 
   return (
