@@ -4,6 +4,7 @@ import HomePage from './pages/HomePage';
 import PropertiesPage from './pages/PropertiesPage';
 import PropertyDetailPage from './pages/PropertyDetailPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
+import ContactPage from './pages/ContactPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 const router = createBrowserRouter([
@@ -11,6 +12,7 @@ const router = createBrowserRouter([
   { path: '/properties', element: <PropertiesPage /> },
   { path: '/properties/:id', element: <PropertyDetailPage /> },
   { path: '/projects/:id', element: <ProjectDetailPage /> },
+  { path: '/contact', element: <ContactPage /> },
   { path: '*', element: <NotFoundPage /> },
 ]);
 

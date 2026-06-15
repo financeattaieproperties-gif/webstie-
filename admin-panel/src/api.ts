@@ -66,6 +66,8 @@ export interface Property {
   type: 'Villa' | 'Apartment' | 'House' | 'Commercial';
   listing_type: 'sale' | 'rent';
   image_url: string | null;
+  gallery_images: string[];
+  video_url: string | null;
   description: string | null;
   created_at: string;
 }

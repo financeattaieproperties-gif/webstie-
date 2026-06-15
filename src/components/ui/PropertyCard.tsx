@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { MapPin, Bed, Bath, Maximize2, Heart } from 'lucide-react';
 import { Badge } from './Badge';
 
@@ -16,40 +17,79 @@ export interface PropertyCardProps {
   listingType?: 'sale' | 'rent';
 }
 
-export const PropertyCard = ({ id, title, price, location, beds, baths, area, status, type, image, listingType }: PropertyCardProps) => {
+export const PropertyCard = ({
+  id,
+  title,
+  price,
+  location,
+  beds,
+  baths,
+  area,
+  status,
+  type,
+  image,
+  listingType,
+}: PropertyCardProps) => {
   const [saved, setSaved] = useState(false);
+  const [heartAnim, setHeartAnim] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
 
-  const priceDisplay = listingType === 'rent'
-    ? `$${price.toLocaleString()}/mo`
-    : `$${price.toLocaleString()}`;
+  const priceDisplay =
+    listingType === 'rent'
+      ? `$${price.toLocaleString()}/mo`
+      : `$${price.toLocaleString()}`;
 
   return (
-    <a
+    <motion.a
       href={`/properties/${id}`}
-      className="group block bg-white rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_8px_40px_-8px_rgba(26,35,53,0.18)] border border-neutral-100 hover:border-brand-gold/30"
+      className="group block bg-white rounded-2xl overflow-hidden transition-colors duration-300 border border-neutral-100 hover:border-brand-gold/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2"
+      whileHover={{ y: -6 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+      style={{
+        boxShadow: isHovered
+          ? '0 20px 60px -12px rgba(26,35,53,0.22), 0 8px 24px -8px rgba(26,35,53,0.12)'
+          : '0 1px 4px 0 rgba(26,35,53,0.07), 0 2px 8px -2px rgba(26,35,53,0.06)',
+      }}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
     >
       {/* Image */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100">
-        <img
+      <motion.div
+        className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100"
+        whileHover="hovered"
+      >
+        <motion.img
           src={image}
-          alt={title}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-108"
-          style={{ transform: 'scale(1)', transition: 'transform 700ms cubic-bezier(0.25,0.46,0.45,0.94)' }}
-          onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.08)')}
-          onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+          alt={`${title} — ${type} for ${listingType === 'rent' ? 'rent' : 'sale'} in ${location}`}
+          className="w-full h-full object-cover"
+          variants={{
+            hovered: {
+              scale: 1.07,
+              transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
+            },
+          }}
+          initial={false}
+          style={{
+            filter: imgLoaded ? 'none' : 'blur(8px)',
+            transition: 'filter 0.4s ease',
+          }}
+          onLoad={() => setImgLoaded(true)}
         />
 
         {/* Dark gradient at bottom of image */}
-        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 to-transparent" />
 
         {/* For Sale / For Rent badge */}
         {listingType && (
           <div className="absolute top-3 left-3 z-10">
-            <span className={`text-xs font-bold px-3 py-1.5 rounded-full shadow-md ${
-              listingType === 'rent'
-                ? 'bg-blue-600 text-white'
-                : 'bg-brand-gold text-white'
-            }`}>
+            <span
+              className={`text-xs font-bold px-3 py-1.5 rounded-full shadow-md ${
+                listingType === 'rent'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-brand-gold text-white'
+              }`}
+            >
               {listingType === 'rent' ? 'For Rent' : 'For Sale'}
             </span>
           </div>
@@ -61,25 +101,31 @@ export const PropertyCard = ({ id, title, price, location, beds, baths, area, st
         </div>
 
         {/* Save button */}
-        <button
+        <motion.button
           aria-label={saved ? 'Remove from saved' : 'Save property'}
-          onClick={e => {
+          onClick={(e) => {
             e.preventDefault();
-            setSaved(s => !s);
+            setSaved((s) => !s);
+            setHeartAnim(true);
+            setTimeout(() => setHeartAnim(false), 400);
           }}
-          className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-md transition-transform hover:scale-110"
+          animate={heartAnim ? { scale: [1, 1.4, 1] } : { scale: 1 }}
+          transition={{ duration: 0.35, ease: [0.34, 1.56, 0.64, 1] }}
+          className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-md hover:scale-110 transition-transform"
         >
           <Heart
             size={15}
             className={saved ? 'text-red-500 fill-red-500' : 'text-neutral-400'}
           />
-        </button>
+        </motion.button>
 
         {/* Price overlay at bottom of image */}
         <div className="absolute bottom-3 left-3 z-10">
-          <span className="text-white font-bold text-xl drop-shadow-md">{priceDisplay}</span>
+          <span className="text-white font-bold text-xl drop-shadow-lg">
+            {priceDisplay}
+          </span>
         </div>
-      </div>
+      </motion.div>
 
       {/* Content */}
       <div className="p-5">
@@ -93,7 +139,7 @@ export const PropertyCard = ({ id, title, price, location, beds, baths, area, st
           <MapPin size={14} className="mr-1 text-brand-gold shrink-0" />
           <span className="line-clamp-1">{location}</span>
         </div>
-        <div className="flex items-center gap-4 pt-4 border-t border-neutral-100 text-neutral-600 text-sm">
+        <div className="flex items-center flex-wrap gap-x-4 gap-y-1 pt-4 border-t border-neutral-100 text-neutral-600 text-sm">
           {beds !== undefined && (
             <div className="flex items-center gap-1.5">
               <Bed size={16} className="text-brand-gold" />
@@ -117,6 +163,6 @@ export const PropertyCard = ({ id, title, price, location, beds, baths, area, st
           )}
         </div>
       </div>
-    </a>
+    </motion.a>
   );
 };

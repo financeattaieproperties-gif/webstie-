@@ -30,7 +30,7 @@ const S = {
 const blank: PropertyInput = {
   title: '', price: 0, location: '', beds: null, baths: null,
   area: null, floor: null, status: 'available', type: 'Villa',
-  listing_type: 'sale', image_url: null, description: null,
+  listing_type: 'sale', image_url: null, gallery_images: [], video_url: null, description: null,
 };
 
 export default function PropertyForm() {
@@ -68,7 +68,9 @@ export default function PropertyForm() {
     try {
       if (isEdit) await api.updateProperty({ ...form, id: Number(id) });
       else await api.createProperty(form);
-      showToast(true, isEdit ? 'Property updated.' : 'Property created.');
+      const msg = isEdit ? 'Property updated.' : 'Property created.';
+      showToast(true, msg);
+      window.electronAPI?.notify('Attaie Admin', msg).catch(() => {});
       if (!isEdit) setTimeout(() => navigate('/properties'), 1200);
     } catch (err) {
       showToast(false, (err as Error).message || 'Save failed.');
@@ -161,6 +163,62 @@ export default function PropertyForm() {
                 <input style={S.input} type="number" min={0} value={form.floor ?? ''} onChange={e => set('floor', e.target.value ? Number(e.target.value) : null)} placeholder="—" />
               </div>
             </div>
+          </div>
+
+          {/* Gallery Images */}
+          <div style={{ ...S.section, ...S.divider }}>
+            <p style={S.secTitle}>Photo Gallery (up to 8 images)</p>
+            <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '1rem' }}>
+              These appear in the public gallery slider. Main image above is used as fallback if empty.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {[...(form.gallery_images ?? []), null].slice(0, 8).map((url, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                  <div style={{ flex: 1 }}>
+                    <ImageUpload
+                      value={url ?? null}
+                      onChange={newUrl => {
+                        const imgs = [...(form.gallery_images ?? [])];
+                        if (newUrl) {
+                          imgs[i] = newUrl;
+                        } else {
+                          imgs.splice(i, 1);
+                        }
+                        set('gallery_images', imgs.filter(Boolean));
+                      }}
+                    />
+                  </div>
+                  {url && (
+                    <button
+                      type="button"
+                      style={{ ...S.cancel, padding: '0.4rem 0.8rem', marginTop: '0.5rem', fontSize: '0.8rem' }}
+                      onClick={() => {
+                        const imgs = [...(form.gallery_images ?? [])];
+                        imgs.splice(i, 1);
+                        set('gallery_images', imgs);
+                      }}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Video URL */}
+          <div style={{ ...S.section, ...S.divider }}>
+            <p style={S.secTitle}>Video Tour URL</p>
+            <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.75rem' }}>
+              YouTube, Vimeo, or direct MP4 link. Shown as embedded player on property page.
+            </p>
+            <input
+              style={S.input}
+              type="url"
+              value={form.video_url ?? ''}
+              onChange={e => set('video_url', e.target.value || null)}
+              placeholder="https://www.youtube.com/watch?v=… or https://vimeo.com/…"
+            />
           </div>
 
           {/* Description */}

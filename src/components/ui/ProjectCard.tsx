@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { MapPin, Calendar, Home, ArrowRight } from 'lucide-react';
 import { Badge } from './Badge';
 
@@ -13,25 +14,34 @@ export interface ProjectCardProps {
 }
 
 export const ProjectCard = ({ id, name, location, deliveryDate, status, availableUnits, image }: ProjectCardProps) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
+
   const statusColor = status === 'Ready' ? 'available' : status === 'Sold Out' ? 'sold' : 'pending';
 
   return (
-    <a
+    <motion.a
       href={`/projects/${id}`}
-      className="group block bg-white rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_8px_40px_-8px_rgba(26,35,53,0.18)] border border-neutral-100 hover:border-brand-gold/30"
+      whileHover={{ y: -6 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      style={{ boxShadow: isHovered ? 'var(--shadow-xl)' : 'var(--shadow-md)' }}
+      className="group block bg-white rounded-2xl overflow-hidden transition-colors duration-300 border border-neutral-100 hover:border-brand-gold/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2"
     >
       {/* Image */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100">
-        <img
+      <motion.div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100" whileHover="hovered">
+        <motion.img
           src={image}
-          alt={name}
-          className="w-full h-full object-cover transition-transform duration-700"
-          style={{ transform: 'scale(1)', transition: 'transform 700ms cubic-bezier(0.25,0.46,0.45,0.94)' }}
-          onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.08)')}
-          onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+          alt={`${name} — ${status} development in ${location}`}
+          className="w-full h-full object-cover"
+          variants={{ hovered: { scale: 1.07, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] } } }}
+          initial={false}
+          style={{ filter: imgLoaded ? 'none' : 'blur(8px)', transition: 'filter 0.4s ease' }}
+          onLoad={() => setImgLoaded(true)}
         />
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-navy/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-navy/80 via-brand-navy/20 to-transparent" />
 
         {/* Status badge */}
         <div className="absolute top-3 left-3 z-10">
@@ -43,12 +53,13 @@ export const ProjectCard = ({ id, name, location, deliveryDate, status, availabl
         {/* Units available overlay */}
         {availableUnits !== undefined && (
           <div className="absolute bottom-3 left-3 z-10">
-            <span className="text-white font-bold text-sm drop-shadow-md">
-              <span className="text-brand-gold">{availableUnits}</span> Units Available
+            <span className="inline-flex items-center gap-1.5 bg-brand-gold/90 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md backdrop-blur-sm">
+              <Home size={11} />
+              {availableUnits} Units Available
             </span>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Content */}
       <div className="p-5">
@@ -68,11 +79,15 @@ export const ProjectCard = ({ id, name, location, deliveryDate, status, availabl
               </div>
             )}
           </div>
-          <div className="w-8 h-8 rounded-full bg-brand-gold/10 flex items-center justify-center group-hover:bg-brand-gold group-hover:text-white transition-colors duration-300">
-            <ArrowRight size={15} className="text-brand-gold group-hover:text-white" />
-          </div>
+          <motion.div
+            whileHover={{ scale: 1.2, x: 4 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+            className="w-9 h-9 rounded-full bg-brand-gold/10 flex items-center justify-center group-hover:bg-brand-gold transition-colors duration-300 shrink-0"
+          >
+            <ArrowRight size={15} className="text-brand-gold group-hover:text-white transition-colors duration-300" />
+          </motion.div>
         </div>
       </div>
-    </a>
+    </motion.a>
   );
 };

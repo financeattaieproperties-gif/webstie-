@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { HeroSection } from './HeroSection';
+import { Hero3DSection } from './Hero3DSection';
 import { StatsTicker } from './StatsTicker';
 import { WhyAttaieSection } from './WhyAttaieSection';
 import { PropertyCard } from '../ui/PropertyCard';
@@ -103,25 +103,47 @@ const TESTIMONIALS = [
 ];
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 24, scale: 0.97 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.1, duration: 0.5 },
+    scale: 1,
+    transition: { delay: i * 0.08, duration: 0.55, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
   }),
+};
+
+const sectionHeaderParent = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.12 } },
+};
+
+const sectionHeaderLeft = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] } },
+};
+
+const sectionHeaderRight = {
+  hidden: { opacity: 0, x: 12 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.4 } },
 };
 
 export const LandingPageContent = () => {
   return (
     <>
-      <HeroSection />
+      <Hero3DSection />
       <StatsTicker />
 
       {/* Featured Properties */}
       <section className="section-padding bg-brand-ivory">
         <div className="container-custom">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-            <div>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-40px' }}
+            variants={sectionHeaderParent}
+            className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6"
+          >
+            <motion.div variants={sectionHeaderLeft}>
               <p className="text-brand-gold text-sm font-bold uppercase tracking-widest mb-2">
                 Browse Listings
               </p>
@@ -130,8 +152,8 @@ export const LandingPageContent = () => {
                 Standalone homes, apartments and commercial spaces available for sale or rent
                 across Kabul&apos;s top districts.
               </p>
-            </div>
-            <div className="flex items-center gap-3 shrink-0">
+            </motion.div>
+            <motion.div variants={sectionHeaderRight} className="flex items-center gap-3 shrink-0">
               <a
                 href="/properties?category=individual"
                 className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-brand-navy text-white text-sm font-bold"
@@ -144,8 +166,8 @@ export const LandingPageContent = () => {
               >
                 <Building2 size={16} /> Projects
               </a>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {FEATURED_PROPERTIES.map((prop, i) => (
@@ -163,10 +185,12 @@ export const LandingPageContent = () => {
           </div>
 
           <div className="mt-10">
-            <a href="/properties?category=individual">
-              <Button variant="ghost" className="gap-2">
-                View All Individual Properties <ArrowRight size={18} />
-              </Button>
+            <a
+              href="/properties?category=individual"
+              className="inline-flex items-center gap-2 text-brand-navy font-semibold text-sm group hover:text-brand-gold transition-colors duration-200"
+            >
+              View All Individual Properties
+              <ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-1.5" />
             </a>
           </div>
         </div>
@@ -177,8 +201,14 @@ export const LandingPageContent = () => {
       {/* Signature Projects */}
       <section className="section-padding bg-brand-ivory">
         <div className="container-custom">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-            <div>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-40px' }}
+            variants={sectionHeaderParent}
+            className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6"
+          >
+            <motion.div variants={sectionHeaderLeft}>
               <p className="text-brand-gold text-sm font-bold uppercase tracking-widest mb-2">
                 Developments
               </p>
@@ -187,13 +217,17 @@ export const LandingPageContent = () => {
                 Multi-unit residential developments offering off-plan and ready units across
                 Kabul&apos;s growth corridors.
               </p>
-            </div>
-            <a href="/properties?category=projects" className="shrink-0">
-              <Button variant="ghost" className="hidden md:flex gap-2">
-                View All Projects <ArrowRight size={18} />
-              </Button>
-            </a>
-          </div>
+            </motion.div>
+            <motion.div variants={sectionHeaderRight} className="flex items-center gap-3 shrink-0">
+              <a
+                href="/properties?category=projects"
+                className="hidden md:inline-flex items-center gap-2 text-brand-navy font-semibold text-sm group hover:text-brand-gold transition-colors duration-200"
+              >
+                View All Projects
+                <ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-1.5" />
+              </a>
+            </motion.div>
+          </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {FEATURED_PROJECTS.map((proj, i) => (
@@ -211,10 +245,12 @@ export const LandingPageContent = () => {
           </div>
 
           <div className="mt-10 text-center md:hidden">
-            <a href="/properties?category=projects">
-              <Button variant="outline" className="w-full gap-2">
-                View All Projects <ArrowRight size={18} />
-              </Button>
+            <a
+              href="/properties?category=projects"
+              className="inline-flex items-center gap-2 text-brand-navy font-semibold text-sm group hover:text-brand-gold transition-colors duration-200"
+            >
+              View All Projects
+              <ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-1.5" />
             </a>
           </div>
         </div>
@@ -222,7 +258,7 @@ export const LandingPageContent = () => {
 
       {/* CTA Strip */}
       <section className="py-24 bg-brand-navy relative overflow-hidden">
-        <div className="absolute inset-0 islamic-pattern" />
+        <div className="absolute inset-0 islamic-pattern opacity-30" />
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-gold/40 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-brand-gold/40 to-transparent" />
         <div className="container-custom relative z-10 text-center">
@@ -249,22 +285,26 @@ export const LandingPageContent = () => {
             we&apos;ll find the right property for you.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
+            <motion.a
               href={`https://wa.me/${WHATSAPP_NUMBER}`}
               aria-label="Contact us via WhatsApp"
               target="_blank"
               rel="noopener noreferrer"
+              whileHover={{ scale: 1.03 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               className="flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-bold text-lg bg-[#25D366] text-white hover:bg-[#1EB85B] transition-colors shadow-lg"
             >
               <MessageCircle size={22} aria-hidden="true" /> WhatsApp Us
-            </a>
-            <a
+            </motion.a>
+            <motion.a
               href={`tel:+${WHATSAPP_NUMBER}`}
               aria-label="Call us at +93 700 123 456"
+              whileHover={{ scale: 1.03 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               className="flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-bold text-lg bg-brand-gold text-white hover:bg-brand-gold/90 transition-colors shadow-lg"
             >
               <Phone size={22} aria-hidden="true" /> +93 700 123 456
-            </a>
+            </motion.a>
           </div>
         </div>
       </section>
@@ -289,18 +329,29 @@ export const LandingPageContent = () => {
                 whileInView="visible"
                 viewport={{ once: true }}
                 variants={cardVariants}
-                className="bg-white p-8 rounded-2xl border border-brand-gold/10 shadow-sm hover:shadow-md hover:border-brand-gold/25 transition-all duration-300"
+                whileHover={{ y: -4, transition: { type: 'spring', stiffness: 300, damping: 20 } }}
+                className="bg-white p-8 rounded-2xl border border-brand-gold/12 shadow-brand-md hover:shadow-brand-lg transition-shadow duration-300 cursor-default"
               >
                 <div className="flex gap-1 text-brand-gold mb-5" aria-label="5 out of 5 stars">
                   {[...Array(5)].map((_, j) => (
                     <Star key={j} size={16} fill="currentColor" aria-hidden="true" />
                   ))}
                 </div>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.08 + 0.2, duration: 0.4, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
+                  className="text-brand-gold/30 font-heading text-6xl leading-none mb-2 -mt-2 select-none"
+                  aria-hidden="true"
+                >
+                  &ldquo;
+                </motion.div>
                 <p className="text-neutral-600 italic mb-8 leading-relaxed text-sm">
                   &ldquo;{t.quote}&rdquo;
                 </p>
                 <div className="flex items-center gap-3 pt-5 border-t border-neutral-100">
-                  <div className="w-11 h-11 bg-brand-navy rounded-full flex items-center justify-center text-brand-gold font-bold text-base shrink-0">
+                  <div className="w-11 h-11 bg-brand-navy rounded-full flex items-center justify-center text-brand-gold font-bold text-base shrink-0 ring-2 ring-brand-gold/30 ring-offset-2">
                     {t.name[0]}
                   </div>
                   <div>

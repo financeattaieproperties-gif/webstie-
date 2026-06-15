@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
 import { InquiryForm } from '../components/forms/InquiryForm';
@@ -16,6 +17,10 @@ export default function ProjectDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
 
+  const heroRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
+  const heroY = useTransform(scrollYProgress, [0, 1], ['0%', '25%']);
+
   useEffect(() => {
     if (!projectId) return;
     getProject(projectId)
@@ -25,19 +30,20 @@ export default function ProjectDetailPage() {
   }, [projectId]);
 
   return (
-    <main className="min-h-screen bg-neutral-50 flex flex-col">
+    <main className="min-h-screen bg-brand-cream flex flex-col">
       <Navbar />
 
       {/* Cinematic hero */}
       {loading ? (
         <div className="w-full h-[60vh] min-h-[420px] bg-neutral-200 mt-20 animate-pulse" />
       ) : (
-        <div className="relative w-full h-[60vh] min-h-[420px] overflow-hidden mt-20">
+        <div ref={heroRef} className="relative w-full h-[60vh] min-h-[420px] overflow-hidden mt-20">
           {project?.image_url ? (
-            <img
+            <motion.img
               src={project.image_url}
               alt={project?.name ?? ''}
               className="w-full h-full object-cover"
+              style={{ y: heroY, scale: 1.1 }}
             />
           ) : (
             <div className="w-full h-full bg-brand-navy" />
@@ -47,13 +53,19 @@ export default function ProjectDetailPage() {
           {/* Breadcrumb overlay */}
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
             <div className="container-custom">
-              <Link
-                to="/properties?category=projects"
-                className="inline-flex items-center gap-2 text-white/80 hover:text-brand-gold transition-colors text-sm font-medium"
+              <motion.div
+                initial={{ opacity: 0, x: -16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               >
-                <ArrowLeft size={16} />
-                Back to Projects
-              </Link>
+                <Link
+                  to="/properties?category=projects"
+                  className="inline-flex items-center gap-2 text-white/80 hover:text-brand-gold transition-colors text-sm font-medium"
+                >
+                  <ArrowLeft size={16} />
+                  Back to Projects
+                </Link>
+              </motion.div>
               {project && (
                 <h1 className="text-3xl md:text-5xl font-display font-bold text-white mt-3 drop-shadow-md">
                   {project.name}
@@ -81,36 +93,60 @@ export default function ProjectDetailPage() {
         {project && (
           <div className="flex flex-col lg:flex-row gap-12">
             <div className="flex-1">
-              <div className="flex gap-2 mb-6">
+              <div className="flex items-center gap-3 mb-6">
                 <Badge type={project.status} />
+                {project.available_units !== undefined && project.total_units !== undefined && (
+                  <span className="text-sm text-neutral-600">
+                    <span className="font-bold text-brand-navy">{project.available_units}</span> of {project.total_units} units available
+                  </span>
+                )}
               </div>
 
               <div className="flex flex-wrap gap-4 mb-8">
-                <div className="flex items-center gap-2 text-neutral-700 bg-brand-ivory px-4 py-2 rounded-xl">
+                <motion.div
+                  whileHover={{ scale: 1.04, y: -2 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                  className="flex items-center gap-2 text-neutral-700 bg-brand-ivory px-4 py-2 rounded-xl cursor-default"
+                >
                   <MapPin size={20} className="text-brand-gold" />
                   <span className="font-bold">{project.location}</span>
-                </div>
-                <div className="flex items-center gap-2 text-neutral-700 bg-brand-ivory px-4 py-2 rounded-xl">
+                </motion.div>
+                <motion.div
+                  whileHover={{ scale: 1.04, y: -2 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                  className="flex items-center gap-2 text-neutral-700 bg-brand-ivory px-4 py-2 rounded-xl cursor-default"
+                >
                   <Home size={20} className="text-brand-gold" />
                   <span className="font-bold">{project.available_units}</span>
                   <span> / {project.total_units} units available</span>
-                </div>
+                </motion.div>
                 {project.delivery_date && (
-                  <div className="flex items-center gap-2 text-neutral-700 bg-brand-ivory px-4 py-2 rounded-xl">
+                  <motion.div
+                    whileHover={{ scale: 1.04, y: -2 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                    className="flex items-center gap-2 text-neutral-700 bg-brand-ivory px-4 py-2 rounded-xl cursor-default"
+                  >
                     <Calendar size={20} className="text-brand-gold" />
                     <span>Delivery: <span className="font-bold">{project.delivery_date}</span></span>
-                  </div>
+                  </motion.div>
                 )}
               </div>
 
               {project.description && (
-                <div className="bg-white p-8 rounded-2xl shadow-sm border border-brand-gold/10">
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-40px' }}
+                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  className="bg-white p-8 rounded-2xl border border-brand-gold/10"
+                  style={{ boxShadow: 'var(--shadow-md)' }}
+                >
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-1 h-5 bg-brand-gold rounded-full" />
                     <h2 className="text-xl font-bold text-brand-navy">About This Project</h2>
                   </div>
                   <p className="text-neutral-600 leading-relaxed text-lg">{project.description}</p>
-                </div>
+                </motion.div>
               )}
             </div>
 
