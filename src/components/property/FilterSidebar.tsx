@@ -43,7 +43,7 @@ export const FilterSidebar = ({ filters, onChange, className }: FilterSidebarPro
     (filters.purpose !== 'buy' ? 1 : 0);
 
   return (
-    <div className={`bg-white rounded-2xl shadow-sm border border-neutral-200 p-6 ${className || ''}`}>
+    <div className={`bg-white/60 backdrop-blur-md rounded-2xl shadow-sm border border-white/60 p-6 ${className || ''}`}>
       <div className="flex justify-between items-center mb-6 pb-4 border-b border-brand-gold/15">
         <div className="flex items-center gap-3">
           <div className="w-1 h-5 bg-brand-gold rounded-full" />

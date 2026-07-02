@@ -52,10 +52,12 @@ const Navbar = () => {
       <div className="container-custom flex justify-between items-center">
         {/* Logo */}
         <div className="flex items-center">
-          <a href="/" className="group text-2xl font-display font-bold text-white">
-            <span className="transition-all duration-300 group-hover:tracking-widest group-hover:opacity-90">
-              ATTAIE <span className="text-brand-gold">PROPERTIES</span>
-            </span>
+          <a href="/" className="group flex items-center">
+            <img
+              src="/logo.png"
+              alt="Attaie Properties"
+              className="h-16 w-auto object-contain transition-opacity duration-200 group-hover:opacity-85"
+            />
           </a>
         </div>
 

@@ -27,7 +27,7 @@ export const ProjectCard = ({ id, name, location, deliveryDate, status, availabl
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       style={{ boxShadow: isHovered ? 'var(--shadow-xl)' : 'var(--shadow-md)' }}
-      className="group block bg-white rounded-2xl overflow-hidden transition-colors duration-300 border border-neutral-100 hover:border-brand-gold/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2"
+      className="group block bg-white/60 backdrop-blur-md rounded-2xl overflow-hidden transition-colors duration-300 border border-white/60 hover:border-brand-gold/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2"
     >
       {/* Image */}
       <motion.div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100" whileHover="hovered">

@@ -25,6 +25,23 @@
     "loading": "Loading…",
     "error": "Failed to load. Please try again."
   },
+  "callUs": {
+    "button": "Call Me Back",
+    "title": "Request a Callback",
+    "subtitle": "Enter your Afghan mobile number — we'll ring our call center first, then connect you to the agent.",
+    "phoneLabel": "Your Phone Number",
+    "placeholder": "07XX XXX XXXX",
+    "formatHint": "Enter a valid Afghan mobile number (e.g. 0789 123 456)",
+    "dial": "Dial Me Now",
+    "connecting": "Connecting…",
+    "successTitle": "Call Connecting!",
+    "success": "Our call center is dialing you now — please answer your phone. The agent will be on the line within seconds.",
+    "close": "Close",
+    "cancel": "Cancel",
+    "disclaimer": "Free callback. Standard call rates apply on your end.",
+    "genericError": "Something went wrong. Please try again.",
+    "networkError": "Network error. Please check your connection."
+  },
   "footer": {
     "tagline": "Kabul's trusted real estate partner. We connect buyers, renters, and investors with premium properties and signature projects across Afghanistan's capital.",
     "quickLinks": "Quick Links",

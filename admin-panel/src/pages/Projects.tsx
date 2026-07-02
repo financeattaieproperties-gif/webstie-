@@ -65,6 +65,7 @@ export default function Projects() {
         <button style={S.btn} onClick={() => navigate('/projects/new')}>+ Add Project</button>
       </div>
 
+      <div style={{ overflowX: 'auto' }}>
       <table style={S.table}>
         <thead>
           <tr>
@@ -123,6 +124,7 @@ export default function Projects() {
           )}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

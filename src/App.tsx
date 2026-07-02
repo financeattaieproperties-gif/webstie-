@@ -1,10 +1,12 @@
 import React from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import HomePage from './pages/HomePage';
 import PropertiesPage from './pages/PropertiesPage';
 import PropertyDetailPage from './pages/PropertyDetailPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import ContactPage from './pages/ContactPage';
+import AboutPage from './pages/AboutPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 const router = createBrowserRouter([
@@ -13,9 +15,14 @@ const router = createBrowserRouter([
   { path: '/properties/:id', element: <PropertyDetailPage /> },
   { path: '/projects/:id', element: <ProjectDetailPage /> },
   { path: '/contact', element: <ContactPage /> },
+  { path: '/about', element: <AboutPage /> },
   { path: '*', element: <NotFoundPage /> },
 ]);
 
 export default function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <HelmetProvider>
+      <RouterProvider router={router} />
+    </HelmetProvider>
+  );
 }

@@ -62,7 +62,7 @@ export const WhyAttaieSection = () => (
               initial="rest"
               animate="rest"
               whileHover="hover"
-              className="group flex flex-col items-center text-center bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 hover:border-brand-gold/30 transition-colors duration-300 h-full"
+              className="group flex flex-col items-center text-center bg-white/8 backdrop-blur-sm border border-white/12 rounded-2xl p-8 hover:bg-white/15 hover:border-brand-gold/30 transition-colors duration-300 h-full"
             >
               <motion.div
                 variants={iconVariants}

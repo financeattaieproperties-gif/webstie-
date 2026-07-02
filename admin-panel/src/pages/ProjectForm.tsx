@@ -68,7 +68,9 @@ export default function ProjectForm() {
     try {
       if (isEdit) await api.updateProject({ ...form, id: Number(id) });
       else await api.createProject(form);
-      showToast(true, isEdit ? 'Project updated.' : 'Project created.');
+      const msg = isEdit ? 'Project updated.' : 'Project created.';
+      showToast(true, msg);
+      window.electronAPI?.notify('Attaie Admin', msg).catch(() => {});
       if (!isEdit) setTimeout(() => navigate('/projects'), 1200);
     } catch (err) {
       showToast(false, (err as Error).message || 'Save failed.');

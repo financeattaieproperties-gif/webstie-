@@ -65,6 +65,7 @@ export default function Properties() {
         <button style={S.btn} onClick={() => navigate('/properties/new')}>+ Add Property</button>
       </div>
 
+      <div style={{ overflowX: 'auto' }}>
       <table style={S.table}>
         <thead>
           <tr>
@@ -120,6 +121,7 @@ export default function Properties() {
           )}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

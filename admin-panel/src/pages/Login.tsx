@@ -2,8 +2,8 @@ import { useState, type FormEvent } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 const S = {
-  page:  { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f172a' } as const,
-  card:  { background: '#fff', borderRadius: 12, padding: '2.5rem', width: '100%', maxWidth: 400, boxShadow: '0 20px 60px rgba(0,0,0,.4)' } as const,
+  page:  { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F5EFE6' } as const,
+  card:  { background: '#fff', borderRadius: 16, padding: '2.5rem', width: '100%', maxWidth: 400, boxShadow: '0 8px 40px rgba(0,0,0,.10)', border: '1px solid #E5E7EB' } as const,
   title: { fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.25rem', color: '#0f172a' } as const,
   sub:   { fontSize: '0.85rem', color: '#64748b', marginBottom: '2rem' } as const,
   label: { display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' } as const,

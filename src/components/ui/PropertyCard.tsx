@@ -15,6 +15,7 @@ export interface PropertyCardProps {
   type: string;
   image: string;
   listingType?: 'sale' | 'rent';
+  tag?: string;
 }
 
 export const PropertyCard = ({
@@ -29,6 +30,7 @@ export const PropertyCard = ({
   type,
   image,
   listingType,
+  tag,
 }: PropertyCardProps) => {
   const [saved, setSaved] = useState(false);
   const [heartAnim, setHeartAnim] = useState(false);
@@ -43,7 +45,7 @@ export const PropertyCard = ({
   return (
     <motion.a
       href={`/properties/${id}`}
-      className="group block bg-white rounded-2xl overflow-hidden transition-colors duration-300 border border-neutral-100 hover:border-brand-gold/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2"
+      className="group block bg-white/60 backdrop-blur-md rounded-2xl overflow-hidden transition-colors duration-300 border border-white/60 hover:border-brand-gold/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2"
       whileHover={{ y: -6 }}
       transition={{ type: 'spring', stiffness: 300, damping: 22 }}
       style={{
@@ -80,17 +82,19 @@ export const PropertyCard = ({
         {/* Dark gradient at bottom of image */}
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 to-transparent" />
 
-        {/* For Sale / For Rent badge */}
-        {listingType && (
+        {/* Tag override / For Sale / For Rent badge */}
+        {(tag || listingType) && (
           <div className="absolute top-3 left-3 z-10">
             <span
               className={`text-xs font-bold px-3 py-1.5 rounded-full shadow-md ${
-                listingType === 'rent'
+                tag
+                  ? 'bg-red-500 text-white'
+                  : listingType === 'rent'
                   ? 'bg-blue-600 text-white'
                   : 'bg-brand-gold text-white'
               }`}
             >
-              {listingType === 'rent' ? 'For Rent' : 'For Sale'}
+              {tag ?? (listingType === 'rent' ? 'For Rent' : 'For Sale')}
             </span>
           </div>
         )}

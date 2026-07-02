@@ -6,6 +6,15 @@ interface Props {
   onChange: (url: string | null) => void;
 }
 
+// Convert base64 + mime → File object (used for Electron native dialog result)
+function base64ToFile(b64: string, mimeType: string, fileName: string): File {
+  const byteString = atob(b64);
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+  return new File([ab], fileName, { type: mimeType });
+}
+
 export default function ImageUpload({ value, onChange }: Props) {
   const inputRef                  = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -14,19 +23,12 @@ export default function ImageUpload({ value, onChange }: Props) {
   const [dragging, setDragging]   = useState(false);
 
   const upload = useCallback(async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      setError('Only image files allowed.');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setError('File exceeds 5 MB limit.');
-      return;
-    }
+    if (!file.type.startsWith('image/')) { setError('Only image files allowed.'); return; }
+    if (file.size > 5 * 1024 * 1024)    { setError('File exceeds 5 MB limit.'); return; }
     setUploading(true);
     setError('');
     setProgress(10);
     try {
-      // Simulate progress ticks while upload runs
       const ticker = setInterval(() => setProgress(p => Math.min(p + 15, 85)), 300);
       const url = await api.uploadImage(file);
       clearInterval(ticker);
@@ -40,6 +42,14 @@ export default function ImageUpload({ value, onChange }: Props) {
       setUploading(false);
     }
   }, [onChange]);
+
+  // Electron: use native file dialog
+  const openNativeDialog = async () => {
+    const result = await window.electronAPI!.openImageDialog();
+    if (!result) return;
+    const file = base64ToFile(result.fileBuffer, result.mimeType, result.fileName);
+    upload(file);
+  };
 
   const onFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -55,15 +65,18 @@ export default function ImageUpload({ value, onChange }: Props) {
   };
 
   const dropZone: React.CSSProperties = {
-    border: `2px dashed ${dragging ? '#b8960c' : value ? '#10b981' : '#cbd5e1'}`,
+    border: `2px dashed ${dragging ? '#B8944A' : value ? '#10b981' : '#D1D5DB'}`,
     borderRadius: 10,
-    background: dragging ? '#fffbeb' : value ? '#f0fdf4' : '#f8fafc',
+    background: dragging ? '#FFFBEB' : value ? '#F0FDF4' : '#FAFAFA',
     transition: 'all .2s',
     overflow: 'hidden',
   };
 
+  const isElectron = !!window.electronAPI?.isElectron;
+
   return (
-    <div style={dropZone}
+    <div
+      style={dropZone}
       onDragOver={e => { e.preventDefault(); setDragging(true); }}
       onDragLeave={() => setDragging(false)}
       onDrop={onDrop}
@@ -91,45 +104,44 @@ export default function ImageUpload({ value, onChange }: Props) {
         </div>
       )}
 
-      {/* Upload progress bar */}
+      {/* Progress bar */}
       {uploading && (
-        <div style={{ height: 4, background: '#e2e8f0' }}>
-          <div style={{
-            height: '100%', background: '#b8960c',
-            width: `${progress}%`, transition: 'width .3s',
-          }} />
+        <div style={{ height: 4, background: '#E5E7EB' }}>
+          <div style={{ height: '100%', background: '#B8944A', width: `${progress}%`, transition: 'width .3s' }} />
         </div>
       )}
 
-      {/* Drop zone CTA */}
+      {/* CTA */}
       <div style={{ padding: '1.25rem', textAlign: 'center' }}>
         <input ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onFileChange} />
 
         {uploading ? (
-          <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>Uploading… {progress}%</p>
+          <p style={{ color: '#6B7280', fontSize: '0.9rem', margin: 0 }}>Uploading… {progress}%</p>
         ) : (
           <>
-            <p style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '0.6rem' }}>
+            <p style={{ color: '#6B7280', fontSize: '0.85rem', marginBottom: '0.6rem' }}>
               {value ? 'Drag a new image to replace, or' : 'Drag & drop an image here, or'}
             </p>
             <button
               type="button"
-              onClick={() => inputRef.current?.click()}
+              onClick={isElectron ? openNativeDialog : () => inputRef.current?.click()}
               style={{
-                padding: '0.5rem 1.4rem', background: '#0f172a', color: '#fff',
+                padding: '0.5rem 1.4rem', background: '#1A2335', color: '#fff',
                 border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600,
               }}
             >
-              {value ? 'Choose Different Image' : 'Browse Files'}
+              {isElectron
+                ? (value ? '📁 Replace Image' : '📁 Browse Files')
+                : (value ? 'Choose Different Image' : 'Browse Files')}
             </button>
-            <p style={{ color: '#94a3b8', fontSize: '0.75rem', marginTop: '0.5rem' }}>
+            <p style={{ color: '#9CA3AF', fontSize: '0.75rem', marginTop: '0.5rem' }}>
               JPEG · PNG · WebP · GIF · max 5 MB
             </p>
           </>
         )}
 
         {error && (
-          <p style={{ color: '#dc2626', fontSize: '0.8rem', marginTop: '0.5rem', marginBottom: 0 }}>{error}</p>
+          <p style={{ color: '#DC2626', fontSize: '0.8rem', marginTop: '0.5rem', marginBottom: 0 }}>{error}</p>
         )}
       </div>
     </div>

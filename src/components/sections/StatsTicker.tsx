@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
 
-interface StatItem {
+export interface StatItem {
   target: number;
   decimals?: number;
   suffix: string;
   label: string;
 }
 
-const STATS: StatItem[] = [
+const DEFAULT_STATS: StatItem[] = [
   { target: 200, suffix: '+', label: 'Properties Listed' },
   { target: 15, suffix: '+', label: 'Signature Projects' },
   { target: 10, suffix: '+', label: 'Years in Kabul' },
@@ -56,7 +56,7 @@ const CountUp = ({
   );
 };
 
-export const StatsTicker = () => (
+export const StatsTicker = ({ stats = DEFAULT_STATS }: { stats?: StatItem[] }) => (
   <section className="relative bg-brand-navy islamic-pattern py-16 overflow-hidden" aria-label="Key statistics">
     {/* Subtle gold glow top */}
     <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-gold/40 to-transparent" />
@@ -71,7 +71,7 @@ export const StatsTicker = () => (
           visible: { transition: { staggerChildren: 0.15 } },
         }}
       >
-        {STATS.map(({ target, decimals, suffix, label }, i) => (
+        {stats.map(({ target, decimals, suffix, label }, i) => (
           <motion.div
             key={label}
             variants={{
@@ -83,7 +83,7 @@ export const StatsTicker = () => (
               },
             }}
             className={`flex flex-col items-center text-center px-6 py-4 ${
-              i < STATS.length - 1 ? 'md:border-r md:border-brand-gold/20' : ''
+              i < stats.length - 1 ? 'md:border-r md:border-brand-gold/20' : ''
             } ${i < 2 ? 'border-b md:border-b-0 border-brand-gold/20 pb-10 md:pb-4' : 'pt-10 md:pt-4'}`}
           >
             <p className="font-bold text-white mb-2 tabular-nums" style={{ fontSize: 'clamp(2.5rem, 5vw, 3.5rem)' }}>

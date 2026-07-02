@@ -48,7 +48,7 @@ export const InquiryForm = ({ propertyId, propertyName }: { propertyId?: string,
 
   return (
     <div
-      className="bg-white p-6 rounded-xl border border-brand-gold/15"
+      className="bg-white/60 backdrop-blur-md p-6 rounded-xl border border-white/60"
       style={{ boxShadow: 'var(--shadow-lg)' }}
     >
       <h3 className="font-heading text-xl font-bold text-brand-navy mb-4">

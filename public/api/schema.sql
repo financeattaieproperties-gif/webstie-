@@ -48,7 +48,29 @@ CREATE TABLE IF NOT EXISTS leads (
   created_at    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Seed one sample property so frontend is not empty after first deploy
+-- ── Etisalat CPaaS Click-to-Call tables ─────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS ctc_auth_cache (
+    id         TINYINT UNSIGNED PRIMARY KEY DEFAULT 1,
+    id_token   TEXT         NOT NULL,
+    expires_at DATETIME     NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS ctc_public_call_log (
+    id                   INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_number      VARCHAR(20)  NOT NULL,
+    ip_address           VARCHAR(45)  NOT NULL,
+    reference_id         INT UNSIGNED NOT NULL,
+    etisalat_request_id  VARCHAR(50)  NULL,
+    status               ENUM('initiated','failed','blocked') DEFAULT 'initiated',
+    response_payload     TEXT         NULL,
+    created_at           TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE INDEX idx_ctc_ip_time     ON ctc_public_call_log (ip_address, created_at);
+CREATE INDEX idx_ctc_number_time ON ctc_public_call_log (customer_number, created_at);
+
+-- ── Seed one sample property so frontend is not empty after first deploy
 INSERT INTO properties (title, price, location, beds, baths, area, status, type, listing_type, image_url, description)
 VALUES (
   'Modern Villa with Mountain Views', 450000, 'Wazir Akbar Khan, Kabul',

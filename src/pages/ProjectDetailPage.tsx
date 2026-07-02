@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useParams, Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { Navbar } from '../components/layout/Navbar';
@@ -29,8 +30,28 @@ export default function ProjectDetailPage() {
       .finally(() => setLoading(false));
   }, [projectId]);
 
+  const metaTitle = project
+    ? `${project.name} — ${project.status} Development in ${project.location} | Attaie Properties`
+    : 'Project Details | Attaie Properties';
+  const metaDesc = project
+    ? project.description?.slice(0, 155) ??
+      `${project.name} is a ${project.status.toLowerCase()} real estate development in ${project.location}, Kabul. ${project.available_units ?? 0} units available.`
+    : 'View project details on Attaie Properties.';
+  const metaImage = project?.image_url ?? 'https://attaieproperties.af/logo.png';
+  const metaUrl = `https://attaieproperties.af/projects/${id}`;
+
   return (
     <main className="min-h-screen bg-brand-cream flex flex-col">
+      <Helmet>
+        <title>{metaTitle}</title>
+        <meta name="description" content={metaDesc} />
+        <link rel="canonical" href={metaUrl} />
+        <meta property="og:title" content={metaTitle} />
+        <meta property="og:description" content={metaDesc} />
+        <meta property="og:image" content={metaImage} />
+        <meta property="og:url" content={metaUrl} />
+        <meta property="og:type" content="article" />
+      </Helmet>
       <Navbar />
 
       {/* Cinematic hero */}

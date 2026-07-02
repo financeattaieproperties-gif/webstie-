@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,6 +8,7 @@ import { AlertCircle, CheckCircle, Phone, Mail, MapPin, MessageCircle } from 'lu
 import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
 import { Button } from '../components/ui/Button';
+import { ClickToCallButton } from '../components/ui/ClickToCallButton';
 import { createLead } from '../lib/dbService';
 
 const schema = z.object({
@@ -23,25 +25,25 @@ const CONTACT_INFO = [
   {
     icon: Phone,
     label: 'Phone',
-    value: '+93 700 123 456',
-    href: 'tel:+93700123456',
+    value: '+93 782 222 279',
+    href: 'tel:+93782222279',
   },
   {
     icon: MessageCircle,
     label: 'WhatsApp',
-    value: '+93 700 123 456',
-    href: 'https://wa.me/93700123456',
+    value: '+93 782 222 279',
+    href: 'https://wa.me/93782222279',
   },
   {
     icon: Mail,
     label: 'Email',
-    value: 'info@attaieproperties.af',
-    href: 'mailto:info@attaieproperties.af',
+    value: 'info@attaieproperties.com',
+    href: 'mailto:info@attaieproperties.com',
   },
   {
     icon: MapPin,
     label: 'Office',
-    value: 'Wazir Akbar Khan, Kabul, Afghanistan',
+    value: 'Street #13, Wazir Akbar Khan, Kabul, Afghanistan',
     href: undefined,
   },
 ];
@@ -87,6 +89,14 @@ export default function ContactPage() {
 
   return (
     <main className="min-h-screen bg-brand-cream flex flex-col">
+      <Helmet>
+        <title>Contact Us | Attaie Properties — Kabul Real Estate Agents</title>
+        <meta name="description" content="Get in touch with Attaie Properties. Call +93 782 222 279 or visit us at Street #13, Wazir Akbar Khan, Kabul. We help you buy, sell, and rent property in Afghanistan." />
+        <link rel="canonical" href="https://attaieproperties.af/contact" />
+        <meta property="og:title" content="Contact Attaie Properties — Kabul Real Estate Agents" />
+        <meta property="og:description" content="Reach our team by phone, email, or visit our Kabul office. Expert real estate advice for buying, selling, and renting in Afghanistan." />
+        <meta property="og:url" content="https://attaieproperties.af/contact" />
+      </Helmet>
       <Navbar />
 
       {/* Hero banner */}
@@ -171,6 +181,13 @@ export default function ContactPage() {
                   <p className="text-white/60 text-sm">8:00 AM – 6:00 PM (AFT)</p>
                   <p className="font-semibold mt-3">Friday</p>
                   <p className="text-white/60 text-sm">Closed</p>
+                </div>
+
+                <div className="mt-6">
+                  <p className="text-xs font-bold text-neutral-400 uppercase tracking-wide mb-3">
+                    Prefer a call?
+                  </p>
+                  <ClickToCallButton className="w-full justify-center" />
                 </div>
               </motion.div>
             </aside>

@@ -21,6 +21,7 @@ export default function Leads() {
   return (
     <div>
       <h1 style={S.title}>Leads ({items.length})</h1>
+      <div style={{ overflowX: 'auto' }}>
       <table style={S.table}>
         <thead>
           <tr>{['Name', 'Email', 'Phone', 'Property', 'Stage', 'Date'].map(h => <th key={h} style={S.th}>{h}</th>)}</tr>
@@ -41,6 +42,7 @@ export default function Leads() {
           )}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
