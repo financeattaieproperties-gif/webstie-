@@ -304,7 +304,7 @@ export const Hero3DSection: React.FC = () => {
                 opacity: isActive ? 1 : 0.6,
               }}
             >
-              <img src={s.img} alt={s.label} className="w-full h-full object-cover" />
+              <img src={s.img} alt={s.label} className="w-full h-full object-cover" loading="lazy" decoding="async" />
               {isActive && (
                 <div
                   className="absolute bottom-0 left-0 h-[2px] bg-white"

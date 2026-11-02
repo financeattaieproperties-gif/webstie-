@@ -57,6 +57,7 @@ const Navbar = () => {
               src="/logo.png"
               alt="Attaie Properties"
               className="h-16 w-auto object-contain transition-opacity duration-200 group-hover:opacity-85"
+              decoding="async"
             />
           </a>
         </div>

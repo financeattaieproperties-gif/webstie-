@@ -29,9 +29,10 @@ Zip contents of `dist/` (not the folder itself) and upload to `public_html/` on 
 ### Architecture
 
 - Path alias: `@/` → `./src`
-- Routing: React Router v6 `createBrowserRouter`. Routes: `/`, `/properties`, `/properties/:id`, `/projects/:id`, `*`
-- i18n: i18next + react-i18next. EN/FA locales. Language toggle in Navbar and Footer. RTL direction set on `<html dir>`.
-- No test suite configured.
+- Routing: React Router v6 `createBrowserRouter` (in `src/App.tsx`). Routes: `/` (HomePage), `/properties`, `/properties/:id`, `/projects/:id`, `/contact`, `/about`, `*` (NotFound)
+- i18n: i18next + react-i18next. EN/FA locales. Language toggle in Navbar and Footer. RTL direction set on `<html dir>` via `src/i18n/`.
+- No test suite configured. Verify changes via `npm run build` (runs `tsc --noEmit`) or `npm run dev` and inspecting the page.
+- Landing page composed of section components under `src/components/sections/` and assembled by `src/components/sections/LandingPageContent.tsx`. Notable sections: `Hero3DSection` (Three.js hero), `HeroSection`, `HotDealsSection`, `PropertyTypesSection`, `PopularLocationsSection`, `StatsTicker`, `TrustBlock`, `WhyAttaieSection`, `NewsSection`, `NewsletterBanner`.
 
 ### Brand Tokens (Tailwind v4 `@theme` in `src/styles/globals.css`)
 
@@ -81,6 +82,8 @@ npm run typecheck     # tsc --noEmit
 `src/App.tsx` detects `window.electronAPI?.isElectron` at runtime:
 - **Electron**: `HashRouter`, no basename, frameless window with custom `TitleBar`
 - **Web**: `BrowserRouter`, `basename='/admin'`
+
+Protected routes (auth-gated, redirect to `/properties` at root): `/properties`, `/properties/new`, `/properties/:id/edit`, `/projects`, `/projects/new`, `/projects/:id/edit`, `/leads`, `/settings`.
 
 ### Backend API
 

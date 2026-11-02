@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Hero3DSection } from './Hero3DSection';
 import { TrustBadgesStrip } from './TrustBadgesStrip';
@@ -19,6 +19,7 @@ import { SectionHeader } from '../ui/SectionHeader';
 import { HorizontalCarousel } from '../ui/HorizontalCarousel';
 import { MessageCircle, Phone, Star, Quote } from 'lucide-react';
 import { ClickToCallButton } from '../ui/ClickToCallButton';
+import { getProperties, getProjects, type Property, type Project } from '../../lib/dbService';
 
 const SECONDARY_STATS: StatItem[] = [
   { target: 10000, suffix: '+', label: 'Happy Clients' },
@@ -31,120 +32,37 @@ const WHATSAPP_NUMBER = '93782222279';
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
-const ALL_PROPERTIES = [
-  {
-    id: '1',
-    title: 'Modern Villa with Mountain Views',
-    price: 450000,
-    location: 'Wazir Akbar Khan, Kabul',
-    beds: 6,
-    baths: 5,
-    area: 380,
-    status: 'available' as const,
-    type: 'Villa',
-    listingType: 'sale' as const,
-    image: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: '2',
-    title: 'Luxury Apartment in City Centre',
-    price: 1200,
-    location: 'Shahr-e-Naw, Kabul',
-    beds: 3,
-    baths: 2,
-    area: 175,
-    status: 'available' as const,
-    type: 'Apartment',
-    listingType: 'rent' as const,
-    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: '3',
-    title: 'Executive Villa with Garden',
-    price: 320000,
-    location: 'Karte Seh, Kabul',
-    beds: 5,
-    baths: 4,
-    area: 310,
-    status: 'available' as const,
-    type: 'Villa',
-    listingType: 'sale' as const,
-    image: 'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: '4',
-    title: 'Commercial Office Space',
-    price: 3500,
-    location: 'Taimani, Kabul',
-    area: 220,
-    status: 'available' as const,
-    type: 'Commercial',
-    listingType: 'rent' as const,
-    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: '5',
-    title: 'Penthouse with City Panorama',
-    price: 580000,
-    location: 'Macroyan, Kabul',
-    beds: 4,
-    baths: 3,
-    area: 280,
-    status: 'available' as const,
-    type: 'Apartment',
-    listingType: 'sale' as const,
-    image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: '6',
-    title: 'Retail Showroom Ground Floor',
-    price: 4200,
-    location: 'Karte Parwan, Kabul',
-    area: 340,
-    status: 'available' as const,
-    type: 'Commercial',
-    listingType: 'rent' as const,
-    image: 'https://images.unsplash.com/photo-1604328698692-f76ea9498e76?auto=format&fit=crop&w=800&q=80',
-  },
-];
+const FALLBACK_IMG = 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80';
+const FEATURED_PROPERTIES_LIMIT = 6;
+const FEATURED_PROJECTS_LIMIT = 4;
 
-const FEATURED_PROJECTS = [
-  {
-    id: 'p1',
-    name: 'Aria Residences',
-    location: 'Macroyan, Kabul',
-    deliveryDate: 'Q2 2027',
-    status: 'Under Construction' as const,
-    availableUnits: 32,
-    image: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'p2',
-    name: 'Kabul Heights',
-    location: 'Karte Parwan, Kabul',
-    status: 'Ready' as const,
-    availableUnits: 12,
-    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'p3',
-    name: 'Green Valley Villas',
-    location: 'Qala-e-Fatullah, Kabul',
-    deliveryDate: 'Q4 2027',
-    status: 'Under Construction' as const,
-    availableUnits: 8,
-    image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'p4',
-    name: 'Wazir Gardens',
-    location: 'Wazir Akbar Khan, Kabul',
-    deliveryDate: 'Q1 2026',
-    status: 'Under Construction' as const,
-    availableUnits: 5,
-    image: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=800&q=80',
-  },
-];
+function toPropertyCardProps(p: Property) {
+  return {
+    id: String(p.id),
+    title: p.title,
+    price: p.price,
+    location: p.location,
+    beds: p.beds ?? undefined,
+    baths: p.baths ?? undefined,
+    area: p.area ?? undefined,
+    status: p.status,
+    type: p.type,
+    listingType: p.listing_type,
+    image: p.image_url ?? FALLBACK_IMG,
+  };
+}
+
+function toProjectCardProps(p: Project) {
+  return {
+    id: String(p.id),
+    name: p.name,
+    location: p.location,
+    deliveryDate: p.delivery_date ?? undefined,
+    status: p.status,
+    availableUnits: p.available_units,
+    image: p.image_url ?? FALLBACK_IMG,
+  };
+}
 
 const TESTIMONIALS = [
   {
@@ -198,8 +116,27 @@ const staggerParent = {
 
 export const LandingPageContent = () => {
   const [activeFilter, setActiveFilter] = useState<FilterTab>('All');
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loadingFeatured, setLoadingFeatured] = useState(true);
 
-  const filteredProperties = ALL_PROPERTIES.filter((p) => {
+  useEffect(() => {
+    Promise.all([getProperties(), getProjects()])
+      .then(([props, projs]) => {
+        setProperties(props.slice(0, FEATURED_PROPERTIES_LIMIT));
+        setProjects(projs.slice(0, FEATURED_PROJECTS_LIMIT));
+      })
+      .catch(() => {
+        setProperties([]);
+        setProjects([]);
+      })
+      .finally(() => setLoadingFeatured(false));
+  }, []);
+
+  const featuredProperties = properties.map(toPropertyCardProps);
+  const featuredProjects = projects.map(toProjectCardProps);
+
+  const filteredProperties = featuredProperties.filter((p) => {
     if (activeFilter === 'All') return true;
     if (activeFilter === 'For Sale') return p.listingType === 'sale';
     if (activeFilter === 'For Rent') return p.listingType === 'rent';
@@ -268,7 +205,9 @@ export const LandingPageContent = () => {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              {filteredProperties.length > 0 ? (
+              {loadingFeatured ? (
+                <div className="py-20 text-center text-neutral-400 text-sm">Loading properties…</div>
+              ) : filteredProperties.length > 0 ? (
                 <HorizontalCarousel
                   items={filteredProperties}
                   cardWidth={340}
@@ -330,12 +269,18 @@ export const LandingPageContent = () => {
             cta={{ label: 'View all projects', href: '/properties?category=projects' }}
           />
 
-          <HorizontalCarousel
-            items={FEATURED_PROJECTS}
-            cardWidth={340}
-            gap={24}
-            renderItem={(proj) => <ProjectCard {...proj} />}
-          />
+          {loadingFeatured ? (
+            <div className="py-20 text-center text-neutral-400 text-sm">Loading projects…</div>
+          ) : featuredProjects.length > 0 ? (
+            <HorizontalCarousel
+              items={featuredProjects}
+              cardWidth={340}
+              gap={24}
+              renderItem={(proj) => <ProjectCard {...proj} />}
+            />
+          ) : (
+            <div className="py-20 text-center text-neutral-400 text-sm">No projects available.</div>
+          )}
         </div>
       </section>
 

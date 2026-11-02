@@ -65,6 +65,8 @@ export const PropertyCard = ({
           src={image}
           alt={`${title} — ${type} for ${listingType === 'rent' ? 'rent' : 'sale'} in ${location}`}
           className="w-full h-full object-cover"
+          loading="lazy"
+          decoding="async"
           variants={{
             hovered: {
               scale: 1.07,

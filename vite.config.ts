@@ -13,5 +13,15 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor': ['react', 'react-dom', 'react-router-dom'],
+          'animations': ['framer-motion'],
+          'forms': ['react-hook-form', 'zod'],
+        }
+      }
+    },
+    chunkSizeWarningLimit: 600,
   },
 });

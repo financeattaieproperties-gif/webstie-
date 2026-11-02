@@ -31,7 +31,7 @@ export const MasterplanViewer = ({ masterplanImage, units, onUnitClick }: Master
 
   return (
     <div className="relative w-full aspect-video bg-neutral-100 rounded-xl overflow-hidden cursor-crosshair">
-      <img src={masterplanImage} alt="Masterplan" className="absolute inset-0 w-full h-full object-cover" />
+      <img src={masterplanImage} alt="Masterplan" className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" />
       
       <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full z-10">
         {units.map((unit) => {
