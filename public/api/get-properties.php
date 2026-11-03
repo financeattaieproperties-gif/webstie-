@@ -43,6 +43,12 @@ $stmt->execute();
 $result = $stmt->get_result();
 $rows   = [];
 while ($row = $result->fetch_assoc()) {
+    $row['id']    = (int) $row['id'];
+    $row['price'] = (float) $row['price'];
+    $row['beds']  = $row['beds']  !== null ? (int) $row['beds']   : null;
+    $row['baths'] = $row['baths'] !== null ? (int) $row['baths']  : null;
+    $row['area']  = $row['area']  !== null ? (float) $row['area'] : null;
+    $row['floor'] = $row['floor'] !== null ? (int) $row['floor']  : null;
     // Decode gallery_images JSON string → array
     if (!empty($row['gallery_images'])) {
         $decoded = json_decode($row['gallery_images'], true);
@@ -53,3 +59,4 @@ while ($row = $result->fetch_assoc()) {
     $rows[] = $row;
 }
 echo json_encode($rows);
+

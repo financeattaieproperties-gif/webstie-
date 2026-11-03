@@ -1,15 +1,27 @@
 <?php
 require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../sitemap-helper.php';
 cors();
 require_admin();
 
 $method = $_SERVER['REQUEST_METHOD'];
 
+function decode_gallery(?string $raw): array {
+    if (!$raw) return [];
+    $decoded = json_decode($raw, true);
+    return is_array($decoded) ? $decoded : [];
+}
+
 if ($method === 'GET') {
     $stmt = db()->prepare('SELECT * FROM projects ORDER BY created_at DESC');
     $stmt->execute();
+    $result = $stmt->get_result();
     $rows = [];
-    while ($row = $stmt->get_result()->fetch_assoc()) {
+    while ($row = $result->fetch_assoc()) {
+        $row['id']              = (int) $row['id'];
+        $row['available_units'] = (int) ($row['available_units'] ?? 0);
+        $row['total_units']     = (int) ($row['total_units'] ?? 0);
+        $row['gallery_images']  = decode_gallery($row['gallery_images'] ?? null);
         $rows[] = $row;
     }
     json_out($rows);
@@ -22,19 +34,23 @@ if ($method === 'POST') {
     }
     $avail = intval($b['available_units'] ?? 0);
     $total = intval($b['total_units']     ?? 0);
-    $del   = $b['delivery_date'] ?? null;
-    $img   = $b['image_url']     ?? null;
+    $del   = !empty($b['delivery_date']) ? trim((string) $b['delivery_date']) : null;
+    $img   = !empty($b['image_url'])     ? trim((string) $b['image_url'])     : null;
     $gallery = isset($b['gallery_images']) && is_array($b['gallery_images']) ? json_encode(array_values(array_filter($b['gallery_images']))) : null;
-    $video = trim($b['video_url'] ?? '') ?: null;
-    $masterplan = trim($b['masterplan_image'] ?? '') ?: null;
-    $desc  = $b['description']   ?? null;
+    $video = trim((string) ($b['video_url'] ?? '')) ?: null;
+    $masterplan = trim((string) ($b['masterplan_image'] ?? '')) ?: null;
+    $desc  = !empty($b['description'])   ? trim((string) $b['description'])   : null;
     $stmt  = db()->prepare(
         'INSERT INTO projects (name,location,delivery_date,status,available_units,total_units,image_url,gallery_images,video_url,masterplan_image,description)
          VALUES (?,?,?,?,?,?,?,?,?,?,?)'
     );
     $stmt->bind_param('ssssiisssss', $b['name'], $b['location'], $del, $b['status'], $avail, $total, $img, $gallery, $video, $masterplan, $desc);
-    $stmt->execute();
-    json_out(['id' => db()->insert_id], 201);
+    if (!$stmt->execute()) {
+        json_out(['error' => 'Failed to create project: ' . db()->error], 500);
+    }
+    $newId = (int) db()->insert_id;
+    @build_and_save_sitemap();
+    json_out(['id' => $newId], 201);
 }
 
 if ($method === 'PUT') {
@@ -43,28 +59,44 @@ if ($method === 'PUT') {
     if (!$id) json_out(['error' => 'id required'], 400);
     $avail = intval($b['available_units'] ?? 0);
     $total = intval($b['total_units']     ?? 0);
-    $del   = $b['delivery_date'] ?? null;
-    $img   = $b['image_url']     ?? null;
+    $del   = !empty($b['delivery_date']) ? trim((string) $b['delivery_date']) : null;
+    $img   = !empty($b['image_url'])     ? trim((string) $b['image_url'])     : null;
     $gallery = isset($b['gallery_images']) && is_array($b['gallery_images']) ? json_encode(array_values(array_filter($b['gallery_images']))) : null;
-    $video = trim($b['video_url'] ?? '') ?: null;
-    $masterplan = trim($b['masterplan_image'] ?? '') ?: null;
-    $desc  = $b['description']   ?? null;
+    $video = trim((string) ($b['video_url'] ?? '')) ?: null;
+    $masterplan = trim((string) ($b['masterplan_image'] ?? '')) ?: null;
+    $desc  = !empty($b['description'])   ? trim((string) $b['description'])   : null;
     $stmt  = db()->prepare(
         'UPDATE projects SET name=?,location=?,delivery_date=?,status=?,
          available_units=?,total_units=?,image_url=?,gallery_images=?,video_url=?,masterplan_image=?,description=? WHERE id=?'
     );
     $stmt->bind_param('ssssiisssssi', $b['name'], $b['location'], $del, $b['status'], $avail, $total, $img, $gallery, $video, $masterplan, $desc, $id);
-    $stmt->execute();
-    json_out(['updated' => $stmt->affected_rows]);
+    if (!$stmt->execute()) {
+        json_out(['error' => 'Failed to update project: ' . db()->error], 500);
+    }
+    $affected = (int) $stmt->affected_rows;
+    @build_and_save_sitemap();
+    json_out(['updated' => $affected]);
 }
 
 if ($method === 'DELETE') {
     $id = intval($_GET['id'] ?? 0);
     if (!$id) json_out(['error' => 'id required'], 400);
+    // Delete associated project units first in case foreign key is RESTRICT
+    $delUnits = db()->prepare('DELETE FROM project_units WHERE project_id = ?');
+    if ($delUnits) {
+        $delUnits->bind_param('i', $id);
+        $delUnits->execute();
+    }
     $stmt = db()->prepare('DELETE FROM projects WHERE id = ?');
     $stmt->bind_param('i', $id);
-    $stmt->execute();
-    json_out(['deleted' => $stmt->affected_rows]);
+    if (!$stmt->execute()) {
+        json_out(['error' => 'Failed to delete project'], 500);
+    }
+    $affected = (int) $stmt->affected_rows;
+    @build_and_save_sitemap();
+    json_out(['deleted' => $affected]);
 }
 
 json_out(['error' => 'Method not allowed'], 405);
+
+

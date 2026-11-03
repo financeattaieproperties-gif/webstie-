@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../sitemap-helper.php';
 cors();
 require_admin();
 
@@ -40,12 +41,16 @@ if ($method === 'POST' || $method === 'PUT') {
         $stmt = db()->prepare('INSERT INTO agents (name,role,background,portrait_url,phone,email,whatsapp,published) VALUES (?,?,?,?,?,?,?,?)');
         $stmt->bind_param('sssssssi', $name, $role, $background, $portrait, $phone, $email, $whatsapp, $published);
         $stmt->execute();
-        json_out(['id' => db()->insert_id], 201);
+        $newId = (int) db()->insert_id;
+        @build_and_save_sitemap();
+        json_out(['id' => $newId], 201);
     }
     $stmt = db()->prepare('UPDATE agents SET name=?,role=?,background=?,portrait_url=?,phone=?,email=?,whatsapp=?,published=? WHERE id=?');
     $stmt->bind_param('sssssssii', $name, $role, $background, $portrait, $phone, $email, $whatsapp, $published, $id);
     $stmt->execute();
-    json_out(['updated' => $stmt->affected_rows]);
+    $affected = (int) $stmt->affected_rows;
+    @build_and_save_sitemap();
+    json_out(['updated' => $affected]);
 }
 
 if ($method === 'DELETE') {
@@ -54,7 +59,10 @@ if ($method === 'DELETE') {
     $stmt = db()->prepare('DELETE FROM agents WHERE id=?');
     $stmt->bind_param('i', $id);
     $stmt->execute();
-    json_out(['deleted' => $stmt->affected_rows]);
+    $affected = (int) $stmt->affected_rows;
+    @build_and_save_sitemap();
+    json_out(['deleted' => $affected]);
 }
 
 json_out(['error' => 'Method not allowed'], 405);
+

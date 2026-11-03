@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /api/
 
-Sitemap: https://attaieproperties.com/sitemap.xml
+Sitemap: https://website.attaieproperties.com/sitemap.xml

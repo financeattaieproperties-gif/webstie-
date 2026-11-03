@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Mail, MessageCircle, Phone } from 'lucide-react';
 import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
 import { getAgent, type Agent } from '../lib/dbService';
+import { SeoHead } from '../components/seo/SeoHead';
+import { buildAgentSeo } from '../lib/seoConfig';
 
 function whatsappHref(phone: string) {
   const digits = phone.replace(/\D/g, '');
@@ -23,9 +24,9 @@ export default function AgentDetailPage() {
     getAgent(agentId).then(setAgent).catch(() => setError('Agent profile not found.')).finally(() => setLoading(false));
   }, [id]);
 
-  const title = agent ? `${agent.name} | Attaie Properties` : 'Agent Profile | Attaie Properties';
+  const seo = buildAgentSeo(agent, id);
   return <main className="min-h-screen bg-brand-ivory flex flex-col">
-    <Helmet><title>{title}</title>{agent && <><meta name="description" content={`${agent.name}, ${agent.role} at Attaie Properties in Kabul.`} /><link rel="canonical" href={`https://attaieproperties.com/agents/${agent.id}`} /><meta property="og:image" content={agent.portrait_url} /></>}</Helmet>
+    <SeoHead seo={seo} />
     <Navbar />
     <header className="bg-brand-navy pt-32 pb-6">
       <div className="container-custom"><Link to="/agents" className="inline-flex items-center gap-2 text-sm font-semibold text-white/80 hover:text-brand-gold"><ArrowLeft size={16} /> Our Agents</Link></div>

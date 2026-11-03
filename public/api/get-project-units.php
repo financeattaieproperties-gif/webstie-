@@ -22,5 +22,17 @@ $types .= 'ii'; $params[] = $limit; $params[] = $offset;
 $stmt = db()->prepare($sql);
 $stmt->bind_param($types, ...$params);
 $stmt->execute();
-$rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$result = $stmt->get_result();
+$rows = [];
+while ($row = $result->fetch_assoc()) {
+    $row['id']         = (int) $row['id'];
+    $row['project_id'] = (int) $row['project_id'];
+    $row['beds']       = $row['beds']  !== null ? (int) $row['beds']   : null;
+    $row['baths']      = $row['baths'] !== null ? (int) $row['baths']  : null;
+    $row['area']       = $row['area']  !== null ? (float) $row['area'] : null;
+    $row['floor']      = $row['floor'] !== null ? (int) $row['floor']  : null;
+    $row['price']      = $row['price'] !== null ? (float) $row['price']: null;
+    $rows[] = $row;
+}
 json_out(['items' => $rows, 'page' => $page, 'limit' => $limit]);
+

@@ -16,6 +16,13 @@ if (!$row) {
     json_out(['error' => 'Not found'], 404);
 }
 
+$row['id']    = (int) $row['id'];
+$row['price'] = (float) $row['price'];
+$row['beds']  = $row['beds']  !== null ? (int) $row['beds']   : null;
+$row['baths'] = $row['baths'] !== null ? (int) $row['baths']  : null;
+$row['area']  = $row['area']  !== null ? (float) $row['area'] : null;
+$row['floor'] = $row['floor'] !== null ? (int) $row['floor']  : null;
+
 // Decode gallery_images JSON string → array
 if (!empty($row['gallery_images'])) {
     $decoded = json_decode($row['gallery_images'], true);
@@ -25,3 +32,4 @@ if (!empty($row['gallery_images'])) {
 }
 
 echo json_encode($row);
+

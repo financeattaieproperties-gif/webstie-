@@ -28,13 +28,13 @@ export default function AboutPage() {
           name="description"
           content="Attaie Properties is Kabul's premier real estate agency, trusted by Afghan families and the diaspora for over a decade. We specialise in residential and commercial property sales, rentals, and investment guidance."
         />
-        <link rel="canonical" href="https://attaieproperties.com/about" />
+        <link rel="canonical" href="https://website.attaieproperties.com/about" />
         <meta property="og:title" content="About Attaie Properties — Kabul's Trusted Real Estate Agency" />
         <meta
           property="og:description"
           content="Trusted by the Afghan diaspora for over a decade. Residential and commercial property in Kabul."
         />
-        <meta property="og:url" content="https://attaieproperties.com/about" />
+        <meta property="og:url" content="https://website.attaieproperties.com/about" />
       </Helmet>
 
       <Navbar />

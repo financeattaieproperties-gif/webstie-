@@ -7,11 +7,11 @@ type Status = Property['status'];
 const statusColor = (s: Status): React.CSSProperties => ({
   padding: '0.2rem 0.7rem', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer',
   border: 'none', outline: 'none',
-  background: s === 'available' ? '#d1fae5' : s === 'pending' ? '#fef9c3' : '#fee2e2',
-  color:      s === 'available' ? '#065f46' : s === 'pending' ? '#92400e' : '#991b1b',
+  background: s === 'available' ? '#d1fae5' : s === 'pending' ? '#fef9c3' : s === 'rented' ? '#dbeafe' : '#fee2e2',
+  color:      s === 'available' ? '#065f46' : s === 'pending' ? '#92400e' : s === 'rented' ? '#1e40af' : '#991b1b',
 });
 
-const STATUSES: Status[] = ['available', 'pending', 'sold'];
+const STATUSES: Status[] = ['available', 'pending', 'sold', 'rented'];
 const nextStatus = (s: Status): Status => STATUSES[(STATUSES.indexOf(s) + 1) % STATUSES.length];
 
 const S = {
@@ -90,7 +90,7 @@ export default function Properties() {
                 <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{p.location}</div>
               </td>
               <td style={S.td}>
-                <div style={{ fontWeight: 600 }}>${p.price.toLocaleString()}</div>
+                <div style={{ fontWeight: 600 }}>${Number(p.price).toLocaleString()}</div>
                 <div style={{ color: '#94a3b8', fontSize: '0.78rem' }}>
                   {p.listing_type === 'rent' ? '/mo' : 'sale'}
                 </div>

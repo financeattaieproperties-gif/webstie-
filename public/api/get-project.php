@@ -15,6 +15,9 @@ $row = $stmt->get_result()->fetch_assoc();
 if (!$row) {
     json_out(['error' => 'Not found'], 404);
 }
+$row['id']              = (int) $row['id'];
+$row['available_units'] = (int) ($row['available_units'] ?? 0);
+$row['total_units']     = (int) ($row['total_units'] ?? 0);
 if (!empty($row['gallery_images'])) {
     $decoded = json_decode($row['gallery_images'], true);
     $row['gallery_images'] = is_array($decoded) ? $decoded : [];
@@ -22,3 +25,4 @@ if (!empty($row['gallery_images'])) {
     $row['gallery_images'] = [];
 }
 echo json_encode($row);
+

@@ -7,15 +7,15 @@ import { SectionHeader } from '../ui/SectionHeader';
 interface PropertyType {
   Icon: LucideIcon;
   label: string;
-  count: number;
+  typeParam: string;
 }
 
 const TYPES: PropertyType[] = [
-  { Icon: Building2, label: 'Apartments', count: 84 },
-  { Icon: Home, label: 'Villas', count: 46 },
-  { Icon: Warehouse, label: 'Houses', count: 62 },
-  { Icon: Store, label: 'Commercial', count: 21 },
-  { Icon: Trees, label: 'Land', count: 15 },
+  { Icon: Building2, label: 'Apartments', typeParam: 'Apartment' },
+  { Icon: Home, label: 'Villas', typeParam: 'Villa' },
+  { Icon: Warehouse, label: 'Houses', typeParam: 'House' },
+  { Icon: Store, label: 'Commercial', typeParam: 'Commercial' },
+  { Icon: Trees, label: 'Land', typeParam: 'Land' },
 ];
 
 export const PropertyTypesSection = () => (
@@ -28,10 +28,10 @@ export const PropertyTypesSection = () => (
       />
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
-        {TYPES.map(({ Icon, label, count }, i) => (
+        {TYPES.map(({ Icon, label, typeParam }, i) => (
           <motion.a
             key={label}
-            href={`/properties?type=${encodeURIComponent(label)}`}
+            href={`/properties?type=${encodeURIComponent(typeParam)}`}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-40px' }}
@@ -44,10 +44,10 @@ export const PropertyTypesSection = () => (
               <Icon size={24} className="text-brand-gold" />
             </div>
             <p className="font-heading font-bold text-brand-navy text-sm">{label}</p>
-            <p className="text-neutral-400 text-xs">{count} Listings</p>
           </motion.a>
         ))}
       </div>
     </div>
   </section>
 );
+

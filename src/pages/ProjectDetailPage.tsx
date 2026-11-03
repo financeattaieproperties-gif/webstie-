@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { useParams, Link } from 'react-router-dom';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
 import { InquiryForm } from '../components/forms/InquiryForm';
@@ -14,6 +13,8 @@ import { VisitRequestDialog } from '../components/forms/VisitRequestDialog';
 import { ProjectUnitsSection } from '../components/project/ProjectUnitsSection';
 import { ImageGallery } from '../components/property/ImageGallery';
 import { VideoPlayer } from '../components/property/VideoPlayer';
+import { SeoHead } from '../components/seo/SeoHead';
+import { buildProjectSeo } from '../lib/seoConfig';
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -36,29 +37,12 @@ export default function ProjectDetailPage() {
       .finally(() => setLoading(false));
   }, [projectId]);
 
-  const metaTitle = project
-    ? `${project.name} — ${project.status} Development in ${project.location} | Attaie Properties`
-    : 'Project Details | Attaie Properties';
-  const metaDesc = project
-    ? project.description?.slice(0, 155) ??
-      `${project.name} is a ${project.status.toLowerCase()} real estate development in ${project.location}, Kabul. ${project.available_units ?? 0} units available.`
-    : 'View project details on Attaie Properties.';
-  const metaImage = project?.image_url ?? 'https://attaieproperties.com/logo.png';
-  const metaUrl = `https://attaieproperties.com/projects/${id}`;
+  const seo = buildProjectSeo(project, id);
   const projectImages = project ? ((project.gallery_images?.length ? project.gallery_images : project.image_url ? [project.image_url] : [])) : [];
 
   return (
     <main className="min-h-screen bg-brand-cream flex flex-col">
-      <Helmet>
-        <title>{metaTitle}</title>
-        <meta name="description" content={metaDesc} />
-        <link rel="canonical" href={metaUrl} />
-        <meta property="og:title" content={metaTitle} />
-        <meta property="og:description" content={metaDesc} />
-        <meta property="og:image" content={metaImage} />
-        <meta property="og:url" content={metaUrl} />
-        <meta property="og:type" content="article" />
-      </Helmet>
+      <SeoHead seo={seo} />
       <Navbar />
 
       {/* Cinematic hero */}

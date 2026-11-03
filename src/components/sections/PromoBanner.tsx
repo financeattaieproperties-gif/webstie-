@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, ArrowRight } from 'lucide-react';
+import { CheckCircle2, ArrowRight, Building2 } from 'lucide-react';
 
 export interface PromoBannerProps {
   eyebrow?: string;
@@ -9,7 +9,7 @@ export interface PromoBannerProps {
   bullets?: string[];
   ctaLabel: string;
   ctaHref: string;
-  image: string;
+  image?: string;
   imageSide?: 'left' | 'right';
 }
 
@@ -77,19 +77,17 @@ export const PromoBanner = ({
           </a>
         </motion.div>
 
-        <div className={`relative min-h-[260px] ${imageSide === 'left' ? 'lg:order-1' : ''}`}>
-          <img src={image} alt="" aria-hidden="true" className="w-full h-full object-cover absolute inset-0" loading="lazy" />
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                imageSide === 'left'
-                  ? 'linear-gradient(to right, transparent 60%, var(--color-brand-navy) 100%)'
-                  : 'linear-gradient(to left, transparent 60%, var(--color-brand-navy) 100%)',
-            }}
-          />
+        <div className={`relative min-h-[260px] flex items-center justify-center ${imageSide === 'left' ? 'lg:order-1' : ''}`}>
+          {image ? (
+            <img src={image} alt="" aria-hidden="true" className="w-full h-full object-cover absolute inset-0" loading="lazy" />
+          ) : (
+            <div className="w-24 h-24 rounded-3xl bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold-lt">
+              <Building2 size={44} />
+            </div>
+          )}
         </div>
       </div>
     </div>
   </section>
 );
+

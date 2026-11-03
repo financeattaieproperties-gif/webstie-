@@ -45,17 +45,9 @@ export const HeroSection = () => {
   return (
     <section className="relative w-full min-h-screen flex flex-col justify-center overflow-hidden">
 
-      {/* Background photo */}
-      <div className="absolute inset-0 z-0">
-        <img
-          src="https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=1800&q=80"
-          alt=""
-          aria-hidden="true"
-          className="w-full h-full object-cover"
-        />
-        {/* Navy gradient overlay */}
+      {/* Background */}
+      <div className="absolute inset-0 z-0 bg-brand-navy">
         <div className="absolute inset-0 bg-gradient-to-b from-brand-navy/80 via-brand-navy/70 to-brand-navy/85" />
-        {/* Islamic pattern */}
         <div className="absolute inset-0 islamic-pattern" />
       </div>
 

@@ -1,135 +1,84 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, ChevronDown } from 'lucide-react';
+import type { Property } from '../../lib/dbService';
 
-// ─── slides ───────────────────────────────────────────────────────────────────
-const SLIDES = [
-  {
-    img: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1400&q=85',
-    label: 'Modern Villa',
-    location: 'Wazir Akbar Khan, Kabul',
-    price: '$450,000',
-    type: 'Villa for Sale',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1400&q=85',
-    label: 'Executive Residence',
-    location: 'Karte Parwan, Kabul',
-    price: '$320,000',
-    type: 'Villa for Sale',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1400&q=85',
-    label: 'Luxury Apartment',
-    location: 'Shahr-e-Naw, Kabul',
-    price: '$1,200 / mo',
-    type: 'Apartment for Rent',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1400&q=85',
-    label: 'Aria Residences',
-    location: 'Macroyan, Kabul',
-    price: 'From $180,000',
-    type: 'Development Project',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&w=1400&q=85',
-    label: 'Garden Villa',
-    location: 'Karte Seh, Kabul',
-    price: '$290,000',
-    type: 'Villa for Sale',
-  },
-];
-
-const SLIDE_DURATION = 5000; // ms
-
-// ─── search placeholders ──────────────────────────────────────────────────────
 const PLACEHOLDERS = [
-  'Search by district or address...',
-  'Wazir Akbar Khan villas...',
-  '3-bed apartment in Shahr-e-Naw...',
+  'Search by district, serial number, or address...',
+  'Wazir Akbar Khan...',
+  'Shahr-e-Naw...',
 ];
 
 type PropertyType = 'Buy' | 'Rent' | 'Commercial';
 const PROPERTY_TYPES: PropertyType[] = ['Buy', 'Rent', 'Commercial'];
 
-export const Hero3DSection: React.FC = () => {
+export const Hero3DSection: React.FC<{ featuredProperties?: Property[] }> = ({ featuredProperties = [] }) => {
+  const navigate = useNavigate();
+  const slidesWithImages = featuredProperties.filter((p) => Boolean(p.image_url));
 
-  // Slideshow
   const [slideIdx, setSlideIdx] = useState(0);
-  const [progress, setProgress] = useState(0);
-  const progressRef = useRef(0);
-  const startRef = useRef<number | null>(null);
-  const pausedRef = useRef(false);
-
-  const goTo = useCallback((n: number) => {
-    setSlideIdx(((n % SLIDES.length) + SLIDES.length) % SLIDES.length);
-    setProgress(0);
-    progressRef.current = 0;
-    startRef.current = null;
-  }, []);
-
-  // Ticker for progress bar
-  useEffect(() => {
-    let raf: number;
-    const tick = (now: number) => {
-      if (!pausedRef.current) {
-        if (startRef.current === null) startRef.current = now;
-        const elapsed = now - startRef.current;
-        const p = Math.min(elapsed / SLIDE_DURATION, 1);
-        progressRef.current = p;
-        setProgress(p);
-        if (p >= 1) {
-          setSlideIdx((i) => (i + 1) % SLIDES.length);
-          startRef.current = null;
-          progressRef.current = 0;
-          setProgress(0);
-        }
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, []);
-
-  // Word crossfade placeholder
   const [phraseIdx, setPhraseIdx] = useState(0);
+  const [propType, setPropType] = useState<PropertyType>('Buy');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    if (slidesWithImages.length <= 1) return;
+    const id = setInterval(() => {
+      setSlideIdx((i) => (i + 1) % slidesWithImages.length);
+    }, 5000);
+    return () => clearInterval(id);
+  }, [slidesWithImages.length]);
 
   useEffect(() => {
     const id = setInterval(() => {
-      setPhraseIdx(i => (i + 1) % PLACEHOLDERS.length);
+      setPhraseIdx((i) => (i + 1) % PLACEHOLDERS.length);
     }, 3500);
     return () => clearInterval(id);
   }, []);
 
-  // Property type toggle
-  const [propType, setPropType] = useState<PropertyType>('Buy');
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (searchQuery.trim()) params.set('search', searchQuery.trim());
+    if (propType === 'Commercial') params.set('type', 'Commercial');
+    navigate(`/properties${params.toString() ? `?${params.toString()}` : ''}`);
+  };
 
-
-  const slide = SLIDES[slideIdx];
+  const activeSlide = slidesWithImages[slideIdx % Math.max(slidesWithImages.length, 1)];
 
   return (
     <section
       className="relative w-full min-h-screen overflow-hidden flex items-center justify-center"
-      onMouseEnter={() => { pausedRef.current = true; }}
-      onMouseLeave={() => { pausedRef.current = false; }}
+      style={{ background: 'var(--color-brand-navy)' }}
     >
-      {/* ── Full-bleed photo slideshow ── */}
-      <AnimatePresence mode="sync">
-        <motion.div
-          key={slideIdx}
-          className="absolute inset-0"
-          initial={{ opacity: 0, scale: 1.04 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-        >
-          <img src={slide.img} alt={slide.label} className="w-full h-full object-cover" />
-        </motion.div>
-      </AnimatePresence>
+      {/* ── Architectural backdrop or live uploaded property slideshow ── */}
+      {activeSlide?.image_url ? (
+        <AnimatePresence mode="sync">
+          <motion.div
+            key={activeSlide.id}
+            className="absolute inset-0"
+            initial={{ opacity: 0, scale: 1.04 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
+            <img src={activeSlide.image_url} alt={activeSlide.title} className="w-full h-full object-cover" />
+          </motion.div>
+        </AnimatePresence>
+      ) : (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(ellipse 80% 60% at 50% 35%, rgba(1,69,242,0.28) 0%, rgba(2,14,58,0.95) 70%)',
+          }}
+        />
+      )}
 
       {/* ── Overlays ── */}
-      <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+      <div className="absolute inset-0 islamic-pattern opacity-30 pointer-events-none" />
+      <div className="absolute inset-0 bg-black/35 pointer-events-none" />
       <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/55 to-transparent pointer-events-none" />
       <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-black/65 to-transparent pointer-events-none" />
 
@@ -141,14 +90,13 @@ export const Hero3DSection: React.FC = () => {
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           className="w-full rounded-3xl px-8 py-10 text-center"
           style={{
-            background: 'rgba(255,255,255,0.93)',
+            background: 'rgba(255,255,255,0.95)',
             backdropFilter: 'blur(28px)',
             WebkitBackdropFilter: 'blur(28px)',
             boxShadow: '0 32px 80px rgba(2,14,58,0.25), 0 4px 16px rgba(2,14,58,0.12)',
             border: '1px solid rgba(255,255,255,0.85)',
           }}
         >
-          {/* Headline */}
           <motion.h1
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
@@ -159,7 +107,6 @@ export const Hero3DSection: React.FC = () => {
             Find Your Dream Home<br />in Kabul
           </motion.h1>
 
-          {/* Subtext */}
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -180,6 +127,7 @@ export const Hero3DSection: React.FC = () => {
             {PROPERTY_TYPES.map((t) => (
               <button
                 key={t}
+                type="button"
                 onClick={() => setPropType(t)}
                 className="relative px-5 py-2 rounded-lg text-sm font-semibold transition-colors duration-200"
                 style={{ color: propType === t ? '#ffffff' : 'rgba(2,14,58,0.5)' }}
@@ -197,11 +145,12 @@ export const Hero3DSection: React.FC = () => {
           </motion.div>
 
           {/* Search bar */}
-          <motion.div
+          <motion.form
+            onSubmit={handleSearch}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.42, duration: 0.45 }}
-            className="flex items-center gap-2 rounded-xl px-4 py-3 mb-7"
+            className="flex items-center gap-2 rounded-xl px-4 py-3 mb-2"
             style={{
               background: '#ffffff',
               border: '1.5px solid rgba(2,14,58,0.12)',
@@ -210,27 +159,32 @@ export const Hero3DSection: React.FC = () => {
           >
             <MapPin size={16} className="text-brand-gold shrink-0" />
             <div className="relative flex-1">
-              <AnimatePresence mode="wait">
-                <motion.span
-                  key={phraseIdx}
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -5 }}
-                  transition={{ duration: 0.3 }}
-                  className="absolute inset-0 flex items-center text-neutral-400 text-sm pointer-events-none select-none"
-                  aria-hidden="true"
-                >
-                  {PLACEHOLDERS[phraseIdx]}
-                </motion.span>
-              </AnimatePresence>
+              {!searchQuery && (
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={phraseIdx}
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    transition={{ duration: 0.3 }}
+                    className="absolute inset-0 flex items-center text-neutral-400 text-sm pointer-events-none select-none"
+                    aria-hidden="true"
+                  >
+                    {PLACEHOLDERS[phraseIdx]}
+                  </motion.span>
+                </AnimatePresence>
+              )}
               <input
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 aria-label="Search location or property"
                 placeholder=""
                 className="relative z-10 w-full bg-transparent border-none outline-none text-brand-navy text-sm font-medium"
               />
             </div>
             <motion.button
+              type="submit"
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.97 }}
               transition={{ type: 'spring', stiffness: 400, damping: 17 }}
@@ -239,29 +193,7 @@ export const Hero3DSection: React.FC = () => {
               <Search size={14} />
               Search
             </motion.button>
-          </motion.div>
-
-          {/* Trust stats */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.55, duration: 0.5 }}
-            className="flex items-center justify-center gap-10"
-          >
-            {([
-              ['200+', 'Properties'],
-              ['15+', 'Projects'],
-              ['10+', 'Years'],
-            ] as const).map(([val, lbl], i) => (
-              <React.Fragment key={lbl}>
-                {i > 0 && <div className="w-px h-8 bg-neutral-200" />}
-                <div className="flex flex-col items-center gap-0.5">
-                  <span className="text-xl font-bold text-brand-gold leading-none">{val}</span>
-                  <span className="text-neutral-500 text-xs font-medium">{lbl}</span>
-                </div>
-              </React.Fragment>
-            ))}
-          </motion.div>
+          </motion.form>
         </motion.div>
 
         {/* Browse CTA below card */}
@@ -276,53 +208,7 @@ export const Hero3DSection: React.FC = () => {
           <ChevronDown size={15} className="group-hover:translate-y-0.5 transition-transform duration-200" />
         </motion.a>
       </div>
-
-      {/* ── Thumbnail strip ── */}
-      <div className="absolute bottom-6 left-0 right-0 z-10 flex justify-center gap-2 px-6">
-        {SLIDES.map((s, i) => {
-          const isActive = i === slideIdx;
-          return (
-            <button
-              key={i}
-              onClick={() => goTo(i)}
-              aria-label={`Go to ${s.label}`}
-              className="relative rounded-lg overflow-hidden shrink-0 transition-all duration-300"
-              style={{
-                width: isActive ? 80 : 52,
-                height: isActive ? 56 : 40,
-                border: isActive ? '1.5px solid rgba(255,255,255,0.9)' : '1.5px solid rgba(255,255,255,0.3)',
-                opacity: isActive ? 1 : 0.6,
-              }}
-            >
-              <img src={s.img} alt={s.label} className="w-full h-full object-cover" loading="lazy" decoding="async" />
-              {isActive && (
-                <div
-                  className="absolute bottom-0 left-0 h-[2px] bg-white"
-                  style={{
-                    width: `${progress * 100}%`,
-                    transition: 'width 0.12s cubic-bezier(0.25, 1, 0.5, 1)',
-                  }}
-                />
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* ── Current property label (bottom-left) ── */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={`label-${slideIdx}`}
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.35 }}
-          className="absolute bottom-20 left-8 z-10 hidden lg:block"
-        >
-          <p className="text-white font-semibold text-sm drop-shadow-md">{slide.label}</p>
-          <p className="text-white/60 text-xs drop-shadow-md">{slide.location} · {slide.price}</p>
-        </motion.div>
-      </AnimatePresence>
     </section>
   );
 };
+

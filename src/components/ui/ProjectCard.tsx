@@ -10,7 +10,7 @@ export interface ProjectCardProps {
   deliveryDate?: string;
   status: 'Coming Soon' | 'In Progress' | 'Sold Out' | 'Under Construction' | 'Ready';
   availableUnits?: number;
-  image: string;
+  image?: string | null;
 }
 
 export const ProjectCard = ({ id, name, location, deliveryDate, status, availableUnits, image }: ProjectCardProps) => {
@@ -31,18 +31,24 @@ export const ProjectCard = ({ id, name, location, deliveryDate, status, availabl
       className="group block bg-white/60 backdrop-blur-md rounded-2xl overflow-hidden transition-colors duration-300 border border-white/60 hover:border-brand-gold/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2"
     >
       {/* Image */}
-      <motion.div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100" whileHover="hovered">
-        <motion.img
-          src={image}
-          alt={`${name} — ${status} development in ${location}`}
-          className="w-full h-full object-cover"
-          loading="lazy"
-          decoding="async"
-          variants={{ hovered: { scale: 1.07, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] } } }}
-          initial={false}
-          style={{ filter: imgLoaded ? 'none' : 'blur(8px)', transition: 'filter 0.4s ease' }}
-          onLoad={() => setImgLoaded(true)}
-        />
+      <motion.div className="relative aspect-[4/3] w-full overflow-hidden bg-brand-navy" whileHover="hovered">
+        {image ? (
+          <motion.img
+            src={image}
+            alt={`${name} — ${status} development in ${location}`}
+            className="w-full h-full object-cover"
+            loading="lazy"
+            decoding="async"
+            variants={{ hovered: { scale: 1.07, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] } } }}
+            initial={false}
+            style={{ filter: imgLoaded ? 'none' : 'blur(8px)', transition: 'filter 0.4s ease' }}
+            onLoad={() => setImgLoaded(true)}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center islamic-pattern text-white/30">
+            <Home size={32} />
+          </div>
+        )}
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-brand-navy/80 via-brand-navy/20 to-transparent" />
 

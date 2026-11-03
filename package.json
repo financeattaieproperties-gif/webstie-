@@ -4,9 +4,10 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview",
+    "dev": "vite --port 3000 --host 0.0.0.0",
+    "generate:sitemap": "node scripts/generate-sitemap.mjs",
+    "build": "node scripts/generate-sitemap.mjs && tsc --noEmit && vite build",
+    "preview": "vite preview --port 3000 --host 0.0.0.0",
     "lint": "eslint src"
   },
   "dependencies": {

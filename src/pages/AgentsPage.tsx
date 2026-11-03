@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, Users } from 'lucide-react';
 import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
 import { getAgents, type Agent } from '../lib/dbService';
+import { SeoHead } from '../components/seo/SeoHead';
+import { PAGE_SEO } from '../lib/seoConfig';
 
 export default function AgentsPage() {
   const [agents, setAgents] = useState<Agent[]>([]);
@@ -15,13 +16,7 @@ export default function AgentsPage() {
   }, []);
 
   return <main className="min-h-screen bg-brand-ivory flex flex-col">
-    <Helmet>
-      <title>Our Agents & Employees | Attaie Properties</title>
-      <meta name="description" content="Meet the agents and employees at Attaie Properties in Kabul." />
-      <link rel="canonical" href="https://attaieproperties.com/agents" />
-      <meta property="og:title" content="Our Agents & Employees | Attaie Properties" />
-      <meta property="og:url" content="https://attaieproperties.com/agents" />
-    </Helmet>
+    <SeoHead seo={PAGE_SEO.agents} />
     <Navbar />
     <header className="relative bg-brand-navy pt-36 pb-16 overflow-hidden">
       <div className="absolute inset-0 islamic-pattern opacity-20" />

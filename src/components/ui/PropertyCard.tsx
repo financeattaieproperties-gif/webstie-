@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Bed, Bath, Maximize2, Heart } from 'lucide-react';
+import { MapPin, Bed, Bath, Maximize2, Heart, Building2 } from 'lucide-react';
 import { Badge } from './Badge';
 
 export interface PropertyCardProps {
@@ -14,7 +14,7 @@ export interface PropertyCardProps {
   area?: number;
   status: 'available' | 'pending' | 'sold' | 'rented';
   type: string;
-  image: string;
+  image?: string | null;
   listingType?: 'sale' | 'rent';
   tag?: string;
 }
@@ -60,28 +60,34 @@ export const PropertyCard = ({
     >
       {/* Image */}
       <motion.div
-        className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100"
+        className="relative aspect-[4/3] w-full overflow-hidden bg-brand-navy"
         whileHover="hovered"
       >
-        <motion.img
-          src={image}
-          alt={`${title} — ${type} for ${listingType === 'rent' ? 'rent' : 'sale'} in ${location}`}
-          className="w-full h-full object-cover"
-          loading="lazy"
-          decoding="async"
-          variants={{
-            hovered: {
-              scale: 1.07,
-              transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
-            },
-          }}
-          initial={false}
-          style={{
-            filter: imgLoaded ? 'none' : 'blur(8px)',
-            transition: 'filter 0.4s ease',
-          }}
-          onLoad={() => setImgLoaded(true)}
-        />
+        {image ? (
+          <motion.img
+            src={image}
+            alt={`${title} — ${type} for ${listingType === 'rent' ? 'rent' : 'sale'} in ${location}`}
+            className="w-full h-full object-cover"
+            loading="lazy"
+            decoding="async"
+            variants={{
+              hovered: {
+                scale: 1.07,
+                transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
+              },
+            }}
+            initial={false}
+            style={{
+              filter: imgLoaded ? 'none' : 'blur(8px)',
+              transition: 'filter 0.4s ease',
+            }}
+            onLoad={() => setImgLoaded(true)}
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center islamic-pattern text-white/30 gap-2">
+            <Building2 size={32} />
+          </div>
+        )}
 
         {/* Dark gradient at bottom of image */}
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 to-transparent" />

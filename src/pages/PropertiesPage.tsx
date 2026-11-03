@@ -12,8 +12,6 @@ import { ProjectCard } from '../components/ui/ProjectCard';
 import { PropertyCardSkeleton } from '../components/ui/PropertyCardSkeleton';
 import { getProperties, getProjects, type Property, type Project } from '../lib/dbService';
 
-const FALLBACK_IMG = 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80';
-
 const defaultFilters: FilterState = {
   purpose: 'buy',
   type: [],
@@ -88,8 +86,8 @@ function PropertiesContent() {
     ? 'Explore premium residential and commercial development projects in Kabul, Afghanistan. Villas, apartments and mixed-use buildings by Attaie Properties.'
     : 'Browse verified properties for sale and rent across Kabul — villas, apartments, commercial spaces. Attaie Properties, Kabul\'s trusted real estate agency.';
   const pageUrl = isProjects
-    ? 'https://attaieproperties.com/properties?category=projects'
-    : 'https://attaieproperties.com/properties';
+    ? 'https://website.attaieproperties.com/properties?category=projects'
+    : 'https://website.attaieproperties.com/properties';
 
   return (
     <main className="min-h-screen bg-brand-ivory flex flex-col">
@@ -214,7 +212,7 @@ function PropertiesContent() {
                       deliveryDate={proj.delivery_date ?? undefined}
                       status={proj.status}
                       availableUnits={proj.available_units}
-                      image={proj.image_url ?? FALLBACK_IMG}
+                      image={proj.image_url}
                     />
                   </motion.div>
                 ))}
@@ -271,7 +269,7 @@ function PropertiesContent() {
                           status={prop.status}
                           type={prop.type}
                           listingType={prop.listing_type}
-                          image={prop.image_url ?? FALLBACK_IMG}
+                          image={prop.image_url}
                         />
                       </motion.div>
                     ))}

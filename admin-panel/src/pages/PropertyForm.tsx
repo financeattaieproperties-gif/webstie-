@@ -46,7 +46,7 @@ export default function PropertyForm() {
   useEffect(() => {
     if (!isEdit) return;
     api.getProperties().then(list => {
-      const found = list.find(p => p.id === Number(id));
+      const found = list.find(p => Number(p.id) === Number(id));
       if (found) {
         const { id: _id, created_at: _ca, ...rest } = found;
         setForm(rest);
@@ -133,7 +133,7 @@ export default function PropertyForm() {
               <div>
                 <label style={S.label}>Property Type</label>
                 <select style={S.select} value={form.type} onChange={e => set('type', e.target.value as PropertyInput['type'])}>
-                  {(['Villa', 'Apartment', 'House', 'Commercial'] as const).map(t => <option key={t}>{t}</option>)}
+                  {(['Villa', 'Apartment', 'House', 'Commercial', 'Land'] as const).map(t => <option key={t}>{t}</option>)}
                 </select>
               </div>
               <div>
@@ -142,6 +142,7 @@ export default function PropertyForm() {
                   <option value="available">Available</option>
                   <option value="pending">Pending</option>
                   <option value="sold">Sold</option>
+                  <option value="rented">Rented</option>
                 </select>
               </div>
             </div>

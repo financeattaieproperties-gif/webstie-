@@ -1,7 +1,9 @@
 <?php
 require_once __DIR__ . '/db.php';
 cors();
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     json_out(['error' => 'POST only'], 405);
@@ -11,9 +13,39 @@ $b    = body();
 $user = trim($b['username'] ?? '');
 $pass = trim($b['password'] ?? '');
 
-if ($user !== ADMIN_USER || $pass !== ADMIN_PASS) {
+if ($user === '' || $pass === '') {
+    json_out(['error' => 'Username and password are required'], 400);
+}
+
+$authenticated = false;
+
+// 1. Check config constants in db.php
+if (defined('ADMIN_USER') && defined('ADMIN_PASS') && $user === ADMIN_USER && $pass === ADMIN_PASS) {
+    $authenticated = true;
+}
+
+// 2. Also check admin_users table in MySQL (supports bcrypt password_hash or plain password)
+if (!$authenticated) {
+    $stmt = db()->prepare('SELECT password_hash FROM admin_users WHERE username = ? LIMIT 1');
+    if ($stmt) {
+        $stmt->bind_param('s', $user);
+        if ($stmt->execute()) {
+            $row = $stmt->get_result()->fetch_assoc();
+            if ($row && isset($row['password_hash'])) {
+                $hash = (string) $row['password_hash'];
+                if (password_verify($pass, $hash) || hash_equals($hash, $pass)) {
+                    $authenticated = true;
+                }
+            }
+        }
+    }
+}
+
+if (!$authenticated) {
     json_out(['error' => 'Invalid credentials'], 401);
 }
 
 $_SESSION['admin'] = true;
+$_SESSION['admin_user'] = $user;
 json_out(['success' => true]);
+

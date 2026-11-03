@@ -98,10 +98,10 @@ export default function ContactPage() {
       <Helmet>
         <title>Contact Us | Attaie Properties — Kabul Real Estate Agents</title>
         <meta name="description" content="Get in touch with Attaie Properties. Call +93 782 222 279 or visit us at Street #13, Wazir Akbar Khan, Kabul. We help you buy, sell, and rent property in Afghanistan." />
-        <link rel="canonical" href="https://attaieproperties.com/contact" />
+        <link rel="canonical" href="https://website.attaieproperties.com/contact" />
         <meta property="og:title" content="Contact Attaie Properties — Kabul Real Estate Agents" />
         <meta property="og:description" content="Reach our team by phone, email, or visit our Kabul office. Expert real estate advice for buying, selling, and renting in Afghanistan." />
-        <meta property="og:url" content="https://attaieproperties.com/contact" />
+        <meta property="og:url" content="https://website.attaieproperties.com/contact" />
       </Helmet>
       <Navbar />
 

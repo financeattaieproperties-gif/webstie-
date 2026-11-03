@@ -2,6 +2,14 @@
 -- Run this once in cPanel > phpMyAdmin after creating a database.
 -- Update credentials in public/api/db.php after running.
 
+CREATE TABLE IF NOT EXISTS admin_users (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  username      VARCHAR(100) NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_admin_username (username)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS properties (
   id           INT AUTO_INCREMENT PRIMARY KEY,
   serial_number VARCHAR(50)    NOT NULL,
@@ -98,7 +106,7 @@ CREATE TABLE IF NOT EXISTS project_units (
   created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uq_project_unit (project_id, unit_number),
-  CONSTRAINT fk_project_units_project FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE RESTRICT
+  CONSTRAINT fk_project_units_project FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS visit_requests (
@@ -156,4 +164,4 @@ CREATE TABLE IF NOT EXISTS ctc_public_call_log (
 CREATE INDEX idx_ctc_ip_time     ON ctc_public_call_log (ip_address, created_at);
 CREATE INDEX idx_ctc_number_time ON ctc_public_call_log (customer_number, created_at);
 
--- ── Seed one sample property so frontend is not empty after first deploy
+

@@ -10,28 +10,19 @@ import { HowItWorksSection } from './HowItWorksSection';
 import { TrustBlock } from './TrustBlock';
 import { ServicesSection } from './ServicesSection';
 import { HotDealsSection } from './HotDealsSection';
-import { StatsTicker, type StatItem } from './StatsTicker';
 import { NewsletterBanner } from './NewsletterBanner';
 import { PropertyCard } from '../ui/PropertyCard';
 import { ProjectCard } from '../ui/ProjectCard';
 import { SectionHeader } from '../ui/SectionHeader';
 import { HorizontalCarousel } from '../ui/HorizontalCarousel';
-import { MessageCircle, Phone, Star, Quote } from 'lucide-react';
+import { MessageCircle, Phone } from 'lucide-react';
 import { ClickToCallButton } from '../ui/ClickToCallButton';
 import { getProperties, getProjects, type Property, type Project } from '../../lib/dbService';
-
-const SECONDARY_STATS: StatItem[] = [
-  { target: 10000, suffix: '+', label: 'Happy Clients' },
-  { target: 15000, suffix: '+', label: 'Properties Listed' },
-  { target: 50, suffix: '+', label: 'Expert Agents' },
-  { target: 99, suffix: '%', label: 'Client Satisfaction' },
-];
 
 const WHATSAPP_NUMBER = '93782222279';
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
-const FALLBACK_IMG = 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80';
 const FEATURED_PROPERTIES_LIMIT = 6;
 const FEATURED_PROJECTS_LIMIT = 4;
 
@@ -48,7 +39,7 @@ function toPropertyCardProps(p: Property) {
     status: p.status,
     type: p.type,
     listingType: p.listing_type,
-    image: p.image_url ?? FALLBACK_IMG,
+    image: p.image_url,
   };
 }
 
@@ -60,57 +51,14 @@ function toProjectCardProps(p: Project) {
     deliveryDate: p.delivery_date ?? undefined,
     status: p.status,
     availableUnits: p.available_units,
-    image: p.image_url ?? FALLBACK_IMG,
+    image: p.image_url,
   };
 }
-
-const TESTIMONIALS = [
-  {
-    name: 'Ahmad Karimi',
-    role: 'Property Investor',
-    location: 'Kabul',
-    quote:
-      'Attaie Properties helped me acquire two villas in Wazir Akbar Khan at the right price. Their market knowledge and honesty are unmatched.',
-    initials: 'AK',
-  },
-  {
-    name: 'Fatima Ahmadi',
-    role: 'First-time Buyer',
-    location: 'Shahr-e-Naw',
-    quote:
-      'As a first-time buyer I was nervous, but the team guided me every step. Found my perfect apartment within two weeks.',
-    initials: 'FA',
-  },
-  {
-    name: 'Tariq Noori',
-    role: 'Business Owner',
-    location: 'Taimani',
-    quote:
-      'Needed a commercial space quickly. They showed me three options in one day and closed the deal in a week. Highly professional.',
-    initials: 'TN',
-  },
-];
 
 // ── Filter types ──────────────────────────────────────────────────────────────
 
 type FilterTab = 'All' | 'For Sale' | 'For Rent' | 'Commercial';
 const FILTER_TABS: FilterTab[] = ['All', 'For Sale', 'For Rent', 'Commercial'];
-
-// ── Animations ────────────────────────────────────────────────────────────────
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: (i = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.08, duration: 0.55, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
-  }),
-};
-
-const staggerParent = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.1 } },
-};
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
@@ -146,7 +94,7 @@ export const LandingPageContent = () => {
 
   return (
     <>
-      <Hero3DSection />
+      <Hero3DSection featuredProperties={properties} />
       <TrustBadgesStrip />
       <PropertyTypesSection />
 
@@ -231,7 +179,6 @@ export const LandingPageContent = () => {
         bullets={['Free property evaluation', 'Professional photography', 'Targeted marketing', 'Expert negotiation']}
         ctaLabel="List Your Property"
         ctaHref="/contact"
-        image="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=900&q=80"
         imageSide="left"
       />
 
@@ -246,8 +193,6 @@ export const LandingPageContent = () => {
       <ServicesSection />
 
       <HotDealsSection />
-
-      <StatsTicker stats={SECONDARY_STATS} />
 
       {/* ── Signature Projects ────────────────────────────────────────────── */}
       <section className="section-padding" style={{ background: 'var(--color-brand-cream)' }}>
@@ -269,7 +214,7 @@ export const LandingPageContent = () => {
               renderItem={(proj) => <ProjectCard {...proj} />}
             />
           ) : (
-            <div className="py-20 text-center text-neutral-400 text-sm">No projects available.</div>
+            <div className="py-20 text-center text-neutral-400 text-sm">No projects available yet.</div>
           )}
         </div>
       </section>
@@ -366,92 +311,6 @@ export const LandingPageContent = () => {
               className="px-8 py-4 rounded-2xl font-bold text-base"
             />
           </motion.div>
-        </div>
-      </section>
-
-      {/* ── Testimonials ──────────────────────────────────────────────────── */}
-      <section className="section-padding" style={{ background: 'var(--color-brand-ivory)' }}>
-        <div className="container-custom">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerParent}
-            className="text-center mb-14"
-          >
-            <motion.p
-              variants={fadeUp}
-              className="text-xs font-bold uppercase tracking-[0.3em] mb-3 flex items-center justify-center gap-3"
-              style={{ color: 'var(--color-brand-gold)' }}
-            >
-              <span className="inline-block w-8 h-px" style={{ background: 'rgba(1,69,242,0.4)' }} />
-              Client Stories
-              <span className="inline-block w-8 h-px" style={{ background: 'rgba(1,69,242,0.4)' }} />
-            </motion.p>
-            <motion.h2
-              variants={fadeUp}
-              className="font-heading font-bold text-brand-navy"
-              style={{ fontSize: 'clamp(1.75rem, 3.5vw, 2.5rem)' }}
-            >
-              What Our Clients Say
-            </motion.h2>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {TESTIMONIALS.map((t, i) => (
-              <motion.div
-                key={t.name}
-                custom={i}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={fadeUp}
-                whileHover={{ y: -6, transition: { type: 'spring', stiffness: 300, damping: 20 } }}
-                className="relative bg-white/60 backdrop-blur-md rounded-3xl p-8 flex flex-col gap-6 cursor-default"
-                style={{
-                  border: '1px solid rgba(255,255,255,0.6)',
-                  boxShadow: 'var(--shadow-md)',
-                }}
-              >
-                {/* Quote icon */}
-                <div
-                  className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
-                  style={{ background: 'var(--color-brand-gold-lt)' }}
-                >
-                  <Quote size={20} style={{ color: 'var(--color-brand-gold)' }} />
-                </div>
-
-                {/* Stars */}
-                <div className="flex gap-1" aria-label="5 out of 5 stars">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} size={14} fill="currentColor"
-                      style={{ color: 'var(--color-brand-gold)' }} aria-hidden="true" />
-                  ))}
-                </div>
-
-                <p className="text-neutral-600 text-sm leading-relaxed flex-1 italic">
-                  &ldquo;{t.quote}&rdquo;
-                </p>
-
-                {/* Author */}
-                <div className="flex items-center gap-3 pt-5 border-t border-neutral-100">
-                  <div
-                    className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ring-2 ring-offset-2"
-                    style={{
-                      background: 'var(--color-brand-navy)',
-                      color: 'var(--color-brand-gold)',
-                    }}
-                  >
-                    {t.initials}
-                  </div>
-                  <div>
-                    <p className="font-bold text-brand-navy text-sm">{t.name}</p>
-                    <p className="text-xs text-neutral-400">{t.role} · {t.location}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
         </div>
       </section>
 

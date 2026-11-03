@@ -7,6 +7,10 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     ...options,
   });
   if (!res.ok) {
+    if (res.status === 401 && !path.includes('admin-login')) {
+      sessionStorage.removeItem('admin_logged_in');
+      window.location.reload();
+    }
     const body = await res.json().catch(() => ({})) as { error?: string };
     throw new Error(body.error ?? `HTTP ${res.status}`);
   }
@@ -36,6 +40,15 @@ export const api = {
     request<{ updated: number }>('/admin/projects.php', { method: 'PUT', body: JSON.stringify(data) }),
   deleteProject:    (id: number) =>
     request<{ deleted: number }>(`/admin/projects.php?id=${id}`, { method: 'DELETE' }),
+
+  getProjectUnits:   (projectId: number) =>
+    request<ProjectUnit[]>(`/admin/project-units.php?project_id=${projectId}`),
+  createProjectUnit: (data: ProjectUnitInput) =>
+    request<{ id: number }>('/admin/project-units.php', { method: 'POST', body: JSON.stringify(data) }),
+  updateProjectUnit: (data: ProjectUnitInput & { id: number }) =>
+    request<{ updated: number }>('/admin/project-units.php', { method: 'PUT', body: JSON.stringify(data) }),
+  deleteProjectUnit: (id: number) =>
+    request<{ deleted: number }>(`/admin/project-units.php?id=${id}`, { method: 'DELETE' }),
 
   getAgents: () => request<Agent[]>('/admin/agents.php'),
   createAgent: (data: AgentInput) => request<{ id: number }>('/admin/agents.php', { method: 'POST', body: JSON.stringify(data) }),
@@ -75,8 +88,8 @@ export interface Property {
   baths: number | null;
   area: number | null;
   floor: number | null;
-  status: 'available' | 'pending' | 'sold';
-  type: 'Villa' | 'Apartment' | 'House' | 'Commercial';
+  status: 'available' | 'pending' | 'sold' | 'rented';
+  type: 'Villa' | 'Apartment' | 'House' | 'Commercial' | 'Land';
   listing_type: 'sale' | 'rent';
   image_url: string | null;
   gallery_images: string[];
@@ -104,6 +117,24 @@ export interface Project {
 }
 
 export type ProjectInput = Omit<Project, 'id' | 'created_at'>;
+
+export interface ProjectUnit {
+  id: number;
+  project_id: number;
+  unit_number: string;
+  title: string | null;
+  beds: number | null;
+  baths: number | null;
+  area: number | null;
+  floor: number | null;
+  price: number | null;
+  currency: string;
+  status: 'available' | 'reserved' | 'sold' | 'rented';
+  image_url: string | null;
+  description: string | null;
+}
+
+export type ProjectUnitInput = Omit<ProjectUnit, 'id'>;
 
 export interface Agent {
   id: number; name: string; role: string; background: string; portrait_url: string;
@@ -135,3 +166,4 @@ export interface VisitRequest {
   status: 'pending' | 'confirmed' | 'declined' | 'completed' | 'cancelled'; staff_note: string | null;
   events: Array<{ previous_status: string | null; next_status: string; actor: string; note: string | null; created_at: string }>;
 }
+

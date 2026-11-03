@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Navbar } from '../components/layout/Navbar';
@@ -13,6 +12,8 @@ import { MapPin, Bed, Bath, Maximize2, Building, ArrowLeft } from 'lucide-react'
 import { getProperty, type Property } from '../lib/dbService';
 import { ClickToCallButton } from '../components/ui/ClickToCallButton';
 import { VisitRequestDialog } from '../components/forms/VisitRequestDialog';
+import { SeoHead } from '../components/seo/SeoHead';
+import { buildPropertySeo } from '../lib/seoConfig';
 
 export default function PropertyDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -40,28 +41,11 @@ export default function PropertyDetailPage() {
       : []
     : [];
 
-  const metaTitle = property
-    ? `${property.title} — ${property.type} for ${property.listing_type === 'rent' ? 'Rent' : 'Sale'} in ${property.location} | Attaie Properties`
-    : 'Property Details | Attaie Properties';
-  const metaDesc = property
-    ? property.description?.slice(0, 155) ??
-      `${property.beds ? `${property.beds}-bed ` : ''}${property.type.toLowerCase()} for ${property.listing_type === 'rent' ? 'rent' : 'sale'} in ${property.location}, Kabul. Priced at $${property.price.toLocaleString()}.`
-    : 'View property details on Attaie Properties.';
-  const metaImage = property?.image_url ?? 'https://attaieproperties.com/logo.png';
-  const metaUrl = `https://attaieproperties.com/properties/${id}`;
+  const seo = buildPropertySeo(property, id);
 
   return (
     <main className="min-h-screen bg-brand-cream flex flex-col">
-      <Helmet>
-        <title>{metaTitle}</title>
-        <meta name="description" content={metaDesc} />
-        <link rel="canonical" href={metaUrl} />
-        <meta property="og:title" content={metaTitle} />
-        <meta property="og:description" content={metaDesc} />
-        <meta property="og:image" content={metaImage} />
-        <meta property="og:url" content={metaUrl} />
-        <meta property="og:type" content="article" />
-      </Helmet>
+      <SeoHead seo={seo} />
       <Navbar />
 
       {/* Gallery / hero */}

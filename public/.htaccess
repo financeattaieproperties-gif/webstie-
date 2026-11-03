@@ -7,10 +7,28 @@ AddType font/woff2 .woff2
 AddType font/woff .woff
 AddType image/svg+xml .svg
 
-# Serve existing files directly
+# Block direct HTTP access to SQL files and database config files
+<FilesMatch "^(db\.php|db\.example\.php|.*\.sql)$">
+  Require all denied
+</FilesMatch>
+
+# Dynamic XML Sitemap (includes all live properties, projects, and agents)
+RewriteRule ^sitemap\.xml$ /sitemap.php [L]
+
+# Serve existing files and directories directly
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# SPA fallback — all other routes serve index.html
+# Do not rewrite missing /api/* endpoints to HTML
+RewriteRule ^api/ - [L]
+
+# Admin CRM SPA fallback — routes under /admin/* serve /admin/index.html
+RewriteRule ^admin(?:/.*)?$ /admin/index.html [L]
+
+# Dynamic SEO & OpenGraph pre-rendering for Property, Project, and Agent detail pages
+RewriteRule ^(properties|projects|agents)/[0-9]+/?$ /seo.php [L]
+
+# Public Website SPA fallback — all other routes serve /index.html
 RewriteRule ^ /index.html [L]
+

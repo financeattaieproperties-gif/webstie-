@@ -9,8 +9,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 
 $stmt = db()->prepare('SELECT * FROM leads ORDER BY created_at DESC');
 $stmt->execute();
+$result = $stmt->get_result();
 $rows = [];
-while ($row = $stmt->get_result()->fetch_assoc()) {
+while ($row = $result->fetch_assoc()) {
     $rows[] = $row;
 }
 json_out($rows);
