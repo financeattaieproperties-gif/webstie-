@@ -1,5 +1,4 @@
 import React, { Suspense, useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SlidersHorizontal } from 'lucide-react';
@@ -11,6 +10,8 @@ import { PropertyCard } from '../components/ui/PropertyCard';
 import { ProjectCard } from '../components/ui/ProjectCard';
 import { PropertyCardSkeleton } from '../components/ui/PropertyCardSkeleton';
 import { getProperties, getProjects, type Property, type Project } from '../lib/dbService';
+import { SeoHead } from '../components/seo/SeoHead';
+import { buildPropertiesListingSeo } from '../lib/seoConfig';
 
 const defaultFilters: FilterState = {
   purpose: 'buy',
@@ -79,26 +80,11 @@ function PropertiesContent() {
     setProperties(filtered);
   }, [filters, allProperties, isProjects]);
 
-  const pageTitle = isProjects
-    ? 'Signature Projects in Kabul | Attaie Properties'
-    : 'Properties for Sale & Rent in Kabul | Attaie Properties';
-  const pageDesc = isProjects
-    ? 'Explore premium residential and commercial development projects in Kabul, Afghanistan. Villas, apartments and mixed-use buildings by Attaie Properties.'
-    : 'Browse verified properties for sale and rent across Kabul — villas, apartments, commercial spaces. Attaie Properties, Kabul\'s trusted real estate agency.';
-  const pageUrl = isProjects
-    ? 'https://website.attaieproperties.com/properties?category=projects'
-    : 'https://website.attaieproperties.com/properties';
+  const seo = buildPropertiesListingSeo({ isProjects, search: serialSearch });
 
   return (
     <main className="min-h-screen bg-brand-ivory flex flex-col">
-      <Helmet>
-        <title>{pageTitle}</title>
-        <meta name="description" content={pageDesc} />
-        <link rel="canonical" href={pageUrl} />
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={pageDesc} />
-        <meta property="og:url" content={pageUrl} />
-      </Helmet>
+      <SeoHead seo={seo} />
       <Navbar />
 
       <div className="relative bg-brand-navy pt-32 pb-16 overflow-hidden">

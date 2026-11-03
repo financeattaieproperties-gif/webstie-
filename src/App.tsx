@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
+import { SeoSettingsProvider } from './components/seo/SeoHead';
 import HomePage from './pages/HomePage';
 import PropertiesPage from './pages/PropertiesPage';
 import PropertyDetailPage from './pages/PropertyDetailPage';
@@ -28,7 +29,9 @@ const router = createBrowserRouter([
 export default function App() {
   return (
     <HelmetProvider>
-      <RouterProvider router={router} />
+      <SeoSettingsProvider>
+        <RouterProvider router={router} />
+      </SeoSettingsProvider>
     </HelmetProvider>
   );
 }

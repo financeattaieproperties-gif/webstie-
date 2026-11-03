@@ -158,6 +158,51 @@ export async function submitVisitRequest(input: VisitRequestInput): Promise<{ su
   return data;
 }
 
+export interface SiteSeoSettings {
+  id?: number;
+  site_name: string;
+  default_title: string;
+  title_template: string;
+  default_description: string;
+  keywords: string | null;
+  og_image: string | null;
+  twitter_image: string | null;
+  twitter_card: 'summary_large_image' | 'summary';
+  twitter_site: string | null;
+  canonical_base_url: string;
+  robots_index: boolean;
+  updated_at?: string | null;
+}
+
+export async function getSeoSettings(): Promise<SiteSeoSettings | null> {
+  try {
+    const res = await fetch(`${API}/get-seo-settings.php`);
+    if (res.ok) {
+      const data = (await res.json()) as SiteSeoSettings;
+      if (data && data.default_title) {
+        try {
+          localStorage.setItem('attaie_seo_settings_v1', JSON.stringify(data));
+        } catch {
+          // ignore storage quota errors
+        }
+        return data;
+      }
+    }
+  } catch {
+    // Fallback to local cache if PHP backend is unavailable
+  }
+
+  try {
+    const cached = localStorage.getItem('attaie_seo_settings_v1');
+    if (cached) {
+      return JSON.parse(cached) as SiteSeoSettings;
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
 export async function createLead(lead: Lead): Promise<{ success: boolean; id: number }> {
   const res = await fetch(`${API}/submit-lead.php`, {
     method: 'POST',

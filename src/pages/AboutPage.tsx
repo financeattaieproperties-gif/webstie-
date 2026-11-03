@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { MapPin, Phone, Mail, Award, Users, Home } from 'lucide-react';
 import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
 import { getBranches, type Branch } from '../lib/dbService';
+import { SeoHead } from '../components/seo/SeoHead';
+import { PAGE_SEO } from '../lib/seoConfig';
 
 const stats = [
   { icon: Home, value: '500+', label: 'Properties Listed' },
@@ -22,20 +23,7 @@ export default function AboutPage() {
 
   return (
     <main className="min-h-screen bg-brand-cream flex flex-col">
-      <Helmet>
-        <title>About Attaie Properties — Kabul's Trusted Real Estate Agency</title>
-        <meta
-          name="description"
-          content="Attaie Properties is Kabul's premier real estate agency, trusted by Afghan families and the diaspora for over a decade. We specialise in residential and commercial property sales, rentals, and investment guidance."
-        />
-        <link rel="canonical" href="https://website.attaieproperties.com/about" />
-        <meta property="og:title" content="About Attaie Properties — Kabul's Trusted Real Estate Agency" />
-        <meta
-          property="og:description"
-          content="Trusted by the Afghan diaspora for over a decade. Residential and commercial property in Kabul."
-        />
-        <meta property="og:url" content="https://website.attaieproperties.com/about" />
-      </Helmet>
+      <SeoHead seo={PAGE_SEO.about} />
 
       <Navbar />
 

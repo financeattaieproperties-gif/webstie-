@@ -64,6 +64,57 @@ export const api = {
   updateVisitRequest: (id: number, status: VisitRequest['status'], staff_note: string) =>
     request<{ success: boolean }>('/admin/visit-requests.php', { method: 'PUT', body: JSON.stringify({ id, status, staff_note }) }),
 
+  getSeoSettings: async (): Promise<SeoSettings> => {
+    try {
+      const data = await request<SeoSettings>('/admin/seo-settings.php');
+      try {
+        localStorage.setItem('attaie_seo_settings_v1', JSON.stringify(data));
+      } catch {
+        // ignore storage quota errors
+      }
+      return data;
+    } catch {
+      const cached = localStorage.getItem('attaie_seo_settings_v1');
+      if (cached) {
+        try {
+          return JSON.parse(cached) as SeoSettings;
+        } catch {
+          // fall through to defaults
+        }
+      }
+      return DEFAULT_SEO_SETTINGS;
+    }
+  },
+
+  updateSeoSettings: async (data: SeoSettingsInput): Promise<SeoSettings> => {
+    const merged: SeoSettings = {
+      ...DEFAULT_SEO_SETTINGS,
+      ...data,
+      id: 1,
+      updated_at: new Date().toISOString(),
+    };
+    try {
+      localStorage.setItem('attaie_seo_settings_v1', JSON.stringify(merged));
+    } catch {
+      // ignore storage quota errors
+    }
+    try {
+      const saved = await request<SeoSettings>('/admin/seo-settings.php', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      try {
+        localStorage.setItem('attaie_seo_settings_v1', JSON.stringify(saved));
+      } catch {
+        // ignore
+      }
+      return saved;
+    } catch {
+      // If running in static preview without PHP backend, persist in localStorage
+      return merged;
+    }
+  },
+
   uploadImage: async (file: File): Promise<string> => {
     const form = new FormData();
     form.append('image', file);
@@ -76,6 +127,42 @@ export const api = {
     const data = await res.json() as { url: string };
     return data.url;
   },
+};
+
+export interface SeoSettings {
+  id?: number;
+  site_name: string;
+  default_title: string;
+  title_template: string;
+  default_description: string;
+  keywords: string | null;
+  og_image: string | null;
+  twitter_image: string | null;
+  twitter_card: 'summary_large_image' | 'summary';
+  twitter_site: string | null;
+  canonical_base_url: string;
+  robots_index: boolean;
+  updated_at?: string | null;
+}
+
+export type SeoSettingsInput = Omit<SeoSettings, 'id' | 'updated_at'>;
+
+export const DEFAULT_SEO_SETTINGS: SeoSettings = {
+  id: 1,
+  site_name: 'Attaie Properties',
+  default_title: 'Attaie Properties — Premier Real Estate in Kabul, Afghanistan',
+  title_template: '%s | Attaie Properties',
+  default_description:
+    'Browse verified luxury villas, modern apartments, commercial spaces, and development projects for sale and rent across Kabul with Attaie Properties.',
+  keywords:
+    'Attaie Properties, Kabul real estate, properties for sale in Kabul, properties for rent in Kabul, luxury villas Kabul, apartments in Kabul, Afghanistan property agency',
+  og_image: '/logo.png',
+  twitter_image: null,
+  twitter_card: 'summary_large_image',
+  twitter_site: '@AttaieProps',
+  canonical_base_url: 'https://website.attaieproperties.com',
+  robots_index: true,
+  updated_at: null,
 };
 
 export interface Property {
@@ -166,4 +253,3 @@ export interface VisitRequest {
   status: 'pending' | 'confirmed' | 'declined' | 'completed' | 'cancelled'; staff_note: string | null;
   events: Array<{ previous_status: string | null; next_status: string; actor: string; note: string | null; created_at: string }>;
 }
-

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,6 +9,8 @@ import { Footer } from '../components/layout/Footer';
 import { Button } from '../components/ui/Button';
 import { ClickToCallButton } from '../components/ui/ClickToCallButton';
 import { createLead } from '../lib/dbService';
+import { SeoHead } from '../components/seo/SeoHead';
+import { PAGE_SEO } from '../lib/seoConfig';
 
 const schema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -95,14 +96,7 @@ export default function ContactPage() {
 
   return (
     <main className="min-h-screen bg-brand-cream flex flex-col">
-      <Helmet>
-        <title>Contact Us | Attaie Properties — Kabul Real Estate Agents</title>
-        <meta name="description" content="Get in touch with Attaie Properties. Call +93 782 222 279 or visit us at Street #13, Wazir Akbar Khan, Kabul. We help you buy, sell, and rent property in Afghanistan." />
-        <link rel="canonical" href="https://website.attaieproperties.com/contact" />
-        <meta property="og:title" content="Contact Attaie Properties — Kabul Real Estate Agents" />
-        <meta property="og:description" content="Reach our team by phone, email, or visit our Kabul office. Expert real estate advice for buying, selling, and renting in Afghanistan." />
-        <meta property="og:url" content="https://website.attaieproperties.com/contact" />
-      </Helmet>
+      <SeoHead seo={PAGE_SEO.contact} />
       <Navbar />
 
       {/* Hero banner */}

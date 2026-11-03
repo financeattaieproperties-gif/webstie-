@@ -1,4 +1,4 @@
-import type { Property, Project, Agent } from './dbService';
+import type { Property, Project, Agent, SiteSeoSettings } from './dbService';
 
 export interface SeoMetadata {
   title: string;
@@ -6,40 +6,145 @@ export interface SeoMetadata {
   canonicalUrl: string;
   ogType?: 'website' | 'article' | 'profile';
   ogImage: string;
+  twitterImage?: string | null;
   ogImageAlt?: string;
   keywords?: string[];
   NoIndex?: boolean;
   jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
+let runtimeSeoOverrides: SiteSeoSettings | null = null;
+
+function getInitialOverrides(): SiteSeoSettings | null {
+  if (runtimeSeoOverrides) return runtimeSeoOverrides;
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = window.localStorage.getItem('attaie_seo_settings_v1');
+      if (raw) {
+        runtimeSeoOverrides = JSON.parse(raw) as SiteSeoSettings;
+        return runtimeSeoOverrides;
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return null;
+}
+
+export function setRuntimeSeoSettings(settings: SiteSeoSettings | null): void {
+  runtimeSeoOverrides = settings;
+}
+
+export function getRuntimeSeoSettings(): SiteSeoSettings | null {
+  return getInitialOverrides();
+}
+
+function getBaseSiteUrl(): string {
+  const overrides = getInitialOverrides();
+  if (overrides?.canonical_base_url?.trim()) {
+    return overrides.canonical_base_url.trim().replace(/\/+$/, '');
+  }
+  const envUrl = (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/+$/, '');
+  if (envUrl) return envUrl;
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin;
+  }
+  return 'https://website.attaieproperties.com';
+}
+
 export const SEO_CONFIG = {
-  siteName: 'Attaie Properties',
-  siteUrl: (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/+$/, '') || 'https://website.attaieproperties.com',
-  defaultTitle: 'Attaie Properties — Premier Real Estate in Kabul, Afghanistan',
-  titleTemplate: '%s | Attaie Properties',
-  defaultDescription:
-    'Browse verified luxury villas, modern apartments, commercial spaces, and development projects for sale and rent across Kabul with Attaie Properties.',
-  defaultImage: 'https://website.attaieproperties.com/logo.png',
+  get siteName(): string {
+    return getInitialOverrides()?.site_name?.trim() || 'Attaie Properties';
+  },
+  get siteUrl(): string {
+    return getBaseSiteUrl();
+  },
+  get defaultTitle(): string {
+    return (
+      getInitialOverrides()?.default_title?.trim() ||
+      'Attaie Properties — Premier Real Estate in Kabul, Afghanistan'
+    );
+  },
+  get titleTemplate(): string {
+    return getInitialOverrides()?.title_template?.trim() || '%s | Attaie Properties';
+  },
+  get defaultDescription(): string {
+    return (
+      getInitialOverrides()?.default_description?.trim() ||
+      'Browse verified luxury villas, modern apartments, commercial spaces, and development projects for sale and rent across Kabul with Attaie Properties.'
+    );
+  },
+  get defaultKeywords(): string[] {
+    const raw = getInitialOverrides()?.keywords;
+    if (raw && raw.trim()) {
+      return raw
+        .split(',')
+        .map(k => k.trim())
+        .filter(Boolean);
+    }
+    return [
+      'Attaie Properties',
+      'Kabul real estate',
+      'properties for sale in Kabul',
+      'properties for rent in Kabul',
+      'luxury villas Kabul',
+      'apartments in Kabul',
+      'Afghanistan property agency',
+    ];
+  },
+  get defaultImage(): string {
+    const customOg = getInitialOverrides()?.og_image?.trim();
+    if (customOg) {
+      if (/^https?:\/\//i.test(customOg)) return customOg;
+      const normalized = customOg.startsWith('/') ? customOg : `/${customOg}`;
+      return `${getBaseSiteUrl()}${normalized}`;
+    }
+    return `${getBaseSiteUrl()}/logo.png`;
+  },
+  get defaultTwitterImage(): string | null {
+    const customTw = getInitialOverrides()?.twitter_image?.trim();
+    if (!customTw) return null;
+    if (/^https?:\/\//i.test(customTw)) return customTw;
+    const normalized = customTw.startsWith('/') ? customTw : `/${customTw}`;
+    return `${getBaseSiteUrl()}${normalized}`;
+  },
   locale: 'en_US',
   alternateLocale: 'fa_AF',
-  twitterCard: 'summary_large_image' as const,
-  organizationJsonLd: {
-    '@context': 'https://schema.org',
-    '@type': 'RealEstateAgent',
-    name: 'Attaie Properties',
-    url: 'https://website.attaieproperties.com',
-    logo: 'https://website.attaieproperties.com/logo.png',
-    image: 'https://website.attaieproperties.com/logo.png',
-    telephone: '+93782222279',
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: 'Kabul',
-      addressCountry: 'AF',
-    },
-    areaServed: {
-      '@type': 'City',
-      name: 'Kabul',
-    },
+  get twitterCard(): 'summary_large_image' | 'summary' {
+    return getInitialOverrides()?.twitter_card || 'summary_large_image';
+  },
+  get twitterSite(): string | null {
+    return getInitialOverrides()?.twitter_site?.trim() || null;
+  },
+  get robotsIndex(): boolean {
+    const overrides = getInitialOverrides();
+    return overrides?.robots_index !== undefined ? Boolean(overrides.robots_index) : true;
+  },
+  get organizationJsonLd(): Record<string, unknown> {
+    const baseUrl = getBaseSiteUrl();
+    const name = SEO_CONFIG.siteName;
+    const logoUrl = SEO_CONFIG.defaultImage;
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'RealEstateAgent',
+      '@id': `${baseUrl}/#organization`,
+      name,
+      url: baseUrl,
+      logo: `${baseUrl}/logo.png`,
+      image: logoUrl,
+      telephone: '+93782222279',
+      email: 'info@attaieproperties.com',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'Street #13, Wazir Akbar Khan',
+        addressLocality: 'Kabul',
+        addressCountry: 'AF',
+      },
+      areaServed: {
+        '@type': 'City',
+        name: 'Kabul',
+      },
+    };
   },
 };
 
@@ -68,6 +173,67 @@ export function truncateMetaDescription(text: string, maxLength = 158): string {
   const sliced = cleaned.slice(0, maxLength - 1);
   const lastSpace = sliced.lastIndexOf(' ');
   return `${(lastSpace > 80 ? sliced.slice(0, lastSpace) : sliced).trim()}…`;
+}
+
+/**
+ * Dynamically generates SEO metadata for the Properties / Projects listing route (`/properties`).
+ */
+export function buildPropertiesListingSeo(options?: {
+  isProjects?: boolean;
+  search?: string;
+}): SeoMetadata {
+  const isProjects = Boolean(options?.isProjects);
+  const search = options?.search?.trim() || '';
+
+  if (isProjects) {
+    const canonicalUrl = resolveAbsoluteUrl('/properties?category=projects');
+    const title = 'Signature Projects in Kabul | Attaie Properties';
+    const description =
+      'Explore premium residential and commercial development projects in Kabul, Afghanistan. View masterplans, delivery dates, and apartments by Attaie Properties.';
+    return {
+      title,
+      description,
+      canonicalUrl,
+      ogType: 'website',
+      ogImage: SEO_CONFIG.defaultImage,
+      ogImageAlt: 'Signature Development Projects in Kabul — Attaie Properties',
+      keywords: [
+        'Kabul real estate projects',
+        'Kabul apartments under construction',
+        'new developments Kabul',
+        'Attaie Properties projects',
+      ],
+      jsonLd: {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: title,
+        description,
+        url: canonicalUrl,
+        isPartOf: {
+          '@type': 'WebSite',
+          name: SEO_CONFIG.siteName,
+          url: SEO_CONFIG.siteUrl,
+        },
+      },
+    };
+  }
+
+  const canonicalUrl = resolveAbsoluteUrl('/properties');
+  const title = search
+    ? `Search Results for "${search}" — Kabul Properties | Attaie Properties`
+    : PAGE_SEO.properties.title;
+  const description = search
+    ? truncateMetaDescription(
+        `Browse verified properties matching "${search}" for sale and rent in Kabul with live pricing, photos, and direct inquiry on Attaie Properties.`
+      )
+    : PAGE_SEO.properties.description;
+
+  return {
+    ...PAGE_SEO.properties,
+    title,
+    description,
+    canonicalUrl,
+  };
 }
 
 /**
@@ -349,6 +515,7 @@ export function buildAgentSeo(agent: Agent | null, fallbackId?: string | number)
     ogType: 'profile',
     ogImage,
     ogImageAlt: `${agent.name} — ${agent.role}`,
+    keywords: [agent.name, agent.role, 'Kabul real estate agent', 'Attaie Properties'].filter(Boolean),
     jsonLd,
   };
 }
@@ -356,53 +523,221 @@ export function buildAgentSeo(agent: Agent | null, fallbackId?: string | number)
 /**
  * Static page SEO presets for core routes.
  */
-export const PAGE_SEO: Record<'home' | 'properties' | 'projects' | 'agents' | 'about' | 'contact', SeoMetadata> = {
+export const PAGE_SEO: Record<'home' | 'properties' | 'projects' | 'agents' | 'about' | 'contact' | 'notFound', SeoMetadata> = {
   home: {
-    title: SEO_CONFIG.defaultTitle,
-    description: SEO_CONFIG.defaultDescription,
-    canonicalUrl: `${SEO_CONFIG.siteUrl}/`,
+    get title() {
+      return SEO_CONFIG.defaultTitle;
+    },
+    get description() {
+      return SEO_CONFIG.defaultDescription;
+    },
+    get canonicalUrl() {
+      return `${SEO_CONFIG.siteUrl}/`;
+    },
     ogType: 'website',
-    ogImage: SEO_CONFIG.defaultImage,
-    jsonLd: SEO_CONFIG.organizationJsonLd,
+    get ogImage() {
+      return SEO_CONFIG.defaultImage;
+    },
+    get ogImageAlt() {
+      return SEO_CONFIG.defaultTitle;
+    },
+    get keywords() {
+      return SEO_CONFIG.defaultKeywords;
+    },
+    get jsonLd() {
+      const baseUrl = SEO_CONFIG.siteUrl;
+      return [
+        SEO_CONFIG.organizationJsonLd,
+        {
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          '@id': `${baseUrl}/#website`,
+          name: SEO_CONFIG.siteName,
+          url: baseUrl,
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: `${baseUrl}/properties?search={search_term_string}`,
+            'query-input': 'required name=search_term_string',
+          },
+        },
+      ];
+    },
   },
   properties: {
     title: 'Properties for Sale & Rent in Kabul | Attaie Properties',
     description:
       'Search verified villas, apartments, houses, commercial spaces, and land for sale and rent across Kabul with live pricing and photos.',
-    canonicalUrl: `${SEO_CONFIG.siteUrl}/properties`,
+    get canonicalUrl() {
+      return `${SEO_CONFIG.siteUrl}/properties`;
+    },
     ogType: 'website',
-    ogImage: SEO_CONFIG.defaultImage,
+    get ogImage() {
+      return SEO_CONFIG.defaultImage;
+    },
+    ogImageAlt: 'Verified Properties for Sale & Rent in Kabul — Attaie Properties',
+    keywords: [
+      'buy property in Kabul',
+      'rent apartment in Kabul',
+      'villas for sale Kabul',
+      'Wazir Akbar Khan properties',
+      'Attaie Properties listings',
+    ],
+    get jsonLd() {
+      const url = `${SEO_CONFIG.siteUrl}/properties`;
+      return {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: 'Properties for Sale & Rent in Kabul | Attaie Properties',
+        description:
+          'Search verified villas, apartments, houses, commercial spaces, and land for sale and rent across Kabul.',
+        url,
+        isPartOf: {
+          '@type': 'WebSite',
+          name: SEO_CONFIG.siteName,
+          url: SEO_CONFIG.siteUrl,
+        },
+      };
+    },
   },
   projects: {
     title: 'Real Estate Developments & Signature Projects in Kabul | Attaie Properties',
     description:
       'Explore Attaie Properties residential and commercial developments in Kabul: view masterplans, delivery dates, and available apartments.',
-    canonicalUrl: `${SEO_CONFIG.siteUrl}/projects`,
+    get canonicalUrl() {
+      return `${SEO_CONFIG.siteUrl}/projects`;
+    },
     ogType: 'website',
-    ogImage: SEO_CONFIG.defaultImage,
+    get ogImage() {
+      return SEO_CONFIG.defaultImage;
+    },
+    ogImageAlt: 'Signature Real Estate Developments in Kabul — Attaie Properties',
+    keywords: [
+      'Kabul real estate developments',
+      'signature projects Kabul',
+      'new residential towers Kabul',
+      'Attaie Properties developments',
+    ],
+    get jsonLd() {
+      const url = `${SEO_CONFIG.siteUrl}/projects`;
+      return {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: 'Real Estate Developments & Signature Projects in Kabul | Attaie Properties',
+        description:
+          'Explore Attaie Properties residential and commercial developments in Kabul: view masterplans, delivery dates, and available apartments.',
+        url,
+        isPartOf: {
+          '@type': 'WebSite',
+          name: SEO_CONFIG.siteName,
+          url: SEO_CONFIG.siteUrl,
+        },
+      };
+    },
   },
   agents: {
     title: 'Our Real Estate Advisors & Agents | Attaie Properties',
     description:
       'Meet the experienced Kabul property advisors and agents at Attaie Properties ready to assist with buying, selling, and leasing.',
-    canonicalUrl: `${SEO_CONFIG.siteUrl}/agents`,
+    get canonicalUrl() {
+      return `${SEO_CONFIG.siteUrl}/agents`;
+    },
     ogType: 'website',
-    ogImage: SEO_CONFIG.defaultImage,
+    get ogImage() {
+      return SEO_CONFIG.defaultImage;
+    },
+    ogImageAlt: 'Real Estate Advisors & Agents — Attaie Properties Kabul',
+    keywords: [
+      'Kabul real estate agents',
+      'property advisors Afghanistan',
+      'Attaie Properties team',
+    ],
+    get jsonLd() {
+      const url = `${SEO_CONFIG.siteUrl}/agents`;
+      return {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: 'Our Real Estate Advisors & Agents | Attaie Properties',
+        description:
+          'Meet the experienced Kabul property advisors and agents at Attaie Properties ready to assist with buying, selling, and leasing.',
+        url,
+      };
+    },
   },
   about: {
-    title: 'About Attaie Properties — Trusted Real Estate Agency in Kabul',
+    title: "About Attaie Properties — Kabul's Trusted Real Estate Agency",
     description:
       'Learn about Attaie Properties, our mission, local expertise, and commitment to transparent real estate services in Kabul, Afghanistan.',
-    canonicalUrl: `${SEO_CONFIG.siteUrl}/about`,
+    get canonicalUrl() {
+      return `${SEO_CONFIG.siteUrl}/about`;
+    },
     ogType: 'website',
-    ogImage: SEO_CONFIG.defaultImage,
+    get ogImage() {
+      return SEO_CONFIG.defaultImage;
+    },
+    ogImageAlt: 'About Attaie Properties Kabul',
+    keywords: [
+      'About Attaie Properties',
+      'trusted real estate agency Kabul',
+      'Wazir Akbar Khan real estate office',
+      'Afghan diaspora property services',
+    ],
+    get jsonLd() {
+      const url = `${SEO_CONFIG.siteUrl}/about`;
+      return [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'AboutPage',
+          name: "About Attaie Properties — Kabul's Trusted Real Estate Agency",
+          description:
+            'Learn about Attaie Properties, our mission, local expertise, and commitment to transparent real estate services in Kabul, Afghanistan.',
+          url,
+          mainEntity: SEO_CONFIG.organizationJsonLd,
+        },
+      ];
+    },
   },
   contact: {
     title: 'Contact Us & Schedule a Consultation | Attaie Properties',
     description:
-      'Get in touch with Attaie Properties in Kabul by phone, WhatsApp, or inquiry form to buy, sell, rent, or schedule a property visit.',
-    canonicalUrl: `${SEO_CONFIG.siteUrl}/contact`,
+      'Get in touch with Attaie Properties in Kabul by phone (+93 782 222 279), WhatsApp, or inquiry form to buy, sell, rent, or schedule a property visit.',
+    get canonicalUrl() {
+      return `${SEO_CONFIG.siteUrl}/contact`;
+    },
     ogType: 'website',
-    ogImage: SEO_CONFIG.defaultImage,
+    get ogImage() {
+      return SEO_CONFIG.defaultImage;
+    },
+    ogImageAlt: 'Contact Attaie Properties in Kabul',
+    keywords: [
+      'contact Attaie Properties',
+      'Kabul real estate phone number',
+      'schedule property visit Kabul',
+      'Wazir Akbar Khan property office',
+    ],
+    get jsonLd() {
+      const url = `${SEO_CONFIG.siteUrl}/contact`;
+      return {
+        '@context': 'https://schema.org',
+        '@type': 'ContactPage',
+        name: 'Contact Us & Schedule a Consultation | Attaie Properties',
+        description:
+          'Get in touch with Attaie Properties in Kabul by phone, WhatsApp, or inquiry form to buy, sell, rent, or schedule a property visit.',
+        url,
+        mainEntity: SEO_CONFIG.organizationJsonLd,
+      };
+    },
+  },
+  notFound: {
+    title: '404 — Page Not Found | Attaie Properties',
+    description:
+      'The page you are looking for could not be found. Browse verified properties and development projects in Kabul on Attaie Properties.',
+    get canonicalUrl() {
+      return `${SEO_CONFIG.siteUrl}/404`;
+    },
+    ogType: 'website',
+    get ogImage() {
+      return SEO_CONFIG.defaultImage;
+    },
+    NoIndex: true,
   },
 };

@@ -164,4 +164,37 @@ CREATE TABLE IF NOT EXISTS ctc_public_call_log (
 CREATE INDEX idx_ctc_ip_time     ON ctc_public_call_log (ip_address, created_at);
 CREATE INDEX idx_ctc_number_time ON ctc_public_call_log (customer_number, created_at);
 
+-- ── Site-Wide SEO Metadata Settings ─────────────────────────────────────────────
 
+CREATE TABLE IF NOT EXISTS seo_settings (
+  id                  TINYINT UNSIGNED PRIMARY KEY DEFAULT 1,
+  site_name           VARCHAR(120)  NOT NULL DEFAULT 'Attaie Properties',
+  default_title       VARCHAR(255)  NOT NULL DEFAULT 'Attaie Properties — Premier Real Estate in Kabul, Afghanistan',
+  title_template      VARCHAR(160)  NOT NULL DEFAULT '%s | Attaie Properties',
+  default_description TEXT          NOT NULL,
+  keywords            TEXT          DEFAULT NULL,
+  og_image            VARCHAR(500)  DEFAULT '/logo.png',
+  twitter_image       VARCHAR(500)  DEFAULT NULL,
+  twitter_card        ENUM('summary_large_image','summary') NOT NULL DEFAULT 'summary_large_image',
+  twitter_site        VARCHAR(100)  DEFAULT NULL,
+  canonical_base_url  VARCHAR(255)  DEFAULT 'https://website.attaieproperties.com',
+  robots_index        TINYINT(1)    NOT NULL DEFAULT 1,
+  updated_at          TIMESTAMP     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT IGNORE INTO seo_settings (
+  id, site_name, default_title, title_template, default_description, keywords, og_image, twitter_image, twitter_card, twitter_site, canonical_base_url, robots_index
+) VALUES (
+  1,
+  'Attaie Properties',
+  'Attaie Properties — Premier Real Estate in Kabul, Afghanistan',
+  '%s | Attaie Properties',
+  'Browse verified luxury villas, modern apartments, commercial spaces, and development projects for sale and rent across Kabul with Attaie Properties.',
+  'Attaie Properties, Kabul real estate, properties for sale in Kabul, properties for rent in Kabul, luxury villas Kabul, apartments in Kabul, Afghanistan property agency',
+  '/logo.png',
+  NULL,
+  'summary_large_image',
+  '@AttaieProps',
+  'https://website.attaieproperties.com',
+  1
+);

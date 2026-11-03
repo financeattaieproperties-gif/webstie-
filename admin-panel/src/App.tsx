@@ -15,6 +15,7 @@ import Agents from './pages/Agents';
 import AgentForm from './pages/AgentForm';
 import Branches from './pages/Branches';
 import BranchForm from './pages/BranchForm';
+import SeoPage from './pages/SeoPage';
 
 const isElectron = !!window.electronAPI?.isElectron;
 const Router = isElectron ? HashRouter : BrowserRouter;
@@ -53,6 +54,7 @@ function ProtectedRoutes() {
         <Route path="/branches" element={<Branches />} />
         <Route path="/branches/new" element={<BranchForm />} />
         <Route path="/branches/:id/edit" element={<BranchForm />} />
+        <Route path="/seo" element={<SeoPage />} />
         <Route path="/settings" element={<Settings />} />
       </Routes>
     </Layout>

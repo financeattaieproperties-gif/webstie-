@@ -84,6 +84,13 @@ export default function Layout({ children }: { children: ReactNode }) {
       <div style={{ padding: '0 0 0.25rem' }}>
         <div style={S.navLabel}>System</div>
         <NavLink
+          to="/seo"
+          style={({ isActive }) => ({ ...S.link, ...(isActive ? S.active : {}) })}
+          onClick={onNav}
+        >
+          <span>🔍</span> SEO & Metadata
+        </NavLink>
+        <NavLink
           to="/settings"
           style={({ isActive }) => ({ ...S.link, ...(isActive ? S.active : {}) })}
           onClick={onNav}
