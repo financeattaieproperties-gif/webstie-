@@ -14,6 +14,7 @@ $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $host   = $_SERVER['HTTP_HOST'] ?? '';
 $allowed = [
     'https://website.attaieproperties.com',
+    'https://www.website.attaieproperties.com',
     'https://attaieproperties.com',
     'https://www.attaieproperties.com',
     'https://attaieproperties.af',
@@ -23,7 +24,7 @@ $allowed = [
 ];
 if (
     in_array($origin, $allowed, true) ||
-    preg_match('#^https?://([a-z0-9-]+\.)?attaieproperties\.(af|com)$#i', $origin)
+    preg_match('#^https?://([a-z0-9-]+\.)*attaieproperties\.(af|com)$#i', $origin)
 ) {
     header("Access-Control-Allow-Origin: $origin");
 }
@@ -39,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $input          = body();
-$customerNumber = trim($input['customer_number'] ?? '');
+$customerNumber = trim((string) ($input['customer_number'] ?? ''));
 
 // IP — prefer forwarded header when behind a proxy
 $ipAddress = filter_var(
@@ -50,109 +51,162 @@ $ipAddress = filter_var(
 // ── 1. Validate Afghan mobile format ───────────────────────────────────────────
 $digitsOnly = preg_replace('/\D/', '', $customerNumber);
 if (!preg_match('/^(93)?0?7\d{8}$/', $digitsOnly)) {
-    json_out(['error' => 'Please enter a valid Afghan mobile number'], 400);
+    json_out(['error' => 'Please enter a valid Afghan mobile number (e.g. 078xxxxxxx)'], 400);
 }
-// Normalize to 93XXXXXXXXX (confirm exact format with Etisalat before going live)
+// Normalize to 93XXXXXXXXX
 $normalizedNumber = '93' . substr(preg_replace('/^93|^0/', '', $digitsOnly), -9);
 
 $conn = db();
+
+// Ensure ctc_public_call_log table exists so missing table never causes a 500 error
+$conn->query(
+    "CREATE TABLE IF NOT EXISTS ctc_public_call_log (
+        id                   INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        customer_number      VARCHAR(20)  NOT NULL,
+        ip_address           VARCHAR(45)  NOT NULL,
+        reference_id         INT UNSIGNED NOT NULL,
+        etisalat_request_id  VARCHAR(50)  NULL,
+        status               ENUM('initiated','failed','blocked') DEFAULT 'initiated',
+        response_payload     TEXT         NULL,
+        created_at           TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_ctc_ip_time (ip_address, created_at),
+        INDEX idx_ctc_number_time (customer_number, created_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+);
 
 // ── 2. Rate limit: 3 per IP per 10 min ─────────────────────────────────────────
 $stmt = $conn->prepare(
     "SELECT COUNT(*) AS cnt FROM ctc_public_call_log
      WHERE ip_address = ? AND created_at > NOW() - INTERVAL 10 MINUTE"
 );
-$stmt->bind_param('s', $ipAddress);
-$stmt->execute();
-if ((int) $stmt->get_result()->fetch_assoc()['cnt'] >= 3) {
+if ($stmt) {
+    $stmt->bind_param('s', $ipAddress);
+    $stmt->execute();
+    $resRow = $stmt->get_result()->fetch_assoc();
     $stmt->close();
-    json_out(['error' => 'Too many requests. Please try again later.'], 429);
+    if ((int) ($resRow['cnt'] ?? 0) >= 3) {
+        json_out(['error' => 'Too many requests. Please try again in 10 minutes.'], 429);
+    }
 }
-$stmt->close();
 
 // ── 3. Rate limit: 1 per number per 2 min ──────────────────────────────────────
 $stmt2 = $conn->prepare(
     "SELECT COUNT(*) AS cnt FROM ctc_public_call_log
      WHERE customer_number = ? AND created_at > NOW() - INTERVAL 2 MINUTE"
 );
-$stmt2->bind_param('s', $normalizedNumber);
-$stmt2->execute();
-if ((int) $stmt2->get_result()->fetch_assoc()['cnt'] >= 1) {
+if ($stmt2) {
+    $stmt2->bind_param('s', $normalizedNumber);
+    $stmt2->execute();
+    $resRow2 = $stmt2->get_result()->fetch_assoc();
     $stmt2->close();
-    json_out(['error' => 'A call was just requested for this number. Please wait a moment.'], 429);
+    if ((int) ($resRow2['cnt'] ?? 0) >= 1) {
+        json_out(['error' => 'A call was just requested for this number. Please wait 2 minutes.'], 429);
+    }
 }
-$stmt2->close();
 
 // ── 4. Log attempt ──────────────────────────────────────────────────────────────
+$callLogId = 0;
 $ins = $conn->prepare(
     "INSERT INTO ctc_public_call_log (customer_number, ip_address, reference_id, status)
      VALUES (?, ?, 0, 'initiated')"
 );
-$ins->bind_param('ss', $normalizedNumber, $ipAddress);
-$ins->execute();
-$callLogId = (int) $conn->insert_id;
-$ins->close();
+if ($ins) {
+    $ins->bind_param('ss', $normalizedNumber, $ipAddress);
+    $ins->execute();
+    $callLogId = (int) $conn->insert_id;
+    $ins->close();
+}
 
-$upd = $conn->prepare("UPDATE ctc_public_call_log SET reference_id = ? WHERE id = ?");
-$upd->bind_param('ii', $callLogId, $callLogId);
-$upd->execute();
-$upd->close();
+if ($callLogId > 0) {
+    $upd = $conn->prepare("UPDATE ctc_public_call_log SET reference_id = ? WHERE id = ?");
+    if ($upd) {
+        $upd->bind_param('ii', $callLogId, $callLogId);
+        $upd->execute();
+        $upd->close();
+    }
+}
 
 // ── 5. Call Etisalat ────────────────────────────────────────────────────────────
-$ctcBase = rtrim((string) getenv('CTC_BASE_URL'), '/');
+$ctcBase       = ctc_normalize_base_url(ctc_read_config('CTC_BASE_URL'));
+$ctcCli        = preg_replace('/\D/', '', ctc_read_config('CTC_CLI'));
+$ctcCallCenter = preg_replace('/\D/', '', ctc_read_config('CTC_CALLCENTER_NUMBER'));
 
 try {
+    if ($ctcCli === '' || $ctcCallCenter === '') {
+        throw new RuntimeException('CTC_CLI or CTC_CALLCENTER_NUMBER is missing in api/db.php.');
+    }
+
     $idToken = ctc_get_token();
 
     $payload = json_encode([
-        'cli'           => getenv('CTC_CLI'),
-        'apartyno'      => getenv('CTC_CALLCENTER_NUMBER'),
+        'cli'           => $ctcCli,
+        'apartyno'      => $ctcCallCenter,
         'bpartyno'      => $normalizedNumber,
-        'reference_id'  => $callLogId,
+        'reference_id'  => $callLogId ?: time(),
         'dtmfflag'      => 0,
         'recordingflag' => 0,
     ]);
 
-    $ch = curl_init($ctcBase . '/initiate-call');
+    $callUrl = $ctcBase . '/initiate-call';
+    $ch = curl_init($callUrl);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST           => true,
         CURLOPT_HTTPHEADER     => [
             'Content-Type: application/json',
+            'Accept: application/json',
             'Authorization: Bearer ' . $idToken,
         ],
         CURLOPT_POSTFIELDS     => $payload,
-        CURLOPT_TIMEOUT        => 10,
-        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_TIMEOUT        => 15,
+        CURLOPT_CONNECTTIMEOUT => 10,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => 0,
     ]);
     $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlErr  = curl_error($ch);
+    $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    $responseData  = json_decode($response, true);
-    $callSucceeded = ($httpCode === 200 && ($responseData['status'] ?? 0) === 1);
-    $status        = $callSucceeded ? 'initiated' : 'failed';
-    $requestId     = $responseData['requestid'] ?? null;
+    if ($response === false) {
+        throw new RuntimeException("Could not reach Etisalat initiate-call endpoint ($callUrl): $curlErr");
+    }
 
-    $upd2 = $conn->prepare(
-        "UPDATE ctc_public_call_log
-         SET status = ?, etisalat_request_id = ?, response_payload = ?
-         WHERE id = ?"
-    );
-    $upd2->bind_param('sssi', $status, $requestId, $response, $callLogId);
-    $upd2->execute();
-    $upd2->close();
+    $responseData  = json_decode((string) $response, true);
+    $callSucceeded = ($httpCode === 200 && (($responseData['status'] ?? 0) == 1 || ($responseData['success'] ?? false) === true));
+    $status        = $callSucceeded ? 'initiated' : 'failed';
+    $requestId     = isset($responseData['requestid']) ? (string) $responseData['requestid'] : null;
+    $respStr       = (string) $response;
+
+    if ($callLogId > 0) {
+        $upd2 = $conn->prepare(
+            "UPDATE ctc_public_call_log
+             SET status = ?, etisalat_request_id = ?, response_payload = ?
+             WHERE id = ?"
+        );
+        if ($upd2) {
+            $upd2->bind_param('sssi', $status, $requestId, $respStr, $callLogId);
+            $upd2->execute();
+            $upd2->close();
+        }
+    }
 
     if (!$callSucceeded) {
-        json_out(['error' => 'Could not connect the call right now. Please try again.'], 502);
+        $etisalatMsg = $responseData['message'] ?? $responseData['error'] ?? $responseData['description'] ?? "HTTP $httpCode";
+        json_out(['error' => "Could not connect the call ($etisalatMsg). Please try again."], 502);
     }
 
     json_out(['success' => true]);
 
 } catch (Throwable $e) {
-    $fail = $conn->prepare("UPDATE ctc_public_call_log SET status = 'failed' WHERE id = ?");
-    $fail->bind_param('i', $callLogId);
-    $fail->execute();
-    $fail->close();
-    json_out(['error' => 'Something went wrong. Please try again.'], 500);
+    $errMsg = $e->getMessage();
+    if ($callLogId > 0) {
+        $fail = $conn->prepare("UPDATE ctc_public_call_log SET status = 'failed', response_payload = ? WHERE id = ?");
+        if ($fail) {
+            $fail->bind_param('si', $errMsg, $callLogId);
+            $fail->execute();
+            $fail->close();
+        }
+    }
+    json_out(['error' => $errMsg], 500);
 }

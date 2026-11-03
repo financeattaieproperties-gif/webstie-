@@ -16,6 +16,7 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "vite.config.ts", "index.html"],
+  "include": ["src", "vite.config.ts"],
   "exclude": ["node_modules", "admin-panel", "dist"]
 }
+

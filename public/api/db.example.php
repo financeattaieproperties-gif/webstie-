@@ -9,6 +9,31 @@ define('DB_NAME',    'your_cpanel_db_name');
 define('ADMIN_USER', 'admin');
 define('ADMIN_PASS', 'choose_a_strong_password');
 
+// ── Etisalat CPaaS Click-to-Call (CTC) Configuration ───────────────────────────
+// Fill these in from your Etisalat CPaaS account manager (or set via cPanel Env Vars):
+define('CTC_BASE_URL',          ''); // e.g. 'https://cpaas.etisalat.af/Cpaas/api/clicktocall'
+define('CTC_USERNAME',          ''); // Your Etisalat CPaaS API username
+define('CTC_PASSWORD',          ''); // Your Etisalat CPaaS API password
+define('CTC_CLI',               ''); // Caller ID number provided by Etisalat (e.g. '93782222279')
+define('CTC_CALLCENTER_NUMBER', '93782222279'); // Your call-center/agent number that rings FIRST (apartyno)
+
+function ctc_env(string $key, string $default = ''): string {
+    $envVal = getenv($key);
+    if ($envVal !== false && trim((string) $envVal) !== '') {
+        return trim((string) $envVal);
+    }
+    if (!empty($_ENV[$key])) {
+        return trim((string) $_ENV[$key]);
+    }
+    if (!empty($_SERVER[$key])) {
+        return trim((string) $_SERVER[$key]);
+    }
+    if (defined($key) && trim((string) constant($key)) !== '') {
+        return trim((string) constant($key));
+    }
+    return $default;
+}
+
 function db(): mysqli {
     static $conn = null;
     if ($conn === null) {

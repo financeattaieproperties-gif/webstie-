@@ -324,13 +324,24 @@ export default defineConfig({
     outDir: 'dist',
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor': ['react', 'react-dom', 'react-router-dom'],
-          'animations': ['framer-motion'],
-          'forms': ['react-hook-form', 'zod'],
-        }
-      }
+        manualChunks(id) {
+          if (
+            id.includes('node_modules/react-dom') ||
+            id.includes('node_modules/react/') ||
+            id.includes('node_modules/react-router')
+          ) {
+            return 'vendor';
+          }
+          if (id.includes('node_modules/framer-motion')) {
+            return 'animations';
+          }
+          if (id.includes('node_modules/react-hook-form') || id.includes('node_modules/zod')) {
+            return 'forms';
+          }
+        },
+      },
     },
     chunkSizeWarningLimit: 600,
   },
 });
+
