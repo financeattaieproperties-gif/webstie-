@@ -29,8 +29,8 @@ const S = {
 
 const blank: ProjectInput = {
   name: '', location: '', delivery_date: null,
-  status: 'Under Construction', available_units: 0,
-  total_units: 0, image_url: null, description: null,
+  status: 'Coming Soon', available_units: 0,
+  total_units: 0, image_url: null, gallery_images: [], video_url: null, masterplan_image: null, description: null,
 };
 
 export default function ProjectForm() {
@@ -117,6 +117,8 @@ export default function ProjectForm() {
               <div>
                 <label style={S.label}>Status</label>
                 <select style={S.select} value={form.status} onChange={e => set('status', e.target.value as ProjectInput['status'])}>
+                  <option>Coming Soon</option>
+                  <option>In Progress</option>
                   <option>Under Construction</option>
                   <option>Ready</option>
                   <option>Sold Out</option>
@@ -153,6 +155,15 @@ export default function ProjectForm() {
               onChange={e => set('description', e.target.value || null)}
               placeholder="Describe the project, highlights, amenities, location advantages…"
             />
+          </div>
+
+          <div style={{ ...S.section, ...S.divider }}>
+            <p style={S.secTitle}>Project Media</p>
+            <div style={{ display: 'grid', gap: '1rem' }}>
+              <div><label style={S.label}>Video URL</label><input style={S.input} value={form.video_url ?? ''} onChange={e => set('video_url', e.target.value || null)} placeholder="YouTube, Vimeo, or MP4 URL" /></div>
+              <div><label style={S.label}>Master Plan Image URL</label><input style={S.input} value={form.masterplan_image ?? ''} onChange={e => set('masterplan_image', e.target.value || null)} placeholder="https://…" /></div>
+              <div><label style={S.label}>Gallery Image URLs</label><textarea style={S.textarea} value={(form.gallery_images ?? []).join('\n')} onChange={e => set('gallery_images', e.target.value.split(/\r?\n/).map(url => url.trim()).filter(Boolean))} placeholder="One image URL per line" /></div>
+            </div>
           </div>
 
           {/* Footer */}

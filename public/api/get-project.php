@@ -15,4 +15,10 @@ $row = $stmt->get_result()->fetch_assoc();
 if (!$row) {
     json_out(['error' => 'Not found'], 404);
 }
+if (!empty($row['gallery_images'])) {
+    $decoded = json_decode($row['gallery_images'], true);
+    $row['gallery_images'] = is_array($decoded) ? $decoded : [];
+} else {
+    $row['gallery_images'] = [];
+}
 echo json_encode($row);

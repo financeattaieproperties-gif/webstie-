@@ -8,7 +8,7 @@ export interface ProjectCardProps {
   name: string;
   location: string;
   deliveryDate?: string;
-  status: 'Under Construction' | 'Ready' | 'Sold Out';
+  status: 'Coming Soon' | 'In Progress' | 'Sold Out' | 'Under Construction' | 'Ready';
   availableUnits?: number;
   image: string;
 }
@@ -17,7 +17,8 @@ export const ProjectCard = ({ id, name, location, deliveryDate, status, availabl
   const [isHovered, setIsHovered] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
 
-  const statusColor = status === 'Ready' ? 'available' : status === 'Sold Out' ? 'sold' : 'pending';
+  const statusColor = status === 'Sold Out' ? 'sold' : status === 'Ready' ? 'available' : 'pending';
+  const displayStatus = status === 'Under Construction' ? 'In Progress' : status;
 
   return (
     <motion.a
@@ -48,7 +49,7 @@ export const ProjectCard = ({ id, name, location, deliveryDate, status, availabl
         {/* Status badge */}
         <div className="absolute top-3 left-3 z-10">
           <Badge status={statusColor as 'available' | 'pending' | 'sold' | 'rented'} className="bg-white/90 backdrop-blur-sm shadow-md">
-            {status}
+            {displayStatus}
           </Badge>
         </div>
 

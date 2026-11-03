@@ -4,6 +4,7 @@
 
 CREATE TABLE IF NOT EXISTS properties (
   id           INT AUTO_INCREMENT PRIMARY KEY,
+  serial_number VARCHAR(50)    NOT NULL,
   title        VARCHAR(255)   NOT NULL,
   price        DECIMAL(12,2)  NOT NULL,
   location     VARCHAR(255)   NOT NULL,
@@ -11,13 +12,16 @@ CREATE TABLE IF NOT EXISTS properties (
   baths        TINYINT        DEFAULT NULL,
   area         DECIMAL(8,2)   DEFAULT NULL,
   floor        TINYINT        DEFAULT NULL,
-  status       ENUM('available','pending','sold') NOT NULL DEFAULT 'available',
-  type         ENUM('Villa','Apartment','House','Commercial') NOT NULL,
+  status       ENUM('available','pending','sold','rented') NOT NULL DEFAULT 'available',
+  type         ENUM('Villa','Apartment','House','Commercial','Land') NOT NULL,
   listing_type ENUM('sale','rent') NOT NULL,
   image_url    VARCHAR(500)   DEFAULT NULL,
   description  TEXT           DEFAULT NULL,
+  gallery_images TEXT          DEFAULT NULL,
+  video_url    VARCHAR(1000)  DEFAULT NULL,
   created_at   TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
   updated_at   TIMESTAMP      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  ,UNIQUE KEY uq_properties_serial (serial_number)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS projects (
@@ -25,13 +29,42 @@ CREATE TABLE IF NOT EXISTS projects (
   name            VARCHAR(255) NOT NULL,
   location        VARCHAR(255) NOT NULL,
   delivery_date   VARCHAR(50)  DEFAULT NULL,
-  status          ENUM('Under Construction','Ready','Sold Out') NOT NULL DEFAULT 'Under Construction',
+  status          ENUM('Coming Soon','In Progress','Sold Out','Under Construction','Ready') NOT NULL DEFAULT 'Coming Soon',
   available_units INT          DEFAULT 0,
   total_units     INT          DEFAULT 0,
   image_url       VARCHAR(500) DEFAULT NULL,
+  gallery_images  TEXT          DEFAULT NULL,
+  video_url       VARCHAR(1000) DEFAULT NULL,
+  masterplan_image VARCHAR(500) DEFAULT NULL,
   description     TEXT         DEFAULT NULL,
   created_at      TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
   updated_at      TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS agents (
+  id           INT AUTO_INCREMENT PRIMARY KEY,
+  name         VARCHAR(255) NOT NULL,
+  role         VARCHAR(160) NOT NULL,
+  background   TEXT NOT NULL,
+  portrait_url VARCHAR(500) NOT NULL,
+  phone        VARCHAR(50) NOT NULL,
+  email        VARCHAR(255) NOT NULL,
+  whatsapp     VARCHAR(50) DEFAULT NULL,
+  published    TINYINT(1) NOT NULL DEFAULT 0,
+  created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_agents_published_name (published, name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS branches (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  name       VARCHAR(255) NOT NULL,
+  address    VARCHAR(500) NOT NULL,
+  phone      VARCHAR(50) DEFAULT NULL,
+  email      VARCHAR(255) DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_branches_name (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS leads (
@@ -46,6 +79,59 @@ CREATE TABLE IF NOT EXISTS leads (
   source        VARCHAR(50)  DEFAULT 'Website',
   status        VARCHAR(50)  DEFAULT 'Pending',
   created_at    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS project_units (
+  id           INT AUTO_INCREMENT PRIMARY KEY,
+  project_id   INT NOT NULL,
+  unit_number  VARCHAR(80) NOT NULL,
+  title        VARCHAR(255) DEFAULT NULL,
+  beds         TINYINT DEFAULT NULL,
+  baths        TINYINT DEFAULT NULL,
+  area         DECIMAL(8,2) DEFAULT NULL,
+  floor        TINYINT DEFAULT NULL,
+  price        DECIMAL(12,2) DEFAULT NULL,
+  currency     CHAR(3) NOT NULL DEFAULT 'USD',
+  status       ENUM('available','reserved','sold','rented') NOT NULL DEFAULT 'available',
+  image_url    VARCHAR(500) DEFAULT NULL,
+  description  TEXT DEFAULT NULL,
+  created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_project_unit (project_id, unit_number),
+  CONSTRAINT fk_project_units_project FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS visit_requests (
+  id               INT AUTO_INCREMENT PRIMARY KEY,
+  name             VARCHAR(255) NOT NULL,
+  phone            VARCHAR(20) NOT NULL,
+  property_id      INT DEFAULT NULL,
+  project_id       INT DEFAULT NULL,
+  project_unit_id  INT DEFAULT NULL,
+  listing_name     VARCHAR(255) NOT NULL,
+  requested_at     DATETIME NOT NULL,
+  status           ENUM('pending','confirmed','declined','completed','cancelled') NOT NULL DEFAULT 'pending',
+  staff_note       TEXT DEFAULT NULL,
+  source           VARCHAR(50) NOT NULL DEFAULT 'Website',
+  created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_visit_requested_at (requested_at),
+  INDEX idx_visit_status (status),
+  INDEX idx_visit_property (property_id),
+  INDEX idx_visit_project (project_id),
+  INDEX idx_visit_unit (project_unit_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS visit_request_events (
+  id               INT AUTO_INCREMENT PRIMARY KEY,
+  visit_request_id INT NOT NULL,
+  previous_status  VARCHAR(30) DEFAULT NULL,
+  next_status      VARCHAR(30) NOT NULL,
+  actor            VARCHAR(100) NOT NULL DEFAULT 'system',
+  note             TEXT DEFAULT NULL,
+  created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_visit_event_request (visit_request_id),
+  CONSTRAINT fk_visit_events_request FOREIGN KEY (visit_request_id) REFERENCES visit_requests(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ── Etisalat CPaaS Click-to-Call tables ─────────────────────────────────────────
@@ -71,10 +157,3 @@ CREATE INDEX idx_ctc_ip_time     ON ctc_public_call_log (ip_address, created_at)
 CREATE INDEX idx_ctc_number_time ON ctc_public_call_log (customer_number, created_at);
 
 -- ── Seed one sample property so frontend is not empty after first deploy
-INSERT INTO properties (title, price, location, beds, baths, area, status, type, listing_type, image_url, description)
-VALUES (
-  'Modern Villa with Mountain Views', 450000, 'Wazir Akbar Khan, Kabul',
-  6, 5, 380, 'available', 'Villa', 'sale',
-  'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80',
-  'Stunning 6-bedroom villa with panoramic mountain views in the heart of Kabul.'
-);

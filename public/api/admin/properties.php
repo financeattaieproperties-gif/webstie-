@@ -24,9 +24,10 @@ if ($method === 'GET') {
 
 if ($method === 'POST') {
     $b = body();
-    foreach (['title', 'price', 'location', 'status', 'type', 'listing_type'] as $f) {
+    foreach (['serial_number', 'title', 'price', 'location', 'status', 'type', 'listing_type'] as $f) {
         if (empty($b[$f])) json_out(['error' => "$f required"], 400);
     }
+    $serial = trim($b['serial_number']);
     $beds    = isset($b['beds'])  && $b['beds']  !== '' ? intval($b['beds'])   : null;
     $baths   = isset($b['baths']) && $b['baths'] !== '' ? intval($b['baths'])  : null;
     $area    = isset($b['area'])  && $b['area']  !== '' ? floatval($b['area']) : null;
@@ -41,11 +42,11 @@ if ($method === 'POST') {
 
     // s=title d=price s=location i=beds i=baths d=area i=floor s=status s=type s=listing_type s=img s=desc s=gallery s=video → 14 params
     $stmt = db()->prepare(
-        'INSERT INTO properties (title,price,location,beds,baths,area,floor,status,type,listing_type,image_url,description,gallery_images,video_url)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+        'INSERT INTO properties (serial_number,title,price,location,beds,baths,area,floor,status,type,listing_type,image_url,description,gallery_images,video_url)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
     );
-    $stmt->bind_param('sdsiidisssssss',
-        $b['title'], $price, $b['location'],
+    $stmt->bind_param('ssdsiidisssssss',
+        $serial, $b['title'], $price, $b['location'],
         $beds, $baths, $area, $floor,
         $b['status'], $b['type'], $b['listing_type'],
         $img, $desc, $gallery, $video
@@ -58,6 +59,8 @@ if ($method === 'PUT') {
     $b  = body();
     $id = intval($b['id'] ?? 0);
     if (!$id) json_out(['error' => 'id required'], 400);
+    if (empty($b['serial_number'])) json_out(['error' => 'serial_number required'], 400);
+    $serial = trim($b['serial_number']);
     $beds    = isset($b['beds'])  && $b['beds']  !== '' ? intval($b['beds'])   : null;
     $baths   = isset($b['baths']) && $b['baths'] !== '' ? intval($b['baths'])  : null;
     $area    = isset($b['area'])  && $b['area']  !== '' ? floatval($b['area']) : null;
@@ -72,11 +75,11 @@ if ($method === 'PUT') {
 
     // s=title d=price s=location i=beds i=baths d=area i=floor s=status s=type s=listing_type s=img s=desc s=gallery s=video i=id → 15 params
     $stmt = db()->prepare(
-        'UPDATE properties SET title=?,price=?,location=?,beds=?,baths=?,area=?,floor=?,
+        'UPDATE properties SET serial_number=?,title=?,price=?,location=?,beds=?,baths=?,area=?,floor=?,
          status=?,type=?,listing_type=?,image_url=?,description=?,gallery_images=?,video_url=? WHERE id=?'
     );
-    $stmt->bind_param('sdsiidisssssssi',
-        $b['title'], $price, $b['location'],
+    $stmt->bind_param('ssdsiidisssssssi',
+        $serial, $b['title'], $price, $b['location'],
         $beds, $baths, $area, $floor,
         $b['status'], $b['type'], $b['listing_type'],
         $img, $desc, $gallery, $video, $id

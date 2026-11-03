@@ -9,6 +9,11 @@ import { Badge } from '../components/ui/Badge';
 import { Skeleton } from '../components/ui/Skeleton';
 import { MapPin, Calendar, Home, ArrowLeft } from 'lucide-react';
 import { getProject, type Project } from '../lib/dbService';
+import { ClickToCallButton } from '../components/ui/ClickToCallButton';
+import { VisitRequestDialog } from '../components/forms/VisitRequestDialog';
+import { ProjectUnitsSection } from '../components/project/ProjectUnitsSection';
+import { ImageGallery } from '../components/property/ImageGallery';
+import { VideoPlayer } from '../components/property/VideoPlayer';
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +22,7 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
+  const [visitOpen, setVisitOpen] = useState(false);
 
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
@@ -37,8 +43,9 @@ export default function ProjectDetailPage() {
     ? project.description?.slice(0, 155) ??
       `${project.name} is a ${project.status.toLowerCase()} real estate development in ${project.location}, Kabul. ${project.available_units ?? 0} units available.`
     : 'View project details on Attaie Properties.';
-  const metaImage = project?.image_url ?? 'https://attaieproperties.af/logo.png';
-  const metaUrl = `https://attaieproperties.af/projects/${id}`;
+  const metaImage = project?.image_url ?? 'https://attaieproperties.com/logo.png';
+  const metaUrl = `https://attaieproperties.com/projects/${id}`;
+  const projectImages = project ? ((project.gallery_images?.length ? project.gallery_images : project.image_url ? [project.image_url] : [])) : [];
 
   return (
     <main className="min-h-screen bg-brand-cream flex flex-col">
@@ -80,7 +87,7 @@ export default function ProjectDetailPage() {
                 transition={{ delay: 0.2, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               >
                 <Link
-                  to="/properties?category=projects"
+                  to="/projects"
                   className="inline-flex items-center gap-2 text-white/80 hover:text-brand-gold transition-colors text-sm font-medium"
                 >
                   <ArrowLeft size={16} />
@@ -153,6 +160,14 @@ export default function ProjectDetailPage() {
                 )}
               </div>
 
+              <div className="flex flex-wrap gap-3 mb-8">
+                <ClickToCallButton />
+                <button onClick={() => setVisitOpen(true)} className="rounded-xl bg-brand-navy px-5 py-3 text-sm font-bold text-white hover:bg-brand-navy-light">Request a Visit</button>
+              </div>
+
+              {projectImages.length > 0 && <div className="mb-8"><ImageGallery images={projectImages} alt={project.name} /></div>}
+              {project.video_url && <div className="mb-8"><VideoPlayer url={project.video_url} title={`${project.name} project tour`} /></div>}
+
               {project.description && (
                 <motion.div
                   initial={{ opacity: 0, y: 16 }}
@@ -169,6 +184,7 @@ export default function ProjectDetailPage() {
                   <p className="text-neutral-600 leading-relaxed text-lg">{project.description}</p>
                 </motion.div>
               )}
+              <ProjectUnitsSection projectId={project.id} projectName={project.name} masterplanImage={project.masterplan_image} />
             </div>
 
             <aside className="w-full lg:w-96 shrink-0">
@@ -179,6 +195,8 @@ export default function ProjectDetailPage() {
           </div>
         )}
       </div>
+
+      {project && visitOpen && <VisitRequestDialog target={{ label: project.name, projectId: project.id }} onClose={() => setVisitOpen(false)} />}
 
       <Footer />
     </main>

@@ -10,8 +10,8 @@ export default function HomePage() {
       <Helmet>
         <title>Attaie Properties — Find Your Home in Kabul</title>
         <meta name="description" content="Browse premium homes, apartments & commercial spaces for sale and rent across Kabul's finest neighbourhoods. Trusted by the Afghan diaspora." />
-        <link rel="canonical" href="https://attaieproperties.af/" />
-        <meta property="og:url" content="https://attaieproperties.af/" />
+        <link rel="canonical" href="https://attaieproperties.com/" />
+        <meta property="og:url" content="https://attaieproperties.com/" />
         <meta property="og:title" content="Attaie Properties — Find Your Home in Kabul" />
         <meta property="og:description" content="Browse premium homes, apartments & commercial spaces for sale and rent across Kabul's finest neighbourhoods." />
       </Helmet>

@@ -11,7 +11,6 @@ import { TrustBlock } from './TrustBlock';
 import { ServicesSection } from './ServicesSection';
 import { HotDealsSection } from './HotDealsSection';
 import { StatsTicker, type StatItem } from './StatsTicker';
-import { NewsSection } from './NewsSection';
 import { NewsletterBanner } from './NewsletterBanner';
 import { PropertyCard } from '../ui/PropertyCard';
 import { ProjectCard } from '../ui/ProjectCard';
@@ -39,6 +38,7 @@ const FEATURED_PROJECTS_LIMIT = 4;
 function toPropertyCardProps(p: Property) {
   return {
     id: String(p.id),
+    serialNumber: p.serial_number,
     title: p.title,
     price: p.price,
     location: p.location,
@@ -245,16 +245,6 @@ export const LandingPageContent = () => {
 
       <ServicesSection />
 
-      <PromoBanner
-        eyebrow="Financing"
-        title="Get Pre-Approved For Easy Financing"
-        description="Fast approval and flexible payment options so you can move on the right property without delay."
-        ctaLabel="Learn More"
-        ctaHref="/contact"
-        image="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80"
-        imageSide="right"
-      />
-
       <HotDealsSection />
 
       <StatsTicker stats={SECONDARY_STATS} />
@@ -266,7 +256,7 @@ export const LandingPageContent = () => {
             eyebrow="Developments"
             title="Signature Projects"
             subtitle="Multi-unit residential developments offering off-plan and ready units across Kabul's growth corridors."
-            cta={{ label: 'View all projects', href: '/properties?category=projects' }}
+            cta={{ label: 'View all projects', href: '/projects' }}
           />
 
           {loadingFeatured ? (
@@ -283,8 +273,6 @@ export const LandingPageContent = () => {
           )}
         </div>
       </section>
-
-      <NewsSection />
 
       {/* ── CTA Strip ────────────────────────────────────────────────────── */}
       <section className="relative py-28 overflow-hidden" style={{ background: 'var(--color-brand-navy)' }}>

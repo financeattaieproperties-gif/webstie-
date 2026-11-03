@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { MapPin, Phone, Mail, Award, Users, Home } from 'lucide-react';
 import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
+import { getBranches, type Branch } from '../lib/dbService';
 
 const stats = [
   { icon: Home, value: '500+', label: 'Properties Listed' },
@@ -12,6 +13,13 @@ const stats = [
 ];
 
 export default function AboutPage() {
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [branchesLoading, setBranchesLoading] = useState(true);
+  const [branchesError, setBranchesError] = useState(false);
+  useEffect(() => {
+    getBranches().then(setBranches).catch(() => setBranchesError(true)).finally(() => setBranchesLoading(false));
+  }, []);
+
   return (
     <main className="min-h-screen bg-brand-cream flex flex-col">
       <Helmet>
@@ -20,13 +28,13 @@ export default function AboutPage() {
           name="description"
           content="Attaie Properties is Kabul's premier real estate agency, trusted by Afghan families and the diaspora for over a decade. We specialise in residential and commercial property sales, rentals, and investment guidance."
         />
-        <link rel="canonical" href="https://attaieproperties.af/about" />
+        <link rel="canonical" href="https://attaieproperties.com/about" />
         <meta property="og:title" content="About Attaie Properties — Kabul's Trusted Real Estate Agency" />
         <meta
           property="og:description"
           content="Trusted by the Afghan diaspora for over a decade. Residential and commercial property in Kabul."
         />
-        <meta property="og:url" content="https://attaieproperties.af/about" />
+        <meta property="og:url" content="https://attaieproperties.com/about" />
       </Helmet>
 
       <Navbar />
@@ -94,13 +102,44 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* Admin-managed branch directory */}
+      <section className="container-custom py-16">
+        <div className="mb-8">
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand-gold mb-2">Find us</p>
+          <h2 className="text-2xl md:text-3xl font-display font-bold text-brand-navy">Our Branches</h2>
+        </div>
+        {branchesLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5" aria-label="Loading branches">
+            {[0, 1].map(item => <div key={item} className="h-36 rounded-2xl bg-white animate-pulse" />)}
+          </div>
+        ) : branchesError ? (
+          <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-700">Branch information could not be loaded.</p>
+        ) : branches.length === 0 ? (
+          <p className="rounded-xl border border-brand-navy/10 bg-white p-6 text-neutral-500">Branch information will be added here.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {branches.map(branch => <article key={branch.id} className="rounded-2xl border border-brand-navy/8 bg-white p-6 shadow-brand-sm">
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-gold/10"><MapPin size={20} className="text-brand-gold" /></div>
+                <div><h3 className="text-lg font-bold text-brand-navy">{branch.name}</h3><p className="mt-1 text-sm leading-relaxed text-neutral-600">{branch.address}</p>
+                  <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+                    {branch.phone && <a className="inline-flex items-center gap-2 font-semibold text-brand-navy hover:text-brand-gold" href={`tel:${branch.phone.replace(/[^\d+]/g, '')}`}><Phone size={15} />{branch.phone}</a>}
+                    {branch.email && <a className="inline-flex items-center gap-2 font-semibold text-brand-navy hover:text-brand-gold" href={`mailto:${branch.email}`}><Mail size={15} />{branch.email}</a>}
+                  </div>
+                </div>
+              </div>
+            </article>)}
+          </div>
+        )}
+      </section>
+
       {/* Contact strip */}
       <section className="bg-brand-navy mt-auto">
         <div className="container-custom py-12 grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
-            { icon: MapPin, label: 'Address', value: 'Street #13, Wazir Akbar Khan, Kabul' },
+            { icon: MapPin, label: 'Address', value: 'Street #13, Wazir Akbar Khan, Kabul, Afghanistan' },
             { icon: Phone, label: 'Phone', value: '+93 782 222 279', href: 'tel:+93782222279' },
-            { icon: Mail, label: 'Email', value: 'info@attaieproperties.af', href: 'mailto:info@attaieproperties.af' },
+            { icon: Mail, label: 'Email', value: 'info@attaieproperties.com', href: 'mailto:info@attaieproperties.com' },
           ].map(({ icon: Icon, label, value, href }) => (
             <div key={label} className="flex items-start gap-4">
               <div className="w-10 h-10 rounded-full bg-brand-gold/15 flex items-center justify-center shrink-0">

@@ -4,14 +4,14 @@ import { api, type Project } from '../api';
 
 type Status = Project['status'];
 
-const STATUSES: Status[] = ['Under Construction', 'Ready', 'Sold Out'];
+const STATUSES: Status[] = ['Coming Soon', 'In Progress', 'Sold Out', 'Under Construction', 'Ready'];
 const nextStatus = (s: Status): Status => STATUSES[(STATUSES.indexOf(s) + 1) % STATUSES.length];
 
 const statusColor = (s: Status): React.CSSProperties => ({
   padding: '0.2rem 0.7rem', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700,
   cursor: 'pointer', border: 'none', outline: 'none',
-  background: s === 'Ready' ? '#d1fae5' : s === 'Sold Out' ? '#fee2e2' : '#fef9c3',
-  color:      s === 'Ready' ? '#065f46' : s === 'Sold Out' ? '#991b1b' : '#92400e',
+  background: s === 'Ready' || s === 'In Progress' ? '#d1fae5' : s === 'Sold Out' ? '#fee2e2' : '#fef9c3',
+  color:      s === 'Ready' || s === 'In Progress' ? '#065f46' : s === 'Sold Out' ? '#991b1b' : '#92400e',
 });
 
 const S = {

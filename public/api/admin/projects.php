@@ -24,12 +24,15 @@ if ($method === 'POST') {
     $total = intval($b['total_units']     ?? 0);
     $del   = $b['delivery_date'] ?? null;
     $img   = $b['image_url']     ?? null;
+    $gallery = isset($b['gallery_images']) && is_array($b['gallery_images']) ? json_encode(array_values(array_filter($b['gallery_images']))) : null;
+    $video = trim($b['video_url'] ?? '') ?: null;
+    $masterplan = trim($b['masterplan_image'] ?? '') ?: null;
     $desc  = $b['description']   ?? null;
     $stmt  = db()->prepare(
-        'INSERT INTO projects (name,location,delivery_date,status,available_units,total_units,image_url,description)
-         VALUES (?,?,?,?,?,?,?,?)'
+        'INSERT INTO projects (name,location,delivery_date,status,available_units,total_units,image_url,gallery_images,video_url,masterplan_image,description)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?)'
     );
-    $stmt->bind_param('ssssiiss', $b['name'], $b['location'], $del, $b['status'], $avail, $total, $img, $desc);
+    $stmt->bind_param('ssssiisssss', $b['name'], $b['location'], $del, $b['status'], $avail, $total, $img, $gallery, $video, $masterplan, $desc);
     $stmt->execute();
     json_out(['id' => db()->insert_id], 201);
 }
@@ -42,12 +45,15 @@ if ($method === 'PUT') {
     $total = intval($b['total_units']     ?? 0);
     $del   = $b['delivery_date'] ?? null;
     $img   = $b['image_url']     ?? null;
+    $gallery = isset($b['gallery_images']) && is_array($b['gallery_images']) ? json_encode(array_values(array_filter($b['gallery_images']))) : null;
+    $video = trim($b['video_url'] ?? '') ?: null;
+    $masterplan = trim($b['masterplan_image'] ?? '') ?: null;
     $desc  = $b['description']   ?? null;
     $stmt  = db()->prepare(
         'UPDATE projects SET name=?,location=?,delivery_date=?,status=?,
-         available_units=?,total_units=?,image_url=?,description=? WHERE id=?'
+         available_units=?,total_units=?,image_url=?,gallery_images=?,video_url=?,masterplan_image=?,description=? WHERE id=?'
     );
-    $stmt->bind_param('ssssiissi', $b['name'], $b['location'], $del, $b['status'], $avail, $total, $img, $desc, $id);
+    $stmt->bind_param('ssssiisssssi', $b['name'], $b['location'], $del, $b['status'], $avail, $total, $img, $gallery, $video, $masterplan, $desc, $id);
     $stmt->execute();
     json_out(['updated' => $stmt->affected_rows]);
 }

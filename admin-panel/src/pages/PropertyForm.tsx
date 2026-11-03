@@ -28,7 +28,7 @@ const S = {
 };
 
 const blank: PropertyInput = {
-  title: '', price: 0, location: '', beds: null, baths: null,
+  serial_number: '', title: '', price: 0, location: '', beds: null, baths: null,
   area: null, floor: null, status: 'available', type: 'Villa',
   listing_type: 'sale', image_url: null, gallery_images: [], video_url: null, description: null,
 };
@@ -106,6 +106,11 @@ export default function PropertyForm() {
           <div style={{ ...S.section, ...S.divider }}>
             <p style={S.secTitle}>Core Details</p>
             <div style={S.grid}>
+              <div style={S.full}>
+                <label style={S.label}>Property Serial Number *</label>
+                <input style={S.input} value={form.serial_number} onChange={e => set('serial_number', e.target.value.trim())} required maxLength={50} placeholder="e.g. AP-KBL-0001" />
+                <small style={{ display: 'block', marginTop: 5, color: '#64748b' }}>Unique reference customers can use to find this property.</small>
+              </div>
               <div style={S.full}>
                 <label style={S.label}>Title *</label>
                 <input style={S.input} value={form.title} onChange={e => set('title', e.target.value)} required placeholder="e.g. Modern Villa with Mountain Views" />

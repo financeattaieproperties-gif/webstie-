@@ -10,6 +10,11 @@ import Projects from './pages/Projects';
 import ProjectForm from './pages/ProjectForm';
 import Leads from './pages/Leads';
 import Settings from './pages/SettingsPage';
+import Visits from './pages/Visits';
+import Agents from './pages/Agents';
+import AgentForm from './pages/AgentForm';
+import Branches from './pages/Branches';
+import BranchForm from './pages/BranchForm';
 
 const isElectron = !!window.electronAPI?.isElectron;
 const Router = isElectron ? HashRouter : BrowserRouter;
@@ -41,6 +46,13 @@ function ProtectedRoutes() {
         <Route path="/projects/new" element={<ProjectForm />} />
         <Route path="/projects/:id/edit" element={<ProjectForm />} />
         <Route path="/leads" element={<Leads />} />
+        <Route path="/visits" element={<Visits />} />
+        <Route path="/agents" element={<Agents />} />
+        <Route path="/agents/new" element={<AgentForm />} />
+        <Route path="/agents/:id/edit" element={<AgentForm />} />
+        <Route path="/branches" element={<Branches />} />
+        <Route path="/branches/new" element={<BranchForm />} />
+        <Route path="/branches/:id/edit" element={<BranchForm />} />
         <Route path="/settings" element={<Settings />} />
       </Routes>
     </Layout>

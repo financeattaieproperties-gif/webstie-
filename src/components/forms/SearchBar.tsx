@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Search, MapPin } from 'lucide-react';
+import { Search, MapPin, Hash } from 'lucide-react';
 import { Button } from '../ui/Button';
 
 export const SearchBar = () => {
@@ -10,7 +10,10 @@ export const SearchBar = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    window.location.href = `/properties?purpose=${purpose}&location=${encodeURIComponent(location)}`;
+    const query = new URLSearchParams();
+    query.set('purpose', purpose);
+    if (location.trim()) query.set('search', location.trim());
+    window.location.href = `/properties?${query.toString()}`;
   };
 
   return (
@@ -34,10 +37,10 @@ export const SearchBar = () => {
 
         {/* Location Input */}
         <div className="flex-1 relative flex items-center bg-neutral-50 rounded-xl px-4">
-          <MapPin size={20} className="text-neutral-400 absolute left-4" />
+          {location.trim() && /^[a-z0-9-]+$/i.test(location.trim()) && location.trim().includes('-') ? <Hash size={19} className="text-neutral-400 absolute left-4" /> : <MapPin size={20} className="text-neutral-400 absolute left-4" />}
           <input
             type="text"
-            placeholder="Search by location or project..."
+            placeholder="Search by property serial number or location..."
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             className="w-full bg-transparent border-none py-3 pl-8 pr-4 text-brand-navy focus:outline-none focus:ring-0 placeholder:text-neutral-400"

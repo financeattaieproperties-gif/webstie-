@@ -23,6 +23,16 @@ if (!empty($_GET['listing_type'])) {
     $params[] = $_GET['listing_type'];
     $types   .= 's';
 }
+if (!empty($_GET['serial_number'])) {
+    $where[] = 'serial_number = ?';
+    $params[] = trim($_GET['serial_number']);
+    $types .= 's';
+} elseif (!empty($_GET['search'])) {
+    $where[] = '(serial_number = ? OR title LIKE ? OR location LIKE ?)';
+    $term = trim($_GET['search']);
+    $params[] = $term; $params[] = '%' . $term . '%'; $params[] = '%' . $term . '%';
+    $types .= 'sss';
+}
 
 $sql  = 'SELECT * FROM properties WHERE ' . implode(' AND ', $where) . ' ORDER BY created_at DESC';
 $stmt = $db->prepare($sql);

@@ -11,6 +11,8 @@ import { Badge } from '../components/ui/Badge';
 import { Skeleton } from '../components/ui/Skeleton';
 import { MapPin, Bed, Bath, Maximize2, Building, ArrowLeft } from 'lucide-react';
 import { getProperty, type Property } from '../lib/dbService';
+import { ClickToCallButton } from '../components/ui/ClickToCallButton';
+import { VisitRequestDialog } from '../components/forms/VisitRequestDialog';
 
 export default function PropertyDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +21,7 @@ export default function PropertyDetailPage() {
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState<string | null>(null);
+  const [visitOpen, setVisitOpen] = useState(false);
 
   useEffect(() => {
     if (!propertyId) return;
@@ -44,8 +47,8 @@ export default function PropertyDetailPage() {
     ? property.description?.slice(0, 155) ??
       `${property.beds ? `${property.beds}-bed ` : ''}${property.type.toLowerCase()} for ${property.listing_type === 'rent' ? 'rent' : 'sale'} in ${property.location}, Kabul. Priced at $${property.price.toLocaleString()}.`
     : 'View property details on Attaie Properties.';
-  const metaImage = property?.image_url ?? 'https://attaieproperties.af/logo.png';
-  const metaUrl = `https://attaieproperties.af/properties/${id}`;
+  const metaImage = property?.image_url ?? 'https://attaieproperties.com/logo.png';
+  const metaUrl = `https://attaieproperties.com/properties/${id}`;
 
   return (
     <main className="min-h-screen bg-brand-cream flex flex-col">
@@ -129,6 +132,11 @@ export default function PropertyDetailPage() {
                   ? `$${property.price.toLocaleString()} / mo`
                   : `$${property.price.toLocaleString()}`}
               </p>
+
+              <div className="flex flex-wrap gap-3 mb-8">
+                <ClickToCallButton />
+                <button onClick={() => setVisitOpen(true)} className="rounded-xl bg-brand-navy px-5 py-3 text-sm font-bold text-white hover:bg-brand-navy-light">Request a Visit</button>
+              </div>
 
               {/* Spec badges */}
               <div className="flex flex-wrap gap-3 py-6 border-y border-neutral-200 mb-8">
@@ -222,6 +230,8 @@ export default function PropertyDetailPage() {
           </div>
         )}
       </div>
+
+      {property && visitOpen && <VisitRequestDialog target={{ label: property.title, propertyId: property.id }} onClose={() => setVisitOpen(false)} />}
 
       <Footer />
     </main>

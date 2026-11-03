@@ -31,6 +31,7 @@ const S = {
 export default function Properties() {
   const navigate = useNavigate();
   const [items, setItems]         = useState<Property[]>([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading]     = useState(true);
   const [toggling, setToggling]   = useState<number | null>(null);
 
@@ -65,6 +66,7 @@ export default function Properties() {
         <button style={S.btn} onClick={() => navigate('/properties/new')}>+ Add Property</button>
       </div>
 
+      <div style={{ marginBottom: '1rem' }}><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by serial number, title, or location" style={{ padding: '.65rem .8rem', border: '1px solid #cbd5e1', borderRadius: 8, width: 'min(100%, 420px)' }} /></div>
       <div style={{ overflowX: 'auto' }}>
       <table style={S.table}>
         <thead>
@@ -75,7 +77,7 @@ export default function Properties() {
           </tr>
         </thead>
         <tbody>
-          {items.map(p => (
+          {items.filter(p => !search || p.serial_number.toLowerCase().includes(search.toLowerCase()) || p.title.toLowerCase().includes(search.toLowerCase()) || p.location.toLowerCase().includes(search.toLowerCase())).map(p => (
             <tr key={p.id} style={{ transition: 'background .15s' }}>
               <td style={{ ...S.td, width: 68, paddingRight: 0 }}>
                 {p.image_url
@@ -83,6 +85,7 @@ export default function Properties() {
                   : <div style={S.noThumb}>🏠</div>}
               </td>
               <td style={S.td}>
+                <div style={{ color: '#0145F2', fontWeight: 700, fontSize: '.78rem', marginBottom: '.2rem' }}>{p.serial_number}</div>
                 <div style={{ fontWeight: 600, marginBottom: '0.1rem' }}>{p.title}</div>
                 <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{p.location}</div>
               </td>

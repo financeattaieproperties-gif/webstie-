@@ -30,13 +30,13 @@ function PropertiesContent() {
   const [searchParams] = useSearchParams();
   const category = searchParams.get('category') || 'individual';
   const isProjects = category === 'projects';
-
   const [properties, setProperties] = useState<Property[]>([]);
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [projects, setProjects]     = useState<Project[]>([]);
   const [filters, setFilters]       = useState<FilterState>(defaultFilters);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState<string | null>(null);
+  const [serialSearch, setSerialSearch] = useState(searchParams.get('search') ?? searchParams.get('serial_number') ?? '');
 
   useEffect(() => {
     setLoading(true);
@@ -53,6 +53,13 @@ function PropertiesContent() {
       .catch(() => setError('Failed to load. Please try again.'))
       .finally(() => setLoading(false));
   }, [isProjects]);
+
+  useEffect(() => {
+    const term = (searchParams.get('search') ?? searchParams.get('serial_number') ?? '').trim();
+    setSerialSearch(term);
+    if (!term || isProjects) return;
+    getProperties({ search: term }).then(setProperties).catch(() => setError('Search failed. Please try again.'));
+  }, [searchParams, isProjects]);
 
   useEffect(() => {
     if (isProjects) return;
@@ -81,8 +88,8 @@ function PropertiesContent() {
     ? 'Explore premium residential and commercial development projects in Kabul, Afghanistan. Villas, apartments and mixed-use buildings by Attaie Properties.'
     : 'Browse verified properties for sale and rent across Kabul — villas, apartments, commercial spaces. Attaie Properties, Kabul\'s trusted real estate agency.';
   const pageUrl = isProjects
-    ? 'https://attaieproperties.af/properties?category=projects'
-    : 'https://attaieproperties.af/properties';
+    ? 'https://attaieproperties.com/properties?category=projects'
+    : 'https://attaieproperties.com/properties';
 
   return (
     <main className="min-h-screen bg-brand-ivory flex flex-col">
@@ -116,7 +123,7 @@ function PropertiesContent() {
         <div className="container-custom flex gap-1 py-3">
           {[
             { label: 'Individual Properties', href: '/properties?category=individual', active: !isProjects },
-            { label: 'Signature Projects',   href: '/properties?category=projects',    active: isProjects },
+            { label: 'Signature Projects',   href: '/projects',    active: isProjects },
           ].map(tab => (
             <a
               key={tab.label}
@@ -254,6 +261,7 @@ function PropertiesContent() {
                       >
                         <PropertyCard
                           id={String(prop.id)}
+                          serialNumber={prop.serial_number}
                           title={prop.title}
                           price={prop.price}
                           location={prop.location}

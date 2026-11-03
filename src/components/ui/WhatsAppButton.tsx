@@ -1,7 +1,7 @@
 import React from 'react';
 
 export const WhatsAppButton = () => {
-  const phoneNumber = import.meta.env.VITE_WHATSAPP_NUMBER || '971500000000';
+  const phoneNumber = import.meta.env.VITE_WHATSAPP_NUMBER || '93782222279';
   const whatsappUrl = `https://wa.me/${phoneNumber}`;
 
   return (

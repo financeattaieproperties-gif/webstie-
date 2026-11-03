@@ -33,6 +33,8 @@ const Navbar = () => {
   const navLinks = [
     { name: t('nav.home'), href: '/' },
     { name: t('nav.properties'), href: '/properties' },
+    { name: t('nav.projects'), href: '/projects' },
+    { name: t('nav.agents'), href: '/agents' },
     { name: t('nav.about'), href: '/about' },
     { name: t('nav.contact'), href: '/contact' },
   ];
@@ -94,7 +96,7 @@ const Navbar = () => {
         <div className="hidden lg:flex items-center gap-4">
           <div className="flex items-center gap-2 text-white">
             <Phone size={16} className="text-brand-gold" />
-            <span className="font-bold text-sm">+93 700 123 456</span>
+            <span className="font-bold text-sm">+93 782 222 279</span>
           </div>
           <div className="h-4 w-[1px] bg-white/20" />
           <button
@@ -152,7 +154,7 @@ const Navbar = () => {
               >
                 <div className="flex items-center gap-3 text-white">
                   <Phone size={18} className="text-brand-gold" />
-                  <span className="font-bold">+93 700 123 456</span>
+                  <span className="font-bold">+93 782 222 279</span>
                 </div>
                 <Button className="w-full" onClick={() => { window.location.href = '/contact'; setIsOpen(false); }}>{t('nav.enquire')}</Button>
                 <button

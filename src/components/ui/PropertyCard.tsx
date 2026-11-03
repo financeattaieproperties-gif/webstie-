@@ -5,6 +5,7 @@ import { Badge } from './Badge';
 
 export interface PropertyCardProps {
   id: string;
+  serialNumber?: string;
   title: string;
   price: number;
   location: string;
@@ -20,6 +21,7 @@ export interface PropertyCardProps {
 
 export const PropertyCard = ({
   id,
+  serialNumber,
   title,
   price,
   location,
@@ -138,6 +140,7 @@ export const PropertyCard = ({
         <div className="flex items-start justify-between gap-2 mb-1">
           <Badge type={type} />
         </div>
+        {serialNumber && <p className="font-mono text-xs font-semibold tracking-wide text-brand-gold">Ref. {serialNumber}</p>}
         <h3 className="font-heading text-lg font-bold text-brand-navy mt-2 mb-2 line-clamp-1 group-hover:text-brand-gold transition-colors duration-200">
           {title}
         </h3>

@@ -37,7 +37,19 @@ export const api = {
   deleteProject:    (id: number) =>
     request<{ deleted: number }>(`/admin/projects.php?id=${id}`, { method: 'DELETE' }),
 
+  getAgents: () => request<Agent[]>('/admin/agents.php'),
+  createAgent: (data: AgentInput) => request<{ id: number }>('/admin/agents.php', { method: 'POST', body: JSON.stringify(data) }),
+  updateAgent: (data: AgentInput & { id: number }) => request<{ updated: number }>('/admin/agents.php', { method: 'PUT', body: JSON.stringify(data) }),
+  deleteAgent: (id: number) => request<{ deleted: number }>(`/admin/agents.php?id=${id}`, { method: 'DELETE' }),
+  getBranches: () => request<Branch[]>('/admin/branches.php'),
+  createBranch: (data: BranchInput) => request<{ id: number }>('/admin/branches.php', { method: 'POST', body: JSON.stringify(data) }),
+  updateBranch: (data: BranchInput & { id: number }) => request<{ updated: number }>('/admin/branches.php', { method: 'PUT', body: JSON.stringify(data) }),
+  deleteBranch: (id: number) => request<{ deleted: number }>(`/admin/branches.php?id=${id}`, { method: 'DELETE' }),
+
   getLeads: () => request<Lead[]>('/admin/leads.php'),
+  getVisitRequests: () => request<VisitRequest[]>('/admin/visit-requests.php'),
+  updateVisitRequest: (id: number, status: VisitRequest['status'], staff_note: string) =>
+    request<{ success: boolean }>('/admin/visit-requests.php', { method: 'PUT', body: JSON.stringify({ id, status, staff_note }) }),
 
   uploadImage: async (file: File): Promise<string> => {
     const form = new FormData();
@@ -55,6 +67,7 @@ export const api = {
 
 export interface Property {
   id: number;
+  serial_number: string;
   title: string;
   price: number;
   location: string;
@@ -79,15 +92,29 @@ export interface Project {
   name: string;
   location: string;
   delivery_date: string | null;
-  status: 'Under Construction' | 'Ready' | 'Sold Out';
+  status: 'Coming Soon' | 'In Progress' | 'Sold Out' | 'Under Construction' | 'Ready';
   available_units: number;
   total_units: number;
   image_url: string | null;
+  gallery_images: string[];
+  video_url: string | null;
+  masterplan_image: string | null;
   description: string | null;
   created_at: string;
 }
 
 export type ProjectInput = Omit<Project, 'id' | 'created_at'>;
+
+export interface Agent {
+  id: number; name: string; role: string; background: string; portrait_url: string;
+  phone: string; email: string; whatsapp: string | null; published: boolean; created_at?: string;
+}
+export type AgentInput = Omit<Agent, 'id' | 'created_at'>;
+
+export interface Branch {
+  id: number; name: string; address: string; phone: string | null; email: string | null; created_at?: string;
+}
+export type BranchInput = Omit<Branch, 'id' | 'created_at'>;
 
 export interface Lead {
   id: number;
@@ -101,4 +128,10 @@ export interface Lead {
   source: string;
   status: string;
   created_at: string;
+}
+
+export interface VisitRequest {
+  id: number; name: string; phone: string; listing_name: string; requested_at: string;
+  status: 'pending' | 'confirmed' | 'declined' | 'completed' | 'cancelled'; staff_note: string | null;
+  events: Array<{ previous_status: string | null; next_status: string; actor: string; note: string | null; created_at: string }>;
 }

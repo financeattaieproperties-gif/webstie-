@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 interface Unit {
   id: string;
-  status: 'available' | 'pending' | 'sold';
+  status: 'available' | 'pending' | 'sold' | 'reserved' | 'rented';
   shapePath?: string;
   coordX?: number;
   coordY?: number;

@@ -95,7 +95,7 @@ const Footer = () => {
                 </a>
               </motion.li>
               <motion.li variants={{ hidden: { opacity: 0, x: -8 }, visible: { opacity: 1, x: 0 } }}>
-                <a href="/properties?category=projects" className="text-neutral-600 hover:text-brand-gold transition-colors text-sm link-underline">
+                <a href="/projects" className="text-neutral-600 hover:text-brand-gold transition-colors text-sm link-underline">
                   {t('nav.projects')}
                 </a>
               </motion.li>
@@ -143,15 +143,19 @@ const Footer = () => {
             <ul className="flex flex-col gap-4">
               <li className="flex gap-3 text-neutral-600 text-sm">
                 <MapPin size={18} className="text-brand-gold shrink-0 mt-0.5" />
-                <span>Wazir Akbar Khan, Street 5, Kabul, Afghanistan</span>
+                <span>Street #13, Wazir Akbar Khan, Kabul, Afghanistan</span>
               </li>
               <li className="flex gap-3 text-neutral-600 text-sm">
                 <Phone size={18} className="text-brand-gold shrink-0" />
-                <span>+93 700 123 456</span>
+                <span>+93 782 222 279</span>
               </li>
               <li className="flex gap-3 text-neutral-600 text-sm">
                 <Mail size={18} className="text-brand-gold shrink-0" />
-                <span>info@attaieproperties.af</span>
+                <span>info@attaieproperties.com</span>
+              </li>
+              <li className="flex gap-3 text-neutral-600 text-sm">
+                <span className="text-brand-gold shrink-0 font-bold">@</span>
+                <a href="https://www.attaieproperties.com" className="hover:text-brand-gold transition-colors">www.attaieproperties.com</a>
               </li>
             </ul>
           </div>

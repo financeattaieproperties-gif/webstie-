@@ -34,6 +34,9 @@ const navItems = [
   { to: '/properties', label: 'Properties', icon: '🏠' },
   { to: '/projects',   label: 'Projects',   icon: '🏗' },
   { to: '/leads',      label: 'Leads',      icon: '📋' },
+  { to: '/visits',     label: 'Visits',     icon: '📅' },
+  { to: '/agents',     label: 'Agents & Employees', icon: '👥' },
+  { to: '/branches',   label: 'Branches',   icon: '📍' },
 ];
 
 export default function Layout({ children }: { children: ReactNode }) {
