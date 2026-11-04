@@ -61,16 +61,31 @@ export default function ProjectForm() {
 
   // Project apartments / units state
   const [units, setUnits]             = useState<ProjectUnit[]>([]);
+  const [unitsError, setUnitsError]   = useState<string | null>(null);
   const [unitForm, setUnitForm]       = useState<ProjectUnitInput>(blankUnit(projectId));
   const [editingUnitId, setEditingUnitId] = useState<number | null>(null);
   const [unitBusy, setUnitBusy]       = useState(false);
   const [unitToast, setUnitToast]     = useState<{ ok: boolean; msg: string } | null>(null);
 
+  const loadUnits = async (pid: number) => {
+    setUnitsError(null);
+    try {
+      const unitList = await api.getProjectUnits(pid);
+      setUnits(unitList);
+    } catch (err) {
+      setUnitsError((err as Error).message || 'Could not load project apartments.');
+    }
+  };
+
   useEffect(() => {
     if (!isEdit) return;
+    setUnitsError(null);
     Promise.all([
       api.getProjects(),
-      api.getProjectUnits(projectId).catch(() => [] as ProjectUnit[]),
+      api.getProjectUnits(projectId).catch((err: Error) => {
+        setUnitsError(err.message || 'Could not load project apartments.');
+        return [] as ProjectUnit[];
+      }),
     ]).then(([list, unitList]) => {
       const found = list.find(p => Number(p.id) === projectId);
       if (found) {
@@ -304,6 +319,40 @@ export default function ProjectForm() {
             <p style={{ fontSize: '0.82rem', color: '#64748b', marginTop: 0, marginBottom: '1.25rem' }}>
               Add individual apartments or units within this project so visitors can browse available floorplans, prices, and book a visit.
             </p>
+
+            {unitsError && (
+              <div style={{
+                padding: '0.75rem 1rem',
+                marginBottom: '1.25rem',
+                borderRadius: 8,
+                background: '#fee2e2',
+                border: '1px solid #fca5a5',
+                color: '#dc2626',
+                fontSize: '0.85rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '0.75rem',
+              }}>
+                <span>Failed to load apartments: {unitsError}</span>
+                <button
+                  type="button"
+                  onClick={() => loadUnits(projectId)}
+                  style={{
+                    padding: '0.35rem 0.75rem',
+                    background: '#dc2626',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 6,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontSize: '0.78rem',
+                  }}
+                >
+                  Retry
+                </button>
+              </div>
+            )}
 
             {units.length > 0 && (
               <div style={{ overflowX: 'auto', marginBottom: '1.5rem' }}>

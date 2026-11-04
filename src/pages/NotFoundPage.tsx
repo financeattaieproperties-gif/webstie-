@@ -3,12 +3,11 @@ import { Link } from 'react-router-dom';
 import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
 import { SeoHead } from '../components/seo/SeoHead';
-import { PAGE_SEO } from '../lib/seoConfig';
 
 export default function NotFoundPage() {
   return (
     <main className="min-h-screen flex flex-col">
-      <SeoHead seo={PAGE_SEO.notFound} />
+      <SeoHead />
       <Navbar />
       <div className="flex-grow flex flex-col items-center justify-center text-center px-4">
         <h1 className="text-8xl font-display font-bold text-brand-gold mb-4">404</h1>

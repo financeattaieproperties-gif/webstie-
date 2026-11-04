@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search, MapPin, ChevronDown } from 'lucide-react';
 import type { Property } from '../../lib/dbService';
 
@@ -46,10 +46,15 @@ export const Hero3DSection: React.FC<{ featuredProperties?: Property[] }> = ({ f
   };
 
   const activeSlide = slidesWithImages[slideIdx % Math.max(slidesWithImages.length, 1)];
+  const formattedPrice = activeSlide
+    ? activeSlide.listing_type === 'rent'
+      ? `$${Number(activeSlide.price).toLocaleString()}/mo`
+      : `$${Number(activeSlide.price).toLocaleString()}`
+    : '';
 
   return (
     <section
-      className="relative w-full min-h-screen overflow-hidden flex items-center justify-center"
+      className="relative w-full min-h-screen overflow-hidden flex items-center justify-center pt-24 pb-36 md:pb-28"
       style={{ background: 'var(--color-brand-navy)' }}
     >
       {/* ── Architectural backdrop or live uploaded property slideshow ── */}
@@ -80,7 +85,7 @@ export const Hero3DSection: React.FC<{ featuredProperties?: Property[] }> = ({ f
       <div className="absolute inset-0 islamic-pattern opacity-30 pointer-events-none" />
       <div className="absolute inset-0 bg-black/35 pointer-events-none" />
       <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/55 to-transparent pointer-events-none" />
-      <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-black/65 to-transparent pointer-events-none" />
+      <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none" />
 
       {/* ── Center card ── */}
       <div className="relative z-10 w-full max-w-xl mx-auto px-4 flex flex-col items-center">
@@ -208,6 +213,37 @@ export const Hero3DSection: React.FC<{ featuredProperties?: Property[] }> = ({ f
           <ChevronDown size={15} className="group-hover:translate-y-0.5 transition-transform duration-200" />
         </motion.a>
       </div>
+
+      {/* ── Background property info (bottom-left of hero image) ── */}
+      {activeSlide && (
+        <div className="absolute bottom-6 left-6 md:bottom-8 md:left-10 z-20 max-w-xs sm:max-w-md">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeSlide.id}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <Link
+                to={`/properties/${activeSlide.id}`}
+                className="group block transition-opacity duration-200"
+              >
+                <p className="font-heading font-bold text-white text-base sm:text-lg leading-snug line-clamp-1 drop-shadow-md group-hover:text-brand-gold-lt transition-colors">
+                  {activeSlide.title}
+                </p>
+                <p className="mt-1 flex items-center gap-1.5 text-white/85 text-xs sm:text-sm line-clamp-1 drop-shadow-md">
+                  <MapPin size={14} className="text-brand-gold-lt shrink-0" />
+                  <span className="truncate">{activeSlide.location}</span>
+                </p>
+                <p className="mt-1.5 font-heading font-extrabold text-white text-lg sm:text-2xl tracking-tight drop-shadow-md">
+                  {formattedPrice}
+                </p>
+              </Link>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      )}
     </section>
   );
 };

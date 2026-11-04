@@ -16,6 +16,7 @@ import { ClickToCallButton } from '../components/ui/ClickToCallButton';
 import { VisitRequestDialog } from '../components/forms/VisitRequestDialog';
 import { SeoHead } from '../components/seo/SeoHead';
 import { buildPropertySeo } from '../lib/seoConfig';
+import { Breadcrumbs } from '../components/ui/Breadcrumbs';
 
 export default function PropertyDetailPage() {
   const { t } = useTranslation();
@@ -49,19 +50,34 @@ export default function PropertyDetailPage() {
   const hasBlueprint = Boolean(property?.floor_plan_url || property?.three_d_plan_url);
   const seo = buildPropertySeo(property, id);
 
+  const breadcrumbItems = [
+    { label: t('nav.properties', 'Properties'), href: '/properties' },
+    ...(property?.type
+      ? [{ label: property.type, href: `/properties?type=${encodeURIComponent(property.type)}` }]
+      : []),
+    { label: property?.title || t('breadcrumbs.propertyDetails', 'Property Details') },
+  ];
+
   return (
     <main className="min-h-screen bg-brand-cream flex flex-col">
-      <SeoHead seo={seo} />
+      <SeoHead seo={property ? seo : undefined} context={{ property }} />
       <Navbar />
 
+      {/* Top hierarchy bar */}
+      <header className="bg-brand-navy pt-24 pb-4 border-b border-white/10">
+        <div className="container-custom">
+          <Breadcrumbs variant="light" items={breadcrumbItems} />
+        </div>
+      </header>
+
       {/* Gallery / hero */}
-      <div className="mt-20">
+      <div>
         {loading ? (
           <div className="w-full h-[60vh] min-h-[420px] bg-neutral-200 animate-pulse" />
         ) : allImages.length > 0 ? (
           <div className="relative">
             <ImageGallery images={allImages} alt={property?.title ?? ''} />
-            {/* Breadcrumb overlay on top of gallery */}
+            {/* Back link overlay on top of gallery */}
             <div className="absolute top-6 left-0 right-0 z-10 container-custom">
               <motion.a
                 href="/properties"
@@ -83,6 +99,8 @@ export default function PropertyDetailPage() {
       </div>
 
       <div className="container-custom pt-8 pb-16 flex-grow">
+        <Breadcrumbs items={breadcrumbItems} className="mb-6" />
+
         {error && (
           <div className="p-6 bg-red-50 border border-red-200 rounded-lg text-red-700">{error}</div>
         )}

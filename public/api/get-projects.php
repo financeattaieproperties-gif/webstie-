@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/bootstrap.php';
 cors();
 header('Content-Type: application/json; charset=utf-8');
 
@@ -17,6 +17,13 @@ $sql = "SELECT p.*,
         LIMIT ? OFFSET ?";
 
 $stmt = db()->prepare($sql);
+if (!$stmt) {
+    $stmt = db()->prepare("SELECT * FROM projects ORDER BY created_at DESC LIMIT ? OFFSET ?");
+}
+if (!$stmt) {
+    echo json_encode([]);
+    exit;
+}
 $stmt->bind_param('ii', $limit, $offset);
 $stmt->execute();
 $result = $stmt->get_result();

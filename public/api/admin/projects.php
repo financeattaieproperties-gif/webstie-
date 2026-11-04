@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../sitemap-helper.php';
 cors();
 require_admin();
@@ -81,20 +81,36 @@ if ($method === 'PUT') {
 if ($method === 'DELETE') {
     $id = intval($_GET['id'] ?? 0);
     if (!$id) json_out(['error' => 'id required'], 400);
-    // Delete associated project units first in case foreign key is RESTRICT
-    $delUnits = db()->prepare('DELETE FROM project_units WHERE project_id = ?');
-    if ($delUnits) {
+
+    $conn = db();
+    $conn->begin_transaction();
+    try {
+        $delUnits = $conn->prepare('DELETE FROM project_units WHERE project_id = ?');
+        if (!$delUnits) {
+            throw new RuntimeException('Failed to prepare project unit cleanup');
+        }
         $delUnits->bind_param('i', $id);
-        $delUnits->execute();
+        if (!$delUnits->execute()) {
+            throw new RuntimeException('Failed to delete project units');
+        }
+
+        $stmt = $conn->prepare('DELETE FROM projects WHERE id = ?');
+        if (!$stmt) {
+            throw new RuntimeException('Failed to prepare project deletion');
+        }
+        $stmt->bind_param('i', $id);
+        if (!$stmt->execute()) {
+            throw new RuntimeException('Failed to delete project');
+        }
+
+        $affected = (int) $stmt->affected_rows;
+        $conn->commit();
+        @build_and_save_sitemap();
+        json_out(['deleted' => $affected]);
+    } catch (Throwable $e) {
+        $conn->rollback();
+        json_out(['error' => $e->getMessage()], 500);
     }
-    $stmt = db()->prepare('DELETE FROM projects WHERE id = ?');
-    $stmt->bind_param('i', $id);
-    if (!$stmt->execute()) {
-        json_out(['error' => 'Failed to delete project'], 500);
-    }
-    $affected = (int) $stmt->affected_rows;
-    @build_and_save_sitemap();
-    json_out(['deleted' => $affected]);
 }
 
 json_out(['error' => 'Method not allowed'], 405);

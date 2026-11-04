@@ -1,10 +1,16 @@
 <?php
 /**
- * Run once: adds gallery_images and video_url columns to properties table.
- * Access via browser (admin only) then delete this file.
+ * Run once via CLI: adds gallery_images and video_url columns to properties table.
+ * Direct HTTP access is disabled in production.
  */
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['error' => 'Migration scripts are disabled over HTTP. Run via CLI or phpMyAdmin.']);
+    exit;
+}
+
 require_once __DIR__ . '/db.php';
-require_admin();
 
 $db = db();
 

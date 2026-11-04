@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/bootstrap.php';
 cors();
 header('Content-Type: application/json; charset=utf-8');
 
@@ -14,7 +14,7 @@ $defaults = [
     'twitter_image'       => null,
     'twitter_card'        => 'summary_large_image',
     'twitter_site'        => '@AttaieProps',
-    'canonical_base_url'  => 'https://website.attaieproperties.com',
+    'canonical_base_url'  => 'https://www.attaieproperties.com',
     'robots_index'        => true,
     'updated_at'          => null,
 ];
@@ -37,6 +37,9 @@ try {
 
     $row['id'] = (int) $row['id'];
     $row['robots_index'] = (bool) $row['robots_index'];
+    if (in_array($row['canonical_base_url'] ?? '', ['', 'https://attaieproperties.af', 'https://website.attaieproperties.com'], true)) {
+        $row['canonical_base_url'] = 'https://www.attaieproperties.com';
+    }
     json_out($row);
 } catch (Throwable $e) {
     json_out($defaults);

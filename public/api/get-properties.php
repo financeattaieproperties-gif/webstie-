@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/bootstrap.php';
 cors();
 header('Content-Type: application/json; charset=utf-8');
 
@@ -36,6 +36,10 @@ if (!empty($_GET['serial_number'])) {
 
 $sql  = 'SELECT * FROM properties WHERE ' . implode(' AND ', $where) . ' ORDER BY created_at DESC';
 $stmt = $db->prepare($sql);
+if (!$stmt) {
+    echo json_encode([]);
+    exit;
+}
 if ($params) {
     $stmt->bind_param($types, ...$params);
 }

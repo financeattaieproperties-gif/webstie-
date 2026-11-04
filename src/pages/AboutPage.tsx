@@ -5,7 +5,8 @@ import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
 import { getBranches, type Branch } from '../lib/dbService';
 import { SeoHead } from '../components/seo/SeoHead';
-import { PAGE_SEO } from '../lib/seoConfig';
+import { Breadcrumbs } from '../components/ui/Breadcrumbs';
+import { useTranslation } from 'react-i18next';
 
 const stats = [
   { icon: Home, value: '500+', label: 'Properties Listed' },
@@ -14,6 +15,7 @@ const stats = [
 ];
 
 export default function AboutPage() {
+  const { t } = useTranslation();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [branchesLoading, setBranchesLoading] = useState(true);
   const [branchesError, setBranchesError] = useState(false);
@@ -23,7 +25,7 @@ export default function AboutPage() {
 
   return (
     <main className="min-h-screen bg-brand-cream flex flex-col">
-      <SeoHead seo={PAGE_SEO.about} />
+      <SeoHead />
 
       <Navbar />
 
@@ -32,6 +34,13 @@ export default function AboutPage() {
         <div className="absolute inset-0 islamic-pattern opacity-20" />
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-brand-gold/40 to-transparent" />
         <div className="container-custom relative z-10 text-center">
+          <div className="flex justify-center mb-4">
+            <Breadcrumbs
+              variant="light"
+              items={[{ label: t('nav.about', 'About Us') }]}
+              className="w-auto"
+            />
+          </div>
           <p className="text-brand-gold text-xs font-bold uppercase tracking-[0.3em] mb-4">
             Kabul, Afghanistan
           </p>

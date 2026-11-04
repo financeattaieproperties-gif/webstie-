@@ -15,8 +15,11 @@ import { ImageGallery } from '../components/property/ImageGallery';
 import { VideoPlayer } from '../components/property/VideoPlayer';
 import { SeoHead } from '../components/seo/SeoHead';
 import { buildProjectSeo } from '../lib/seoConfig';
+import { Breadcrumbs } from '../components/ui/Breadcrumbs';
+import { useTranslation } from 'react-i18next';
 
 export default function ProjectDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const projectId = Number(id);
 
@@ -40,16 +43,28 @@ export default function ProjectDetailPage() {
   const seo = buildProjectSeo(project, id);
   const projectImages = project ? ((project.gallery_images?.length ? project.gallery_images : project.image_url ? [project.image_url] : [])) : [];
 
+  const breadcrumbItems = [
+    { label: t('nav.projects', 'Projects'), href: '/projects' },
+    { label: project?.name || t('breadcrumbs.projectDetails', 'Project Details') },
+  ];
+
   return (
     <main className="min-h-screen bg-brand-cream flex flex-col">
-      <SeoHead seo={seo} />
+      <SeoHead seo={project ? seo : undefined} context={{ project }} />
       <Navbar />
+
+      {/* Top hierarchy bar */}
+      <header className="bg-brand-navy pt-24 pb-4 border-b border-white/10">
+        <div className="container-custom">
+          <Breadcrumbs variant="light" items={breadcrumbItems} />
+        </div>
+      </header>
 
       {/* Cinematic hero */}
       {loading ? (
-        <div className="w-full h-[60vh] min-h-[420px] bg-neutral-200 mt-20 animate-pulse" />
+        <div className="w-full h-[60vh] min-h-[420px] bg-neutral-200 animate-pulse" />
       ) : (
-        <div ref={heroRef} className="relative w-full h-[60vh] min-h-[420px] overflow-hidden mt-20">
+        <div ref={heroRef} className="relative w-full h-[60vh] min-h-[420px] overflow-hidden">
           {project?.image_url ? (
             <motion.img
               src={project.image_url}
@@ -69,12 +84,14 @@ export default function ProjectDetailPage() {
                 initial={{ opacity: 0, x: -16 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="flex flex-col gap-2"
               >
+                <Breadcrumbs variant="light" items={breadcrumbItems} />
                 <Link
                   to="/projects"
-                  className="inline-flex items-center gap-2 text-white/80 hover:text-brand-gold transition-colors text-sm font-medium"
+                  className="inline-flex items-center gap-2 text-white/80 hover:text-brand-gold transition-colors text-xs font-medium w-fit"
                 >
-                  <ArrowLeft size={16} />
+                  <ArrowLeft size={14} />
                   Back to Projects
                 </Link>
               </motion.div>
@@ -89,6 +106,7 @@ export default function ProjectDetailPage() {
       )}
 
       <div className="container-custom pt-8 pb-16 flex-grow">
+        <Breadcrumbs items={breadcrumbItems} className="mb-6" />
 
         {error && (
           <div className="p-6 bg-red-50 border border-red-200 rounded-lg text-red-700">{error}</div>

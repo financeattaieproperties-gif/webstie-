@@ -2,7 +2,7 @@
 /**
  * Etisalat CPaaS Click-to-Call Webhook / Callback Receiver
  * URL to enter in Etisalat CPaaS Configuration (if required):
- * https://website.attaieproperties.com/api/ctc-webhook.php
+ * https://www.attaieproperties.com/api/ctc-webhook.php
  */
 header('Content-Type: application/json; charset=utf-8');
 
@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/bootstrap.php';
 
 $rawBody = file_get_contents('php://input') ?: '';
 $payload = json_decode($rawBody, true);

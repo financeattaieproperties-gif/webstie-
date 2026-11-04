@@ -6,6 +6,8 @@ import { Footer } from '../components/layout/Footer';
 import { getAgent, type Agent } from '../lib/dbService';
 import { SeoHead } from '../components/seo/SeoHead';
 import { buildAgentSeo } from '../lib/seoConfig';
+import { Breadcrumbs } from '../components/ui/Breadcrumbs';
+import { useTranslation } from 'react-i18next';
 
 function whatsappHref(phone: string) {
   const digits = phone.replace(/\D/g, '');
@@ -14,6 +16,7 @@ function whatsappHref(phone: string) {
 }
 
 export default function AgentDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [agent, setAgent] = useState<Agent | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,11 +28,19 @@ export default function AgentDetailPage() {
   }, [id]);
 
   const seo = buildAgentSeo(agent, id);
+  const breadcrumbItems = [
+    { label: t('nav.agents', 'Our Agents'), href: '/agents' },
+    { label: agent?.name || t('breadcrumbs.agentDetails', 'Agent Details') },
+  ];
+
   return <main className="min-h-screen bg-brand-ivory flex flex-col">
-    <SeoHead seo={seo} />
+    <SeoHead seo={agent ? seo : undefined} context={{ agent }} />
     <Navbar />
     <header className="bg-brand-navy pt-32 pb-6">
-      <div className="container-custom"><Link to="/agents" className="inline-flex items-center gap-2 text-sm font-semibold text-white/80 hover:text-brand-gold"><ArrowLeft size={16} /> Our Agents</Link></div>
+      <div className="container-custom flex flex-col gap-3">
+        <Breadcrumbs variant="light" items={breadcrumbItems} />
+        <Link to="/agents" className="inline-flex items-center gap-2 text-xs font-semibold text-white/75 hover:text-brand-gold w-fit"><ArrowLeft size={14} /> Our Agents</Link>
+      </div>
     </header>
     <div className="container-custom flex-grow pt-8 pb-16">
       {loading ? <div className="mt-8 grid md:grid-cols-[minmax(260px,380px)_1fr] gap-10"><div className="aspect-[4/5] rounded-2xl bg-white animate-pulse" /><div className="h-64 rounded-2xl bg-white animate-pulse" /></div>

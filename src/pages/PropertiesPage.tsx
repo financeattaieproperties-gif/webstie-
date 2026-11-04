@@ -1,7 +1,7 @@
 import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SlidersHorizontal, Bed, Bath, Maximize2, MapPin, CalendarDays, Building2, ArrowUpRight } from 'lucide-react';
+import { SlidersHorizontal, Bed, Bath, Maximize2, Layers, MapPin, CalendarDays, Building2, ArrowUpRight, MessageSquare } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
@@ -11,6 +11,7 @@ import { PropertyCard } from '../components/ui/PropertyCard';
 import { ProjectCard } from '../components/ui/ProjectCard';
 import { PropertyCardSkeleton } from '../components/ui/PropertyCardSkeleton';
 import { VisitRequestDialog, type VisitTarget } from '../components/forms/VisitRequestDialog';
+import { QuickContactModal } from '../components/forms/QuickContactModal';
 import {
   getProperties,
   getProjects,
@@ -21,6 +22,7 @@ import {
 } from '../lib/dbService';
 import { SeoHead } from '../components/seo/SeoHead';
 import { buildPropertiesListingSeo } from '../lib/seoConfig';
+import { Breadcrumbs } from '../components/ui/Breadcrumbs';
 
 const defaultFilters: FilterState = {
   purpose: 'buy',
@@ -42,157 +44,204 @@ function ProjectUnitInventoryCard({
   onRequestVisit: (target: VisitTarget) => void;
 }) {
   const { t } = useTranslation();
+  const [quickContactOpen, setQuickContactOpen] = useState(false);
   const projectLabel = unit.project_name || `Project #${unit.project_id}`;
   const unitHref = `/projects/${unit.project_id}#unit-${unit.id}`;
   const bookable = !['sold', 'rented'].includes(unit.status);
+  const unitTitle = unit.title || `${projectLabel} — ${t('projectUnits.unitPrefix', { number: unit.unit_number })}`;
+  const priceDisplay = unit.price !== null ? `$${Number(unit.price).toLocaleString()}` : 'Price on request';
 
   return (
-    <div className="group bg-white rounded-2xl overflow-hidden border border-brand-navy/8 shadow-brand-sm hover:shadow-brand-lg transition-all duration-300 flex flex-col h-full">
-      <Link to={unitHref} className="relative block aspect-[16/10] overflow-hidden bg-brand-navy">
-        {unit.image_url ? (
-          <img
-            src={unit.image_url}
-            alt={`${projectLabel} — ${unit.unit_number}`}
-            loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-white/40 text-sm">
-            <Building2 size={36} />
-          </div>
-        )}
-        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-brand-navy/90 text-white backdrop-blur-xs">
-            {t('projectUnits.projectApartmentBadge')}
-          </span>
-          <span className="px-2.5 py-1 rounded-full text-xs font-bold capitalize bg-brand-gold text-white">
-            {unit.status}
-          </span>
-        </div>
-        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white">
-          <span className="text-xs font-bold bg-black/50 backdrop-blur-xs px-2.5 py-1 rounded-lg">
-            {projectLabel} · {t('projectUnits.unitPrefix', { number: unit.unit_number })}
-          </span>
-        </div>
-      </Link>
-
-      <div className="p-5 flex-1 flex flex-col justify-between">
-        <div>
-          <p className="text-xs font-bold text-brand-gold uppercase tracking-wider mb-1">
-            {projectLabel}
-          </p>
-          <Link to={unitHref} className="block group-hover:text-brand-gold transition-colors">
-            <h3 className="text-lg font-bold text-brand-navy line-clamp-1">
-              {unit.title || `${projectLabel} — ${t('projectUnits.unitPrefix', { number: unit.unit_number })}`}
-            </h3>
-          </Link>
-          {unit.project_location && (
-            <p className="mt-1.5 flex items-center gap-1.5 text-xs text-neutral-500">
-              <MapPin size={13} className="text-brand-gold shrink-0" />
-              <span className="truncate">{unit.project_location}</span>
-            </p>
+    <>
+      <div className="group bg-white rounded-2xl overflow-hidden border border-brand-navy/8 shadow-brand-sm hover:shadow-brand-lg transition-all duration-300 flex flex-col h-full">
+        <Link to={unitHref} className="relative block aspect-[16/10] overflow-hidden bg-brand-navy">
+          {unit.image_url ? (
+            <img
+              src={unit.image_url}
+              alt={`${projectLabel} — ${unit.unit_number}`}
+              loading="lazy"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-white/40 text-sm">
+              <Building2 size={36} />
+            </div>
           )}
-
-          <div className="mt-4 flex flex-wrap gap-3 text-xs font-semibold text-neutral-600 pt-3 border-t border-neutral-100">
-            {unit.beds !== null && (
-              <span className="flex items-center gap-1">
-                <Bed size={14} className="text-brand-gold" />
-                {t('projectUnits.beds', { count: unit.beds })}
-              </span>
-            )}
-            {unit.baths !== null && (
-              <span className="flex items-center gap-1">
-                <Bath size={14} className="text-brand-gold" />
-                {t('projectUnits.baths', { count: unit.baths })}
-              </span>
-            )}
-            {unit.area !== null && (
-              <span className="flex items-center gap-1">
-                <Maximize2 size={14} className="text-brand-gold" />
-                {unit.area} m²
-              </span>
-            )}
-            {unit.floor !== null && (
-              <span className="flex items-center gap-1">
-                {t('projectUnits.floor', { floor: unit.floor })}
-              </span>
-            )}
+          <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-brand-navy/90 text-white backdrop-blur-xs">
+              {t('projectUnits.projectApartmentBadge')}
+            </span>
+            <span className="px-2.5 py-1 rounded-full text-xs font-bold capitalize bg-brand-gold text-white">
+              {unit.status}
+            </span>
           </div>
-        </div>
+          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white">
+            <span className="text-xs font-bold bg-black/50 backdrop-blur-xs px-2.5 py-1 rounded-lg">
+              {projectLabel} · {t('projectUnits.unitPrefix', { number: unit.unit_number })}
+            </span>
+          </div>
+        </Link>
 
-        <div className="mt-5 pt-3 border-t border-neutral-100 flex items-center justify-between gap-2 flex-wrap">
+        <div className="p-5 flex-1 flex flex-col justify-between">
           <div>
-            {unit.price !== null ? (
-              <p className="text-lg font-bold text-brand-gold">
-                ${Number(unit.price).toLocaleString()}
+            <p className="text-xs font-bold text-brand-gold uppercase tracking-wider mb-1">
+              {projectLabel}
+            </p>
+            <Link to={unitHref} className="block group-hover:text-brand-gold transition-colors">
+              <h3 className="text-lg font-bold text-brand-navy line-clamp-1">
+                {unitTitle}
+              </h3>
+            </Link>
+            {unit.project_location && (
+              <p className="mt-1.5 flex items-center gap-1.5 text-xs text-neutral-500">
+                <MapPin size={13} className="text-brand-gold shrink-0" />
+                <span className="truncate">{unit.project_location}</span>
               </p>
-            ) : (
-              <p className="text-sm font-semibold text-neutral-500">Price on request</p>
             )}
+
+            <div
+              aria-label="Apartment features"
+              className="mt-4 grid grid-cols-2 sm:flex sm:items-center sm:flex-wrap gap-2.5 text-xs font-semibold text-neutral-600 pt-3 border-t border-neutral-100"
+            >
+              {unit.beds !== null && (
+                <div className="flex items-center gap-2" title={t('projectUnits.beds', { count: unit.beds })}>
+                  <span className="w-7 h-7 rounded-lg bg-brand-gold/10 text-brand-gold flex items-center justify-center shrink-0">
+                    <Bed size={14} aria-hidden="true" />
+                  </span>
+                  <span>{t('projectUnits.beds', { count: unit.beds })}</span>
+                </div>
+              )}
+              {unit.baths !== null && (
+                <div className="flex items-center gap-2" title={t('projectUnits.baths', { count: unit.baths })}>
+                  <span className="w-7 h-7 rounded-lg bg-brand-gold/10 text-brand-gold flex items-center justify-center shrink-0">
+                    <Bath size={14} aria-hidden="true" />
+                  </span>
+                  <span>{t('projectUnits.baths', { count: unit.baths })}</span>
+                </div>
+              )}
+              {unit.area !== null && (
+                <div className="flex items-center gap-2" title={`${unit.area} m²`}>
+                  <span className="w-7 h-7 rounded-lg bg-brand-gold/10 text-brand-gold flex items-center justify-center shrink-0">
+                    <Maximize2 size={13} aria-hidden="true" />
+                  </span>
+                  <span>{unit.area} m²</span>
+                </div>
+              )}
+              {unit.floor !== null && (
+                <div className="flex items-center gap-2" title={t('projectUnits.floor', { floor: unit.floor })}>
+                  <span className="w-7 h-7 rounded-lg bg-brand-gold/10 text-brand-gold flex items-center justify-center shrink-0">
+                    <Layers size={13} aria-hidden="true" />
+                  </span>
+                  <span>{t('projectUnits.floor', { floor: unit.floor })}</span>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            {bookable && (
+
+          <div className="mt-5 pt-3 border-t border-neutral-100 flex items-center justify-between gap-2 flex-wrap">
+            <div>
+              {unit.price !== null ? (
+                <p className="text-lg font-bold text-brand-gold">
+                  ${Number(unit.price).toLocaleString()}
+                </p>
+              ) : (
+                <p className="text-sm font-semibold text-neutral-500">Price on request</p>
+              )}
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
               <button
                 type="button"
-                onClick={() =>
-                  onRequestVisit({
-                    label: `${projectLabel} — ${t('projectUnits.unitPrefix', { number: unit.unit_number })}`,
-                    projectId: unit.project_id,
-                    projectUnitId: unit.id,
-                  })
-                }
-                className="inline-flex items-center gap-1.5 rounded-lg border border-brand-gold px-3 py-1.5 text-xs font-bold text-brand-gold hover:bg-brand-gold hover:text-white transition-colors"
+                onClick={() => setQuickContactOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-brand-navy px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-gold transition-colors"
               >
-                <CalendarDays size={13} />
-                {t('projectUnits.requestVisit')}
+                <MessageSquare size={13} />
+                <span>Inquire Now</span>
               </button>
-            )}
-            <Link
-              to={unitHref}
-              className="inline-flex items-center gap-1 rounded-lg bg-brand-navy px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-navy-light transition-colors"
-            >
-              {t('projectUnits.viewInProject', { project: projectLabel })}
-              <ArrowUpRight size={13} />
-            </Link>
+              {bookable && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    onRequestVisit({
+                      label: `${projectLabel} — ${t('projectUnits.unitPrefix', { number: unit.unit_number })}`,
+                      projectId: unit.project_id,
+                      projectUnitId: unit.id,
+                    })
+                  }
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-brand-gold px-3 py-1.5 text-xs font-bold text-brand-gold hover:bg-brand-gold hover:text-white transition-colors"
+                >
+                  <CalendarDays size={13} />
+                  {t('projectUnits.requestVisit')}
+                </button>
+              )}
+              <Link
+                to={unitHref}
+                className="inline-flex items-center gap-1 rounded-lg bg-neutral-100 px-2.5 py-1.5 text-xs font-bold text-brand-navy hover:bg-neutral-200 transition-colors"
+                title={t('projectUnits.viewInProject', { project: projectLabel })}
+              >
+                <ArrowUpRight size={14} />
+              </Link>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      <QuickContactModal
+        open={quickContactOpen}
+        onClose={() => setQuickContactOpen(false)}
+        property={{
+          id: `unit-${unit.id}`,
+          serialNumber: unit.unit_number,
+          title: unitTitle,
+          priceDisplay,
+          location: unit.project_location || 'Kabul, Afghanistan',
+          type: 'Project Apartment',
+          listingType: 'sale',
+          image: unit.image_url,
+        }}
+      />
+    </>
   );
 }
 
 function PropertiesContent() {
-  const [searchParams] = useSearchParams();
+  const { t } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const category = searchParams.get('category') || 'individual';
   const isProjects = category === 'projects';
-  const [properties, setProperties] = useState<Property[]>([]);
+
+  const initialPurposeParam = searchParams.get('purpose');
+  const initialPurpose: FilterState['purpose'] =
+    initialPurposeParam === 'rent' || initialPurposeParam === 'commercial' ? initialPurposeParam : 'buy';
+  const initialTypeParam = searchParams.get('type');
+
   const [allProperties, setAllProperties] = useState<Property[]>([]);
-  const [projectUnits, setProjectUnits] = useState<ProjectUnit[]>([]);
   const [allProjectUnits, setAllProjectUnits] = useState<ProjectUnit[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [filters, setFilters] = useState<FilterState>(defaultFilters);
+  const [allProjects, setAllProjects] = useState<Project[]>([]);
+  const [filters, setFilters] = useState<FilterState>(() => ({
+    ...defaultFilters,
+    purpose: initialPurpose,
+    type: initialTypeParam ? [initialTypeParam] : [],
+  }));
+  const [searchQuery, setSearchQuery] = useState(
+    () => searchParams.get('search') ?? searchParams.get('serial_number') ?? ''
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [visitTarget, setVisitTarget] = useState<VisitTarget | null>(null);
-  const [serialSearch, setSerialSearch] = useState(
-    searchParams.get('search') ?? searchParams.get('serial_number') ?? ''
-  );
 
   const loadData = useCallback(() => {
     setLoading(true);
     setError(null);
     if (isProjects) {
       getProjects()
-        .then((data) => setProjects(data))
+        .then((data) => setAllProjects(data))
         .catch(() => setError('Failed to load. Please try again.'))
         .finally(() => setLoading(false));
     } else {
       Promise.all([getProperties(), getAllProjectUnits()])
         .then(([propsData, unitsResp]) => {
           setAllProperties(propsData);
-          setProperties(propsData);
           setAllProjectUnits(unitsResp.items);
-          setProjectUnits(unitsResp.items);
         })
         .catch(() => setError('Failed to load. Please try again.'))
         .finally(() => setLoading(false));
@@ -203,85 +252,178 @@ function PropertiesContent() {
     loadData();
   }, [loadData]);
 
+  // Sync when URL search params change externally (e.g. from Navbar or Hero search)
   useEffect(() => {
-    const term = (searchParams.get('search') ?? searchParams.get('serial_number') ?? '').trim();
-    setSerialSearch(term);
-    if (!term || isProjects) return;
-    getProperties({ search: term })
-      .then(setProperties)
-      .catch(() => setError('Search failed. Please try again.'));
-    const lower = term.toLowerCase();
-    setProjectUnits(
-      allProjectUnits.filter(
-        (u) =>
-          u.unit_number.toLowerCase().includes(lower) ||
-          (u.title ?? '').toLowerCase().includes(lower) ||
-          (u.project_name ?? '').toLowerCase().includes(lower) ||
-          (u.project_location ?? '').toLowerCase().includes(lower)
-      )
-    );
-  }, [searchParams, isProjects, allProjectUnits]);
+    const urlTerm = searchParams.get('search') ?? searchParams.get('serial_number') ?? '';
+    setSearchQuery(urlTerm);
+    const urlPurpose = searchParams.get('purpose');
+    if (urlPurpose === 'buy' || urlPurpose === 'rent' || urlPurpose === 'commercial') {
+      setFilters((prev) => ({ ...prev, purpose: urlPurpose }));
+    }
+  }, [searchParams]);
 
-  useEffect(() => {
-    if (isProjects) return;
-    let filtered = allProperties;
-    if (filters.type.length > 0) {
-      filtered = filtered.filter((p) => filters.type.includes(p.type));
+  const handleSearchChange = (nextQuery: string) => {
+    setSearchQuery(nextQuery);
+    const nextParams = new URLSearchParams(searchParams);
+    if (nextQuery.trim()) {
+      nextParams.set('search', nextQuery.trim());
+    } else {
+      nextParams.delete('search');
+      nextParams.delete('serial_number');
     }
-    if (filters.purpose !== 'buy' || filters.status.length > 0) {
-      const listingMap: Record<string, string> = { buy: 'sale', rent: 'rent', commercial: 'sale' };
-      filtered = filtered.filter((p) => p.listing_type === listingMap[filters.purpose]);
+    setSearchParams(nextParams, { replace: true });
+  };
+
+  const handlePurposeChange = (purpose: FilterState['purpose']) => {
+    setFilters((prev) => ({
+      ...prev,
+      purpose,
+      type: purpose === 'commercial' && !prev.type.includes('Commercial') ? ['Commercial'] : prev.type,
+    }));
+  };
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+
+  // Real-time filtered standalone properties (matches title, location, or serial_number + sidebar filters)
+  const properties = allProperties.filter((p) => {
+    if (normalizedQuery) {
+      const matchesTitle = p.title.toLowerCase().includes(normalizedQuery);
+      const matchesLocation = p.location.toLowerCase().includes(normalizedQuery);
+      const matchesSerial = (p.serial_number ?? '').toLowerCase().includes(normalizedQuery);
+      if (!matchesTitle && !matchesLocation && !matchesSerial) {
+        return false;
+      }
     }
+
+    if (filters.type.length > 0 && !filters.type.includes(p.type)) {
+      return false;
+    }
+
+    if (filters.purpose === 'rent' && p.listing_type !== 'rent') {
+      return false;
+    }
+    if (filters.purpose === 'commercial' && p.type !== 'Commercial') {
+      return false;
+    }
+    if (filters.purpose === 'buy' && filters.status.length > 0 && p.listing_type !== 'sale') {
+      return false;
+    }
+
+    if (p.price < filters.minPrice || p.price > filters.maxPrice) {
+      return false;
+    }
+
+    if (p.area !== null && (p.area < filters.minArea || p.area > filters.maxArea)) {
+      return false;
+    }
+
     if (filters.beds.length > 0) {
-      filtered = filtered.filter((p) => {
-        if (!p.beds) return false;
-        return filters.beds.some((b) =>
-          b === 'Studio' ? p.beds === 0 : b === '5+' ? (p.beds ?? 0) >= 5 : p.beds === Number(b)
-        );
-      });
+      if (p.beds === null || p.beds === undefined) return false;
+      const bedMatch = filters.beds.some((b) =>
+        b === 'Studio' ? p.beds === 0 : b === '5+' ? (p.beds ?? 0) >= 5 : p.beds === Number(b)
+      );
+      if (!bedMatch) return false;
     }
-    if (filters.status.length > 0) {
-      filtered = filtered.filter((p) => filters.status.includes(p.status));
-    }
-    setProperties(filtered);
 
-    // Filter project apartments alongside standalone properties
-    let filteredUnits = allProjectUnits;
+    if (filters.baths.length > 0) {
+      if (p.baths === null || p.baths === undefined) return false;
+      const bathMatch = filters.baths.some((b) =>
+        b === '4+' ? (p.baths ?? 0) >= 4 : p.baths === Number(b)
+      );
+      if (!bathMatch) return false;
+    }
+
+    if (filters.status.length > 0 && !filters.status.includes(p.status)) {
+      return false;
+    }
+
+    return true;
+  });
+
+  // Real-time filtered project units (matches unit_number, title, project_name, or project_location + sidebar filters)
+  const projectUnits = allProjectUnits.filter((u) => {
+    if (normalizedQuery) {
+      const matchesUnitNumber = u.unit_number.toLowerCase().includes(normalizedQuery);
+      const matchesTitle = (u.title ?? '').toLowerCase().includes(normalizedQuery);
+      const matchesProjectName = (u.project_name ?? '').toLowerCase().includes(normalizedQuery);
+      const matchesLocation = (u.project_location ?? '').toLowerCase().includes(normalizedQuery);
+      if (!matchesUnitNumber && !matchesTitle && !matchesProjectName && !matchesLocation) {
+        return false;
+      }
+    }
+
     if (filters.type.length > 0 && !filters.type.includes('Apartment')) {
-      filteredUnits = [];
+      return false;
     }
     if (filters.purpose === 'rent' || filters.purpose === 'commercial') {
-      filteredUnits = [];
+      return false;
+    }
+    if (u.price !== null && (u.price < filters.minPrice || u.price > filters.maxPrice)) {
+      return false;
+    }
+    if (u.area !== null && (u.area < filters.minArea || u.area > filters.maxArea)) {
+      return false;
     }
     if (filters.beds.length > 0) {
-      filteredUnits = filteredUnits.filter((u) => {
-        if (u.beds === null) return false;
-        return filters.beds.some((b) =>
-          b === 'Studio' ? u.beds === 0 : b === '5+' ? (u.beds ?? 0) >= 5 : u.beds === Number(b)
-        );
-      });
+      if (u.beds === null) return false;
+      const bedMatch = filters.beds.some((b) =>
+        b === 'Studio' ? u.beds === 0 : b === '5+' ? (u.beds ?? 0) >= 5 : u.beds === Number(b)
+      );
+      if (!bedMatch) return false;
+    }
+    if (filters.baths.length > 0) {
+      if (u.baths === null) return false;
+      const bathMatch = filters.baths.some((b) =>
+        b === '4+' ? (u.baths ?? 0) >= 4 : u.baths === Number(b)
+      );
+      if (!bathMatch) return false;
     }
     if (filters.status.length > 0) {
-      filteredUnits = filteredUnits.filter((u) => {
-        const mappedStatus = u.status === 'reserved' ? 'pending' : u.status;
-        return filters.status.includes(mappedStatus);
-      });
+      const mappedStatus = u.status === 'reserved' ? 'pending' : u.status;
+      if (!filters.status.includes(mappedStatus)) return false;
     }
-    setProjectUnits(filteredUnits);
-  }, [filters, allProperties, allProjectUnits, isProjects]);
+
+    return true;
+  });
+
+  // Real-time filtered projects when viewing projects tab
+  const projects = allProjects.filter((proj) => {
+    if (!normalizedQuery) return true;
+    return (
+      proj.name.toLowerCase().includes(normalizedQuery) ||
+      proj.location.toLowerCase().includes(normalizedQuery)
+    );
+  });
 
   const totalInventoryCount = properties.length + projectUnits.length;
-  const seo = buildPropertiesListingSeo({ isProjects, search: serialSearch });
+  const seo = buildPropertiesListingSeo({ isProjects, search: searchQuery.trim() });
 
   return (
     <main className="min-h-screen bg-brand-ivory flex flex-col">
-      <SeoHead seo={seo} />
+      <SeoHead
+        seo={searchQuery.trim() || isProjects ? seo : undefined}
+        context={{
+          purpose: filters.purpose,
+          propertyTypes: filters.type,
+        }}
+      />
       <Navbar />
 
       <div className="relative bg-brand-navy pt-32 pb-16 overflow-hidden">
         <div className="absolute inset-0 islamic-pattern" />
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-brand-gold/40 to-transparent" />
         <div className="container-custom relative z-10">
+          <Breadcrumbs
+            variant="light"
+            items={[
+              {
+                label: isProjects
+                  ? t('nav.projects', 'Signature Projects')
+                  : t('nav.properties', 'Properties'),
+              },
+            ]}
+            className="mb-4"
+          />
           <p className="text-brand-gold text-xs font-bold uppercase tracking-[0.3em] mb-3 flex items-center gap-3">
             <span className="inline-block w-8 h-[1px] bg-brand-gold/50" />
             Kabul, Afghanistan
@@ -289,7 +431,12 @@ function PropertiesContent() {
           <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-6">
             {isProjects ? 'Signature Projects' : 'Browse Properties'}
           </h1>
-          <SearchBar />
+          <SearchBar
+            value={searchQuery}
+            onChange={handleSearchChange}
+            purpose={filters.purpose}
+            onPurposeChange={handlePurposeChange}
+          />
         </div>
       </div>
 
@@ -416,7 +563,10 @@ function PropertiesContent() {
                     </p>
                     <button
                       type="button"
-                      onClick={() => setFilters(defaultFilters)}
+                      onClick={() => {
+                        setFilters(defaultFilters);
+                        handleSearchChange('');
+                      }}
                       className="px-6 py-2.5 bg-brand-navy text-white rounded-lg font-semibold text-sm hover:bg-brand-navy-light transition-colors"
                     >
                       Clear All Filters
@@ -449,6 +599,7 @@ function PropertiesContent() {
                           beds={prop.beds ?? undefined}
                           baths={prop.baths ?? undefined}
                           area={prop.area ?? undefined}
+                          floor={prop.floor ?? undefined}
                           status={prop.status}
                           type={prop.type}
                           listingType={prop.listing_type}

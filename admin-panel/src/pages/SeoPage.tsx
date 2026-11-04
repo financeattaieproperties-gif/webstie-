@@ -1,9 +1,18 @@
-import { useState, useEffect, type FormEvent } from 'react';
-import { api, DEFAULT_SEO_SETTINGS, type SeoSettingsInput } from '../api';
+import { useState, useEffect, useCallback, type FormEvent } from 'react';
+import {
+  api,
+  DEFAULT_SEO_SETTINGS,
+  type SeoSettingsInput,
+  type SitemapCrawlReport,
+  type SitemapStatusData,
+} from '../api';
 import ImageUpload from '../components/ImageUpload';
+import SitemapStatusWidget, {
+  type SitemapCategoryFilter,
+} from '../components/SitemapStatusWidget';
 
 const S = {
-  page:         { maxWidth: 960 } as const,
+  page:         { maxWidth: 1020 } as const,
   headerRow:    { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' as const, gap: '1rem', marginBottom: '1.75rem' } as const,
   title:        { fontSize: '1.5rem', fontWeight: 700, color: '#1A2335', marginBottom: '0.25rem' } as const,
   sub:          { color: '#6B7280', fontSize: '0.875rem', margin: 0 } as const,
@@ -25,7 +34,8 @@ const S = {
   help:         { fontSize: '0.74rem', color: '#6B7280', marginTop: '0.35rem', lineHeight: 1.4 } as const,
   row:          { display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' as const } as const,
   btnPrimary:   { padding: '0.6rem 1.5rem', background: '#B8944A', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.875rem' } as const,
-  btnSecondary: { padding: '0.6rem 1.25rem', background: '#F3F4F6', color: '#374151', border: '1px solid #E5E7EB', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' } as const,
+  btnNavy:      { padding: '0.6rem 1.25rem', background: '#1A2335', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem' } as const,
+  btnSecondary: { padding: '0.6rem 1.25rem', background: '#F3F4F6', color: '#374151', border: '1px solid #E5E7EB', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' } as const,
   alertSuccess: { padding: '0.75rem 1rem', background: '#ECFDF5', border: '1px solid #A7F3D0', color: '#065F46', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600, marginBottom: '1.25rem' } as const,
   alertError:   { padding: '0.75rem 1rem', background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600, marginBottom: '1.25rem' } as const,
   tagWrap:      { display: 'flex', flexWrap: 'wrap' as const, gap: '0.35rem', marginTop: '0.5rem' } as const,
@@ -40,6 +50,22 @@ const S = {
   socialDomain: { fontSize: '0.7rem', color: '#6B7280', textTransform: 'uppercase' as const, letterSpacing: 0.5, marginBottom: '0.2rem' } as const,
   socialTitle:  { fontSize: '0.92rem', fontWeight: 700, color: '#111827', marginBottom: '0.2rem', lineHeight: 1.3 } as const,
   socialDesc:   { fontSize: '0.78rem', color: '#4B5563', lineHeight: 1.4, margin: 0 } as const,
+  statGrid:     { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: '0.75rem', marginBottom: '1.25rem' } as const,
+  statBox:      (active: boolean): React.CSSProperties => ({
+    padding: '0.85rem 1rem',
+    borderRadius: 10,
+    background: active ? '#FFF8EE' : '#F9FAFB',
+    border: active ? '1.5px solid #B8944A' : '1px solid #E5E7EB',
+    cursor: 'pointer',
+    transition: 'all 0.15s ease',
+  }),
+  statLabel:    { fontSize: '0.72rem', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' as const, letterSpacing: 0.6, marginBottom: '0.25rem' } as const,
+  statValue:    { fontSize: '1.4rem', fontWeight: 800, color: '#1A2335', lineHeight: 1.1 } as const,
+  xmlPre:       { background: '#0F172A', color: '#E2E8F0', padding: '1rem 1.15rem', borderRadius: 10, fontSize: '0.76rem', lineHeight: 1.55, overflowX: 'auto' as const, maxHeight: 320, margin: 0, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' } as const,
+  urlTableWrap: { border: '1px solid #E5E7EB', borderRadius: 10, overflow: 'hidden', maxHeight: 300, overflowY: 'auto' as const } as const,
+  urlTable:     { width: '100%', borderCollapse: 'collapse' as const, fontSize: '0.8rem' } as const,
+  th:           { textAlign: 'left' as const, padding: '0.6rem 0.85rem', background: '#F9FAFB', color: '#4B5563', fontWeight: 700, fontSize: '0.72rem', textTransform: 'uppercase' as const, borderBottom: '1px solid #E5E7EB', position: 'sticky' as const, top: 0 } as const,
+  td:           { padding: '0.55rem 0.85rem', borderBottom: '1px solid #F3F4F6', color: '#1F2937' } as const,
 };
 
 export default function SeoPage() {
@@ -62,11 +88,28 @@ export default function SeoPage() {
   const [savedMsg, setSavedMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
+  // Sitemap crawler state
+  const [sitemapReport, setSitemapReport] = useState<SitemapCrawlReport | null>(null);
+  const [crawlingSitemap, setCrawlingSitemap] = useState(false);
+  const [sitemapCategoryFilter, setSitemapCategoryFilter] =
+    useState<SitemapCategoryFilter>('all');
+  const [showRawXml, setShowRawXml] = useState(false);
+  const [copiedXml, setCopiedXml] = useState(false);
+
+  const handleWidgetStatusLoaded = useCallback((statusData: SitemapStatusData) => {
+    setSitemapReport(prev => ({
+      ...statusData,
+      xml: statusData.xml || prev?.xml || '',
+    }));
+  }, []);
+
   useEffect(() => {
     let active = true;
-    api
-      .getSeoSettings()
-      .then(data => {
+    Promise.all([
+      api.getSeoSettings(),
+      api.getSitemapStatus().catch(() => null),
+    ])
+      .then(([data, sitemapData]) => {
         if (!active) return;
         setForm({
           site_name: data.site_name || DEFAULT_SEO_SETTINGS.site_name,
@@ -81,6 +124,9 @@ export default function SeoPage() {
           canonical_base_url: data.canonical_base_url || DEFAULT_SEO_SETTINGS.canonical_base_url,
           robots_index: data.robots_index !== undefined ? Boolean(data.robots_index) : true,
         });
+        if (sitemapData) {
+          setSitemapReport(sitemapData);
+        }
       })
       .catch(err => {
         if (!active) return;
@@ -102,13 +148,61 @@ export default function SeoPage() {
 
     try {
       await api.updateSeoSettings(form);
-      setSavedMsg('Site-wide SEO metadata saved and published to react-helmet-async provider.');
-      window.electronAPI?.notify('SEO Metadata Updated', 'Site-wide SEO settings have been saved.');
-      setTimeout(() => setSavedMsg(''), 4000);
+      const freshSitemap = await api.generateSitemap(form.canonical_base_url).catch(() => null);
+      if (freshSitemap) {
+        setSitemapReport(freshSitemap);
+      }
+      setSavedMsg('Site-wide SEO metadata saved and sitemap.xml automatically regenerated.');
+      window.electronAPI?.notify('SEO & Sitemap Updated', 'Site-wide SEO settings and sitemap.xml have been updated.');
+      setTimeout(() => setSavedMsg(''), 4500);
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Failed to save SEO settings');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleCrawlSitemap = async () => {
+    setCrawlingSitemap(true);
+    setSavedMsg('');
+    setErrorMsg('');
+    try {
+      const report = await api.generateSitemap(form.canonical_base_url);
+      setSitemapReport(report);
+      setSavedMsg(
+        `Sitemap.xml crawled & regenerated: ${report.counts.total} URLs indexed (${report.counts.properties} properties, ${report.counts.projects} projects, ${report.counts.careers} careers, ${report.counts.agents} agents).`
+      );
+      window.electronAPI?.notify(
+        'Sitemap.xml Regenerated',
+        `Indexed ${report.counts.total} URLs across properties, projects, careers, and agents.`
+      );
+      setTimeout(() => setSavedMsg(''), 5000);
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Failed to crawl and generate sitemap.xml');
+    } finally {
+      setCrawlingSitemap(false);
+    }
+  };
+
+  const handleToggleRawXml = async () => {
+    const next = !showRawXml;
+    setShowRawXml(next);
+    if (next && sitemapReport && !sitemapReport.xml) {
+      const xmlText = await api.fetchSitemapXmlText();
+      if (xmlText) {
+        setSitemapReport(prev => (prev ? { ...prev, xml: xmlText } : prev));
+      }
+    }
+  };
+
+  const handleCopyXml = async () => {
+    if (!sitemapReport?.xml) return;
+    try {
+      await navigator.clipboard.writeText(sitemapReport.xml);
+      setCopiedXml(true);
+      setTimeout(() => setCopiedXml(false), 2500);
+    } catch {
+      // ignore clipboard errors
     }
   };
 
@@ -134,15 +228,19 @@ export default function SeoPage() {
     .filter(Boolean);
 
   const previewSocialImage = form.og_image || '/logo.png';
-  const cleanDomain = (form.canonical_base_url || 'https://website.attaieproperties.com')
+  const cleanDomain = (form.canonical_base_url || 'https://www.attaieproperties.com')
     .replace(/^https?:\/\//i, '')
     .replace(/\/+$/, '');
+
+  const filteredSitemapUrls = (sitemapReport?.urls || []).filter(u =>
+    sitemapCategoryFilter === 'all' ? true : u.category === sitemapCategoryFilter
+  );
 
   if (loading) {
     return (
       <div style={S.page}>
-        <h1 style={S.title}>SEO & Social Metadata</h1>
-        <p style={S.sub}>Loading site-wide SEO configuration…</p>
+        <h1 style={S.title}>SEO & Sitemap Crawler</h1>
+        <p style={S.sub}>Loading site-wide SEO configuration & sitemap index…</p>
       </div>
     );
   }
@@ -151,9 +249,9 @@ export default function SeoPage() {
     <form onSubmit={handleSubmit} style={S.page}>
       <div style={S.headerRow}>
         <div>
-          <h1 style={S.title}>SEO & Social Metadata</h1>
+          <h1 style={S.title}>SEO, Social Metadata & Sitemap Crawler</h1>
           <p style={S.sub}>
-            Manage site-wide title, meta description, keywords, and OpenGraph / Twitter sharing images injected into <code>react-helmet-async</code>.
+            Manage site-wide title, meta description, OpenGraph cards, and automatic <code>sitemap.xml</code> crawling across properties, projects, and careers.
           </p>
         </div>
 
@@ -169,6 +267,167 @@ export default function SeoPage() {
 
       {savedMsg && <div style={S.alertSuccess}>✓ {savedMsg}</div>}
       {errorMsg && <div style={S.alertError}>✕ {errorMsg}</div>}
+
+      {/* Dashboard Widget fetching and displaying /sitemap-status.json */}
+      <SitemapStatusWidget
+        externalStatus={sitemapReport}
+        selectedCategory={sitemapCategoryFilter}
+        onSelectCategory={setSitemapCategoryFilter}
+        onStatusLoaded={handleWidgetStatusLoaded}
+        onRegenerate={handleCrawlSitemap}
+        regenerating={crawlingSitemap}
+      />
+
+      {/* Automatic Sitemap.xml Crawler & Generator Card */}
+      <div style={S.card}>
+        <div style={S.section}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.15rem' }}>
+            <div>
+              <p style={{ ...S.secHdr, marginBottom: '0.35rem' }}>
+                Automatic XML Sitemap Crawler & Search Engine Index
+              </p>
+              <div style={{ fontSize: '0.84rem', color: '#4B5563', lineHeight: 1.45 }}>
+                Automatically crawls published <strong>Properties</strong>, <strong>Projects</strong>, <strong>Careers</strong>, and <strong>Agents</strong> (with Google Image Sitemap metadata) whenever records change.
+                {sitemapReport?.generated_at && (
+                  <span style={{ marginLeft: '0.5rem', color: '#6B7280', fontSize: '0.78rem' }}>
+                    • Last crawled: <strong>{new Date(sitemapReport.generated_at).toLocaleString()}</strong>
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div style={S.row}>
+              <a
+                href="/sitemap.xml"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={S.btnSecondary}
+              >
+                Open /sitemap.xml ↗
+              </a>
+              <button
+                type="button"
+                style={S.btnSecondary}
+                onClick={() => void handleToggleRawXml()}
+              >
+                {showRawXml ? 'Hide XML Source' : 'Inspect XML Source'}
+              </button>
+              <button
+                type="button"
+                style={S.btnNavy}
+                onClick={handleCrawlSitemap}
+                disabled={crawlingSitemap}
+              >
+                {crawlingSitemap ? 'Crawling Data…' : '↻ Crawl & Regenerate Sitemap.xml'}
+              </button>
+            </div>
+          </div>
+
+          {sitemapReport && (
+            <>
+              <div style={S.statGrid}>
+                <div
+                  style={S.statBox(sitemapCategoryFilter === 'all')}
+                  onClick={() => setSitemapCategoryFilter('all')}
+                >
+                  <div style={S.statLabel}>Total Indexed URLs</div>
+                  <div style={S.statValue}>{sitemapReport.counts.total}</div>
+                </div>
+                <div
+                  style={S.statBox(sitemapCategoryFilter === 'properties')}
+                  onClick={() => setSitemapCategoryFilter('properties')}
+                >
+                  <div style={S.statLabel}>Properties</div>
+                  <div style={S.statValue}>{sitemapReport.counts.properties}</div>
+                </div>
+                <div
+                  style={S.statBox(sitemapCategoryFilter === 'projects')}
+                  onClick={() => setSitemapCategoryFilter('projects')}
+                >
+                  <div style={S.statLabel}>Projects</div>
+                  <div style={S.statValue}>{sitemapReport.counts.projects}</div>
+                </div>
+                <div
+                  style={S.statBox(sitemapCategoryFilter === 'careers')}
+                  onClick={() => setSitemapCategoryFilter('careers')}
+                >
+                  <div style={S.statLabel}>Careers</div>
+                  <div style={S.statValue}>{sitemapReport.counts.careers}</div>
+                </div>
+                <div
+                  style={S.statBox(sitemapCategoryFilter === 'agents')}
+                  onClick={() => setSitemapCategoryFilter('agents')}
+                >
+                  <div style={S.statLabel}>Agents</div>
+                  <div style={S.statValue}>{sitemapReport.counts.agents}</div>
+                </div>
+                <div
+                  style={S.statBox(sitemapCategoryFilter === 'static')}
+                  onClick={() => setSitemapCategoryFilter('static')}
+                >
+                  <div style={S.statLabel}>Core Pages</div>
+                  <div style={S.statValue}>{sitemapReport.counts.static}</div>
+                </div>
+              </div>
+
+              <div style={S.urlTableWrap}>
+                <table style={S.urlTable}>
+                  <thead>
+                    <tr>
+                      <th style={S.th}>Crawled URL & Page Title</th>
+                      <th style={S.th}>Type</th>
+                      <th style={S.th}>Priority</th>
+                      <th style={S.th}>Frequency</th>
+                      <th style={S.th}>Images</th>
+                      <th style={S.th}>Last Modified</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredSitemapUrls.map(item => (
+                      <tr key={item.loc}>
+                        <td style={S.td}>
+                          <div style={{ fontWeight: 600, color: '#111827', marginBottom: '0.1rem' }}>
+                            {item.title}
+                          </div>
+                          <a
+                            href={item.loc}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ fontSize: '0.74rem', color: '#2563EB', textDecoration: 'none', wordBreak: 'break-all' }}
+                          >
+                            {item.loc}
+                          </a>
+                        </td>
+                        <td style={S.td}>
+                          <span style={S.tag}>{item.category}</span>
+                        </td>
+                        <td style={{ ...S.td, fontWeight: 700 }}>{item.priority}</td>
+                        <td style={S.td}>{item.changefreq}</td>
+                        <td style={S.td}>{item.image_count > 0 ? `${item.image_count} img` : '—'}</td>
+                        <td style={{ ...S.td, color: '#6B7280', fontSize: '0.75rem' }}>{item.lastmod}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {showRawXml && (
+                <div style={{ marginTop: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.45rem' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#374151' }}>
+                      Generated /sitemap.xml Output ({sitemapReport.xml.length.toLocaleString()} bytes)
+                    </span>
+                    <button type="button" style={S.btnSecondary} onClick={handleCopyXml}>
+                      {copiedXml ? '✓ Copied XML' : 'Copy XML'}
+                    </button>
+                  </div>
+                  <pre style={S.xmlPre}>{sitemapReport.xml}</pre>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
 
       <div style={S.grid}>
         {/* Left Column: Core SEO & Indexing */}
@@ -272,10 +531,10 @@ export default function SeoPage() {
                   style={S.input}
                   value={form.canonical_base_url}
                   onChange={e => setForm(f => ({ ...f, canonical_base_url: e.target.value }))}
-                  placeholder="https://website.attaieproperties.com"
+                  placeholder="https://www.attaieproperties.com"
                   spellCheck={false}
                 />
-                <p style={S.help}>Base origin used to resolve canonical URLs and absolute OpenGraph image URLs.</p>
+                <p style={S.help}>Base origin used to resolve canonical URLs, <code>sitemap.xml</code> entries, and absolute OpenGraph image URLs.</p>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', background: '#F9FAFB', borderRadius: 8, border: '1px solid #E5E7EB' }}>
@@ -317,7 +576,7 @@ export default function SeoPage() {
                     style={S.input}
                     value={form.og_image ?? ''}
                     onChange={e => setForm(f => ({ ...f, og_image: e.target.value }))}
-                    placeholder="/logo.png or https://website.attaieproperties.com/uploads/og-banner.jpg"
+                    placeholder="/logo.png or https://www.attaieproperties.com/uploads/og-banner.jpg"
                     spellCheck={false}
                   />
                   <p style={S.help}>Upload an image above or paste a path/URL. Used across WhatsApp, Facebook, LinkedIn, Telegram, and iMessage link previews.</p>
@@ -378,7 +637,7 @@ export default function SeoPage() {
                   Google Search Result Snippet
                 </div>
                 <div style={S.serpBox}>
-                  <div style={S.serpUrl}>{form.canonical_base_url || 'https://website.attaieproperties.com'}</div>
+                  <div style={S.serpUrl}>{form.canonical_base_url || 'https://www.attaieproperties.com'}</div>
                   <div style={S.serpTitle}>{form.default_title || 'Attaie Properties'}</div>
                   <p style={S.serpDesc}>{form.default_description || 'No meta description provided.'}</p>
                 </div>

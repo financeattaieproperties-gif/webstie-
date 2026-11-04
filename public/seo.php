@@ -20,7 +20,7 @@ if (!is_file($indexPath)) {
 }
 
 $html = file_get_contents($indexPath);
-$siteUrl = 'https://website.attaieproperties.com';
+$siteUrl = 'https://www.attaieproperties.com';
 $defaultImage = $siteUrl . '/logo.png';
 
 $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
@@ -44,12 +44,13 @@ function seo_truncate(string $text, int $max = 158): string {
 }
 
 $meta = null;
+$recordNotFound = false;
 
-if (preg_match('#^/(properties|projects|agents)/(\d+)/?$#', $uri, $m) && is_file(__DIR__ . '/api/db.php')) {
+if (preg_match('#^/(properties|projects|agents|careers)/(\d+)/?$#', $uri, $m) && is_file(__DIR__ . '/api/db.php')) {
     $routeType = $m[1];
     $entityId  = (int) $m[2];
 
-    require_once __DIR__ . '/api/db.php';
+    require_once __DIR__ . '/api/bootstrap.php';
     $conn = @db();
 
     if ($conn && !$conn->connect_error && $entityId > 0) {
@@ -113,6 +114,8 @@ if (preg_match('#^/(properties|projects|agents)/(\d+)/?$#', $uri, $m) && is_file
                             'imageAlt' => $row['title'] . ' — ' . $row['location'],
                             'jsonLd' => $jsonLd,
                         ];
+                    } else {
+                        $recordNotFound = true;
                     }
                 }
             }
@@ -165,6 +168,8 @@ if (preg_match('#^/(properties|projects|agents)/(\d+)/?$#', $uri, $m) && is_file
                             'imageAlt' => $row['name'] . ' — ' . $row['location'],
                             'jsonLd' => $jsonLd,
                         ];
+                    } else {
+                        $recordNotFound = true;
                     }
                 }
             }
@@ -197,6 +202,55 @@ if (preg_match('#^/(properties|projects|agents)/(\d+)/?$#', $uri, $m) && is_file
                                 'url' => $canonical,
                             ],
                         ];
+                    } else {
+                        $recordNotFound = true;
+                    }
+                }
+            }
+        } elseif ($routeType === 'careers') {
+            $stmt = $conn->prepare("SELECT * FROM career_jobs WHERE id = ? AND status IN ('published','closed') LIMIT 1");
+            if ($stmt) {
+                $stmt->bind_param('i', $entityId);
+                if ($stmt->execute()) {
+                    $row = $stmt->get_result()->fetch_assoc();
+                    if ($row) {
+                        $title = sprintf('%s — Careers in %s | Attaie Properties', $row['title'], $row['location']);
+                        $desc = seo_truncate($row['description'] ?? "Apply for {$row['title']} ({$row['employment_type']}) at Attaie Properties in {$row['location']}.", 158);
+                        $canonical = "$siteUrl/careers/$entityId";
+
+                        $meta = [
+                            'title' => $title,
+                            'description' => $desc,
+                            'canonical' => $canonical,
+                            'ogType' => 'article',
+                            'image' => $defaultImage,
+                            'imageAlt' => $row['title'] . ' — Attaie Properties Careers',
+                            'jsonLd' => [
+                                '@context' => 'https://schema.org',
+                                '@type' => 'JobPosting',
+                                'title' => $row['title'],
+                                'description' => $desc,
+                                'employmentType' => $row['employment_type'],
+                                'datePosted' => !empty($row['created_at']) ? substr((string) $row['created_at'], 0, 10) : gmdate('Y-m-d'),
+                                'validThrough' => $row['deadline_at'],
+                                'hiringOrganization' => [
+                                    '@type' => 'Organization',
+                                    'name' => 'Attaie Properties',
+                                    'sameAs' => $siteUrl,
+                                    'logo' => $defaultImage,
+                                ],
+                                'jobLocation' => [
+                                    '@type' => 'Place',
+                                    'address' => [
+                                        '@type' => 'PostalAddress',
+                                        'addressLocality' => $row['location'] ?: 'Kabul',
+                                        'addressCountry' => 'AF',
+                                    ],
+                                ],
+                            ],
+                        ];
+                    } else {
+                        $recordNotFound = true;
                     }
                 }
             }
@@ -204,7 +258,14 @@ if (preg_match('#^/(properties|projects|agents)/(\d+)/?$#', $uri, $m) && is_file
     }
 }
 
-if ($meta !== null) {
+if ($recordNotFound) {
+    http_response_code(404);
+    $notFoundTitle = '404 — Page Not Found | Attaie Properties';
+    $notFoundDesc  = 'The requested listing or page could not be found on Attaie Properties.';
+    $html = preg_replace('#<title[^>]*>.*?</title>#is', '<title data-rh="true">' . htmlspecialchars($notFoundTitle, ENT_QUOTES, 'UTF-8') . '</title>', $html, 1);
+    $html = preg_replace('#<meta\s+name="description"[^>]*>#is', '<meta name="description" content="' . htmlspecialchars($notFoundDesc, ENT_QUOTES, 'UTF-8') . '" data-rh="true" />', $html, 1);
+    $html = preg_replace('#<meta\s+name="robots"[^>]*>#is', '<meta name="robots" content="noindex, nofollow" data-rh="true" />', $html, 1);
+} elseif ($meta !== null) {
     $escTitle = htmlspecialchars($meta['title'], ENT_QUOTES, 'UTF-8');
     $escDesc  = htmlspecialchars($meta['description'], ENT_QUOTES, 'UTF-8');
     $escUrl   = htmlspecialchars($meta['canonical'], ENT_QUOTES, 'UTF-8');
@@ -231,3 +292,4 @@ if ($meta !== null) {
 
 header('Content-Type: text/html; charset=utf-8');
 echo $html;
+

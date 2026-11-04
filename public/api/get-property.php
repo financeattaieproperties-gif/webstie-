@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/bootstrap.php';
 cors();
 header('Content-Type: application/json; charset=utf-8');
 
@@ -9,6 +9,9 @@ if (!$id) {
 }
 
 $stmt = db()->prepare('SELECT * FROM properties WHERE id = ? LIMIT 1');
+if (!$stmt) {
+    json_out(['error' => 'Not found'], 404);
+}
 $stmt->bind_param('i', $id);
 $stmt->execute();
 $row = $stmt->get_result()->fetch_assoc();

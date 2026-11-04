@@ -36,6 +36,7 @@ function toPropertyCardProps(p: Property) {
     beds: p.beds ?? undefined,
     baths: p.baths ?? undefined,
     area: p.area ?? undefined,
+    floor: p.floor ?? undefined,
     status: p.status,
     type: p.type,
     listingType: p.listing_type,

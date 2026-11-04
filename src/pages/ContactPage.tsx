@@ -10,7 +10,8 @@ import { Button } from '../components/ui/Button';
 import { ClickToCallButton } from '../components/ui/ClickToCallButton';
 import { createLead } from '../lib/dbService';
 import { SeoHead } from '../components/seo/SeoHead';
-import { PAGE_SEO } from '../lib/seoConfig';
+import { Breadcrumbs } from '../components/ui/Breadcrumbs';
+import { useTranslation } from 'react-i18next';
 
 const schema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -56,6 +57,7 @@ const CONTACT_INFO = [
 ];
 
 export default function ContactPage() {
+  const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -96,7 +98,7 @@ export default function ContactPage() {
 
   return (
     <main className="min-h-screen bg-brand-cream flex flex-col">
-      <SeoHead seo={PAGE_SEO.contact} />
+      <SeoHead />
       <Navbar />
 
       {/* Hero banner */}
@@ -104,6 +106,13 @@ export default function ContactPage() {
         <div className="absolute inset-0 islamic-pattern opacity-20" />
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-brand-gold/40 to-transparent" />
         <div className="container-custom relative z-10 text-center">
+          <div className="flex justify-center mb-4">
+            <Breadcrumbs
+              variant="light"
+              items={[{ label: t('nav.contact', 'Contact') }]}
+              className="w-auto"
+            />
+          </div>
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}

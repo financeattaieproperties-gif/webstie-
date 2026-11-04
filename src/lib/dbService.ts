@@ -146,18 +146,91 @@ export async function getBranches(): Promise<Branch[]> {
   return res.json();
 }
 
-export async function getProjectUnits(projectId: number): Promise<{ items: ProjectUnit[]; page: number; limit: number }> {
-  const res = await fetch(`${API}/get-project-units.php?project_id=${projectId}`);
-  if (!res.ok) throw new Error('Failed to fetch apartments');
+export interface ProjectUnitsResponse {
+  items: ProjectUnit[];
+  page: number;
+  limit: number;
+  total?: number;
+  has_more?: boolean;
+}
+
+export async function getProjectUnits(projectId: number): Promise<ProjectUnitsResponse> {
+  const allItems: ProjectUnit[] = [];
+  let page = 1;
+  const limit = 100;
+  let hasMore = true;
+
+  while (hasMore && page <= 20) {
+    const res = await fetch(`${API}/get-project-units.php?project_id=${projectId}&page=${page}&limit=${limit}`);
+    if (!res.ok) throw new Error('Failed to fetch apartments');
+    const data = (await res.json()) as ProjectUnitsResponse;
+    const batch = Array.isArray(data.items) ? data.items : [];
+    allItems.push(...batch);
+    hasMore = Boolean(data.has_more && batch.length > 0);
+    page += 1;
+  }
+
+  return { items: allItems, page: 1, limit, total: allItems.length, has_more: false };
+}
+
+export async function getAllProjectUnits(status?: string): Promise<ProjectUnitsResponse> {
+  const allItems: ProjectUnit[] = [];
+  let page = 1;
+  const limit = 100;
+  let hasMore = true;
+
+  while (hasMore && page <= 20) {
+    const params = new URLSearchParams({ all: '1', page: String(page), limit: String(limit) });
+    if (status) params.set('status', status);
+    const res = await fetch(`${API}/get-project-units.php?${params.toString()}`);
+    if (!res.ok) throw new Error('Failed to fetch project apartments');
+    const data = (await res.json()) as ProjectUnitsResponse;
+    const batch = Array.isArray(data.items) ? data.items : [];
+    allItems.push(...batch);
+    hasMore = Boolean(data.has_more && batch.length > 0);
+    page += 1;
+  }
+
+  return { items: allItems, page: 1, limit, total: allItems.length, has_more: false };
+}
+
+export interface CareerJob {
+  id: number;
+  title: string;
+  location: string;
+  employment_type: string;
+  description: string;
+  qualifications: string;
+  deadline_at: string;
+  status: 'draft' | 'published' | 'closed';
+  effective_status?: 'published' | 'closed';
+  is_expired?: boolean;
+  created_at: string;
+  updated_at?: string;
+}
+
+export async function getCareers(): Promise<CareerJob[]> {
+  const res = await fetch(`${API}/get-careers.php`);
+  if (!res.ok) throw new Error('Failed to fetch career announcements');
   return res.json();
 }
 
-export async function getAllProjectUnits(status?: string): Promise<{ items: ProjectUnit[]; page: number; limit: number }> {
-  const params = new URLSearchParams({ all: '1' });
-  if (status) params.set('status', status);
-  const res = await fetch(`${API}/get-project-units.php?${params.toString()}`);
-  if (!res.ok) throw new Error('Failed to fetch project apartments');
+export async function getCareer(id: number): Promise<CareerJob> {
+  const res = await fetch(`${API}/get-career.php?id=${id}`);
+  if (!res.ok) throw new Error(res.status === 404 ? 'Career announcement not found' : 'Failed to fetch career announcement');
   return res.json();
+}
+
+export async function submitCareerApplication(formData: FormData): Promise<{ success: boolean; id: number }> {
+  const res = await fetch(`${API}/submit-career-application.php`, {
+    method: 'POST',
+    body: formData,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || 'Failed to submit job application');
+  }
+  return data;
 }
 
 export async function submitVisitRequest(input: VisitRequestInput): Promise<{ success: boolean; id: number }> {
@@ -224,3 +297,4 @@ export async function createLead(lead: Lead): Promise<{ success: boolean; id: nu
   if (!res.ok) throw new Error('Failed to submit inquiry');
   return res.json();
 }
+

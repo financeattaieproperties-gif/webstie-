@@ -1,13 +1,19 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   SEO_CONFIG,
   getRuntimeSeoSettings,
-  resolveAbsoluteUrl,
   setRuntimeSeoSettings,
   type SeoMetadata,
 } from '../../lib/seoConfig';
+import {
+  buildHeadTagDescriptors,
+  generateMetaTagsByPath,
+  syncDocumentMetaTags,
+  type MetaTagContext,
+} from '../../lib/metaTagService';
 import { getSeoSettings, type SiteSeoSettings } from '../../lib/dbService';
 
 interface SeoContextValue {
@@ -53,104 +59,77 @@ export function useSiteSeoSettings(): SiteSeoSettings | null {
   return useContext(SeoContext).settings;
 }
 
-interface SeoHeadProps {
-  seo: SeoMetadata;
+export interface SeoHeadProps {
+  /** Optional explicit SEO metadata override */
+  seo?: Partial<SeoMetadata>;
+  /** Optional dynamic route context (property, project, agent, careerJob, filters) */
+  context?: MetaTagContext;
+  /** Optional explicit path override (defaults to current router pathname + search) */
+  path?: string;
 }
 
-export const SeoHead: React.FC<SeoHeadProps> = ({ seo }) => {
+export const SeoHead: React.FC<SeoHeadProps> = ({ seo, context, path }) => {
+  const location = useLocation();
   const { i18n } = useTranslation();
   const siteSettings = useSiteSeoSettings();
 
-  const isRtl = i18n.language === 'fa';
-  const htmlLang = isRtl ? 'fa' : 'en';
-  const htmlDir = isRtl ? 'rtl' : 'ltr';
-  const primaryLocale = isRtl ? SEO_CONFIG.alternateLocale : SEO_CONFIG.locale;
-  const secondaryLocale = isRtl ? SEO_CONFIG.locale : SEO_CONFIG.alternateLocale;
+  const currentPath = path || `${location.pathname}${location.search}`;
+  const language = context?.language || i18n.language || 'en';
+
+  const resolvedSeo = useMemo(() => {
+    return generateMetaTagsByPath(currentPath, {
+      ...context,
+      language,
+      overrides: seo,
+    });
+  }, [currentPath, context, language, seo]);
 
   const siteName = siteSettings?.site_name?.trim() || SEO_CONFIG.siteName;
   const globalNoIndex =
     siteSettings?.robots_index !== undefined ? !siteSettings.robots_index : !SEO_CONFIG.robotsIndex;
 
-  const {
-    title: rawTitle,
-    description: rawDescription,
-    canonicalUrl,
-    ogType = 'website',
-    ogImage: rawOgImage,
-    twitterImage: rawTwitterImage,
-    ogImageAlt = siteName,
-    keywords: pageKeywords,
-    NoIndex = false,
-    jsonLd,
-  } = seo;
+  const globalKeywords = useMemo(() => {
+    return siteSettings?.keywords
+      ? siteSettings.keywords
+          .split(',')
+          .map(k => k.trim())
+          .filter(Boolean)
+      : [];
+  }, [siteSettings?.keywords]);
 
-  const title = rawTitle || siteSettings?.default_title?.trim() || SEO_CONFIG.defaultTitle;
-  const description =
-    rawDescription || siteSettings?.default_description?.trim() || SEO_CONFIG.defaultDescription;
+  const headTags = useMemo(() => {
+    return buildHeadTagDescriptors(resolvedSeo, {
+      language,
+      siteName,
+      twitterCard: siteSettings?.twitter_card || SEO_CONFIG.twitterCard,
+      twitterSite: siteSettings?.twitter_site?.trim() || SEO_CONFIG.twitterSite,
+      globalKeywords,
+      globalNoIndex,
+    });
+  }, [resolvedSeo, language, siteName, siteSettings, globalKeywords, globalNoIndex]);
 
-  const ogImage = rawOgImage
-    ? resolveAbsoluteUrl(rawOgImage)
-    : resolveAbsoluteUrl(siteSettings?.og_image || SEO_CONFIG.defaultImage);
-
-  const twitterImage = rawTwitterImage
-    ? resolveAbsoluteUrl(rawTwitterImage)
-    : siteSettings?.twitter_image?.trim()
-    ? resolveAbsoluteUrl(siteSettings.twitter_image)
-    : ogImage;
-
-  const twitterCard = siteSettings?.twitter_card || SEO_CONFIG.twitterCard;
-  const twitterSite = siteSettings?.twitter_site?.trim() || SEO_CONFIG.twitterSite;
-
-  const globalKeywords = siteSettings?.keywords
-    ? siteSettings.keywords
-        .split(',')
-        .map(k => k.trim())
-        .filter(Boolean)
-    : [];
-
-  const mergedKeywords = Array.from(new Set([...(pageKeywords ?? []), ...globalKeywords]));
-  const shouldNoIndex = Boolean(NoIndex || globalNoIndex);
+  useEffect(() => {
+    syncDocumentMetaTags(headTags);
+  }, [headTags]);
 
   return (
     <Helmet prioritizeSeoTags>
-      <html lang={htmlLang} dir={htmlDir} />
-      <title>{title}</title>
-      <meta name="description" content={description} />
-      {mergedKeywords.length > 0 && (
-        <meta name="keywords" content={mergedKeywords.join(', ')} />
+      <html lang={headTags.htmlLang} dir={headTags.htmlDir} />
+      <title>{headTags.title}</title>
+      <link rel="canonical" href={headTags.canonicalUrl} />
+
+      {headTags.metaTags.map(tag =>
+        tag.property ? (
+          <meta key={tag.key} property={tag.property} content={tag.content} />
+        ) : (
+          <meta key={tag.key} name={tag.name} content={tag.content} />
+        )
       )}
-      <meta
-        name="robots"
-        content={shouldNoIndex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large'}
-      />
-      <link rel="canonical" href={canonicalUrl} />
-      <link rel="alternate" hrefLang="en" href={canonicalUrl} />
-      <link rel="alternate" hrefLang="fa" href={canonicalUrl} />
-      <link rel="alternate" hrefLang="x-default" href={canonicalUrl} />
-
-      {/* OpenGraph Metadata */}
-      <meta property="og:type" content={ogType} />
-      <meta property="og:site_name" content={siteName} />
-      <meta property="og:locale" content={primaryLocale} />
-      <meta property="og:locale:alternate" content={secondaryLocale} />
-      <meta property="og:title" content={title} />
-      <meta property="og:description" content={description} />
-      <meta property="og:url" content={canonicalUrl} />
-      <meta property="og:image" content={ogImage} />
-      <meta property="og:image:alt" content={ogImageAlt} />
-
-      {/* Twitter / X Card Metadata */}
-      <meta name="twitter:card" content={twitterCard} />
-      {twitterSite && <meta name="twitter:site" content={twitterSite} />}
-      <meta name="twitter:title" content={title} />
-      <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={twitterImage} />
-      <meta name="twitter:image:alt" content={ogImageAlt} />
 
       {/* Schema.org Structured Data (JSON-LD) */}
-      {jsonLd && (
+      {headTags.jsonLd && (
         <script type="application/ld+json">
-          {JSON.stringify(jsonLd)}
+          {JSON.stringify(headTags.jsonLd)}
         </script>
       )}
     </Helmet>

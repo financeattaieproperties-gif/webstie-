@@ -1,7 +1,15 @@
 <?php
-/** Run once while logged in as an admin, then remove this file from production. */
+/**
+ * Run once via CLI. Direct HTTP access is disabled in production.
+ */
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['error' => 'Migration scripts are disabled over HTTP. Run via CLI or phpMyAdmin.']);
+    exit;
+}
+
 require_once __DIR__ . '/db.php';
-require_admin();
 $db = db();
 $queries = [
   "ALTER TABLE properties ADD COLUMN IF NOT EXISTS serial_number VARCHAR(50) NULL",

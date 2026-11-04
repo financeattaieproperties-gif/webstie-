@@ -110,6 +110,18 @@ export const api = {
   updateVisitRequest: (id: number, status: VisitRequest['status'], staff_note: string) =>
     request<{ success: boolean }>('/admin/visit-requests.php', { method: 'PUT', body: JSON.stringify({ id, status, staff_note }) }),
 
+  getCareers: () => request<CareerJob[]>('/admin/careers.php'),
+  createCareer: (data: CareerJobInput) =>
+    request<{ id: number }>('/admin/careers.php', { method: 'POST', body: JSON.stringify(data) }),
+  updateCareer: (data: CareerJobInput & { id: number }) =>
+    request<{ updated: number }>('/admin/careers.php', { method: 'PUT', body: JSON.stringify(data) }),
+  deleteCareer: (id: number) =>
+    request<{ deleted: number }>(`/admin/careers.php?id=${id}`, { method: 'DELETE' }),
+  getCareerApplications: (jobId?: number) =>
+    request<CareerApplication[]>(jobId ? `/admin/career-applications.php?job_id=${jobId}` : '/admin/career-applications.php'),
+  getCareerFileUrl: (id: number, type: 'photo' | 'cv', download = false) =>
+    `${BASE}/admin/career-file.php?id=${id}&type=${type}${download ? '&download=1' : ''}`,
+
   getSeoSettings: async (): Promise<SeoSettings> => {
     try {
       const data = await request<SeoSettings>('/admin/seo-settings.php');
@@ -161,6 +173,96 @@ export const api = {
     }
   },
 
+  fetchSitemapStatusJson: async (): Promise<SitemapStatusData> => {
+    const baseRoot = BASE.replace(/\/api\/?$/, '');
+    const candidates = [
+      `/sitemap-status.json?t=${Date.now()}`,
+      ...(baseRoot ? [`${baseRoot}/sitemap-status.json?t=${Date.now()}`] : []),
+    ];
+
+    let lastError: Error | null = null;
+    for (const url of candidates) {
+      try {
+        const res = await fetch(url, {
+          cache: 'no-store',
+          headers: { Accept: 'application/json' },
+        });
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status} fetching sitemap-status.json`);
+        }
+        const data = (await res.json()) as SitemapStatusData;
+        if (data && typeof data.generated_at === 'string' && data.counts) {
+          return data;
+        }
+      } catch (err) {
+        lastError = err instanceof Error ? err : new Error('Failed to load sitemap-status.json');
+      }
+    }
+    throw lastError ?? new Error('Unable to load sitemap-status.json');
+  },
+
+  fetchSitemapXmlText: async (): Promise<string> => {
+    const baseRoot = BASE.replace(/\/api\/?$/, '');
+    const candidates = [
+      `/sitemap.xml?t=${Date.now()}`,
+      ...(baseRoot ? [`${baseRoot}/sitemap.xml?t=${Date.now()}`] : []),
+    ];
+    for (const url of candidates) {
+      try {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (res.ok) {
+          const text = await res.text();
+          if (text.includes('<urlset')) return text;
+        }
+      } catch {
+        // try next candidate
+      }
+    }
+    return '';
+  },
+
+  getSitemapStatus: async (): Promise<SitemapCrawlReport> => {
+    try {
+      const report = await request<SitemapCrawlReport>('/admin/sitemap.php');
+      if (report && report.counts) {
+        return report;
+      }
+    } catch {
+      // Fallback to static /sitemap-status.json + /sitemap.xml when PHP endpoint is unavailable
+    }
+    const [statusJson, xmlText] = await Promise.all([
+      api.fetchSitemapStatusJson(),
+      api.fetchSitemapXmlText(),
+    ]);
+    return {
+      ...statusJson,
+      xml: statusJson.xml ?? xmlText,
+    };
+  },
+
+  generateSitemap: async (canonicalBaseUrl?: string): Promise<SitemapCrawlReport> => {
+    try {
+      return await request<SitemapCrawlReport>('/admin/sitemap.php', {
+        method: 'POST',
+        body: JSON.stringify(canonicalBaseUrl ? { canonical_base_url: canonicalBaseUrl } : {}),
+      });
+    } catch {
+      const [statusJson, xmlText] = await Promise.all([
+        api.fetchSitemapStatusJson(),
+        api.fetchSitemapXmlText(),
+      ]);
+      const nowIso = new Date().toISOString();
+      const base = (canonicalBaseUrl || statusJson.canonical_base_url || 'https://www.attaieproperties.com').replace(/\/+$/, '');
+      return {
+        ...statusJson,
+        generated_at: nowIso,
+        canonical_base_url: base,
+        sitemap_url: `${base}/sitemap.xml`,
+        xml: statusJson.xml ?? xmlText,
+      };
+    }
+  },
+
   uploadImage: async (file: File, purpose?: 'blueprint' | 'gallery'): Promise<string> => {
     const form = new FormData();
     form.append('image', file);
@@ -186,6 +288,36 @@ export const api = {
     return data.url;
   },
 };
+
+export interface SitemapCrawlUrl {
+  loc: string;
+  lastmod: string;
+  changefreq: string;
+  priority: string;
+  category: 'static' | 'properties' | 'projects' | 'careers' | 'agents';
+  title: string;
+  image_count: number;
+}
+
+export interface SitemapStatusData {
+  generated_at: string;
+  canonical_base_url: string;
+  sitemap_url: string;
+  counts: {
+    static: number;
+    properties: number;
+    projects: number;
+    careers: number;
+    agents: number;
+    total: number;
+  };
+  urls: SitemapCrawlUrl[];
+  xml?: string;
+}
+
+export interface SitemapCrawlReport extends SitemapStatusData {
+  xml: string;
+}
 
 export interface SeoSettings {
   id?: number;
@@ -218,7 +350,7 @@ export const DEFAULT_SEO_SETTINGS: SeoSettings = {
   twitter_image: null,
   twitter_card: 'summary_large_image',
   twitter_site: '@AttaieProps',
-  canonical_base_url: 'https://website.attaieproperties.com',
+  canonical_base_url: 'https://www.attaieproperties.com',
   robots_index: true,
   updated_at: null,
 };
@@ -313,3 +445,39 @@ export interface VisitRequest {
   status: 'pending' | 'confirmed' | 'declined' | 'completed' | 'cancelled'; staff_note: string | null;
   events: Array<{ previous_status: string | null; next_status: string; actor: string; note: string | null; created_at: string }>;
 }
+
+export interface CareerJob {
+  id: number;
+  title: string;
+  location: string;
+  employment_type: string;
+  description: string;
+  qualifications: string;
+  deadline_at: string;
+  status: 'draft' | 'published' | 'closed';
+  is_expired?: boolean;
+  application_count?: number;
+  created_at: string;
+  updated_at?: string;
+}
+
+export type CareerJobInput = Omit<CareerJob, 'id' | 'is_expired' | 'application_count' | 'created_at' | 'updated_at'>;
+
+export interface CareerApplication {
+  id: number;
+  job_id: number;
+  job_title: string;
+  name: string;
+  father_name: string;
+  email: string;
+  phone: string;
+  address: string;
+  photo_original_name: string;
+  photo_mime_type: string;
+  photo_size: number;
+  cv_original_name: string;
+  cv_mime_type: string;
+  cv_size: number;
+  created_at: string;
+}
+

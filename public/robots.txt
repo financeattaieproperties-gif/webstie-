@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /api/
+Disallow: /uploads/private_applications/
 
-Sitemap: https://website.attaieproperties.com/sitemap.xml
+Sitemap: https://www.attaieproperties.com/sitemap.xml
+

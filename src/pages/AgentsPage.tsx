@@ -5,9 +5,11 @@ import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
 import { getAgents, type Agent } from '../lib/dbService';
 import { SeoHead } from '../components/seo/SeoHead';
-import { PAGE_SEO } from '../lib/seoConfig';
+import { Breadcrumbs } from '../components/ui/Breadcrumbs';
+import { useTranslation } from 'react-i18next';
 
 export default function AgentsPage() {
+  const { t } = useTranslation();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -16,11 +18,16 @@ export default function AgentsPage() {
   }, []);
 
   return <main className="min-h-screen bg-brand-ivory flex flex-col">
-    <SeoHead seo={PAGE_SEO.agents} />
+    <SeoHead />
     <Navbar />
     <header className="relative bg-brand-navy pt-36 pb-16 overflow-hidden">
       <div className="absolute inset-0 islamic-pattern opacity-20" />
       <div className="container-custom relative z-10">
+        <Breadcrumbs
+          variant="light"
+          items={[{ label: t('nav.agents', 'Our Agents') }]}
+          className="mb-4"
+        />
         <p className="text-brand-gold text-xs font-bold uppercase tracking-[0.25em] mb-3">Attaie Properties</p>
         <h1 className="text-4xl md:text-5xl font-display font-bold text-white">Our Agents</h1>
         <p className="mt-4 max-w-xl text-white/65 leading-relaxed">Meet the people ready to help with your property search.</p>

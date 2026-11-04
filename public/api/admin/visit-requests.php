@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../bootstrap.php';
 cors(); require_admin();
 $db = db(); $method = $_SERVER['REQUEST_METHOD'];
 if ($method === 'GET') {

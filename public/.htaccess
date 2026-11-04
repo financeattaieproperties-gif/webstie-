@@ -1,4 +1,5 @@
 Options -Indexes +FollowSymLinks
+DirectoryIndex index.html index.php
 RewriteEngine On
 
 AddType application/javascript .js .mjs
@@ -7,8 +8,8 @@ AddType font/woff2 .woff2
 AddType font/woff .woff
 AddType image/svg+xml .svg
 
-# Block direct HTTP access to SQL files and database config files
-<FilesMatch "^(db\.php|db\.example\.php|.*\.sql)$">
+# Block direct HTTP access to SQL files, bootstrap, and database config files
+<FilesMatch "^(db\.php|db\.example\.php|bootstrap\.php|.*\.sql|.*\.migrated)$">
   Require all denied
 </FilesMatch>
 
@@ -26,9 +27,13 @@ RewriteRule ^api/ - [L]
 # Admin CRM SPA fallback — routes under /admin/* serve /admin/index.html
 RewriteRule ^admin(?:/.*)?$ /admin/index.html [L]
 
-# Dynamic SEO & OpenGraph pre-rendering for Property, Project, and Agent detail pages
-RewriteRule ^(properties|projects|agents)/[0-9]+/?$ /seo.php [L]
+# Block direct HTTP access to private applicant files
+RewriteRule ^uploads/private_applications/ - [F,L]
+
+# Dynamic SEO & OpenGraph pre-rendering for Property, Project, Agent, and Career detail pages
+RewriteRule ^(properties|projects|agents|careers)/[0-9]+/?$ /seo.php [L]
 
 # Public Website SPA fallback — all other routes serve /index.html
 RewriteRule ^ /index.html [L]
+
 

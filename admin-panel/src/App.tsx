@@ -16,6 +16,9 @@ import AgentForm from './pages/AgentForm';
 import Branches from './pages/Branches';
 import BranchForm from './pages/BranchForm';
 import SeoPage from './pages/SeoPage';
+import Careers from './pages/Careers';
+import CareerForm from './pages/CareerForm';
+import CareerApplications from './pages/CareerApplications';
 
 const isElectron = !!window.electronAPI?.isElectron;
 const Router = isElectron ? HashRouter : BrowserRouter;
@@ -54,6 +57,11 @@ function ProtectedRoutes() {
         <Route path="/branches" element={<Branches />} />
         <Route path="/branches/new" element={<BranchForm />} />
         <Route path="/branches/:id/edit" element={<BranchForm />} />
+        <Route path="/careers" element={<Careers />} />
+        <Route path="/careers/new" element={<CareerForm />} />
+        <Route path="/careers/:id/edit" element={<CareerForm />} />
+        <Route path="/careers/applications" element={<CareerApplications />} />
+        <Route path="/careers/:id/applications" element={<CareerApplications />} />
         <Route path="/seo" element={<SeoPage />} />
         <Route path="/settings" element={<Settings />} />
       </Routes>

@@ -123,7 +123,7 @@ export default function SettingsPage() {
             </button>
             <button
               style={S.btnSecondary}
-              onClick={() => api ? api.openExternal('https://website.attaieproperties.com') : window.open('https://website.attaieproperties.com', '_blank')}
+              onClick={() => api ? api.openExternal('https://www.attaieproperties.com') : window.open('https://www.attaieproperties.com', '_blank')}
             >
               Open Website
             </button>

@@ -37,6 +37,7 @@ const navItems = [
   { to: '/visits',     label: 'Visits',     icon: '📅' },
   { to: '/agents',     label: 'Agents & Employees', icon: '👥' },
   { to: '/branches',   label: 'Branches',   icon: '📍' },
+  { to: '/careers',    label: 'Careers',    icon: '💼' },
 ];
 
 export default function Layout({ children }: { children: ReactNode }) {

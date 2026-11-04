@@ -1,6 +1,7 @@
 {
   "nav": {
     "agents": "نمایندگان ما",
+    "careers": "فرصت‌های شغلی",
     "home": "خانه",
     "properties": "ملکیت‌ها",
     "projects": "پروژه‌ها",
@@ -114,6 +115,71 @@
       "In Progress": "در حال ساخت",
       "Sold Out": "فروخته شده"
     }
+  },
+  "careersPage": {
+    "eyebrow": "به تیم ما بپیوندید",
+    "title": "فرصت‌های شغلی در اتایی پراپرتیز",
+    "subtitle": "مسیر حرفه‌ای خود را با معتبرترین شرکت معاملات ملکی کابل بسازید. بست‌های خالی در بخش‌های مشاوره املاک، انجنیری، بازاریابی و عملیات را بررسی کنید.",
+    "kabulCity": "کابل، افغانستان",
+    "kabulDateLabel": "تاریخ کابل",
+    "kabulTimeLabel": "ساعت محلی کابل (AFT)",
+    "kabulWeatherLabel": "آب‌وهوای کابل",
+    "weatherUnavailable": "آب‌وهوا در دسترس نیست",
+    "weatherClear": "آسمان صاف",
+    "weatherPartlyCloudy": "قسمتاً ابری",
+    "weatherCloudy": "ابری",
+    "weatherRain": "بارانی",
+    "weatherSnow": "برفی",
+    "weatherStorm": "طوفانی",
+    "filterAll": "همه بست‌ها",
+    "filterOpen": "بست‌های باز",
+    "filterClosed": "بسته‌شده اخیر",
+    "statusOpen": "باز برای ثبت‌نام",
+    "statusClosed": "مهلت ثبت‌نام پایان‌یافته",
+    "deadlineLabel": "آخرین مهلت ثبت‌نام",
+    "qualificationsHeading": "شرایط و مهارت‌های لازم",
+    "descriptionHeading": "شرح وظایف و مسئولیت‌ها",
+    "viewAndApply": "مشاهده جزئیات و ثبت درخواست",
+    "viewDetails": "مشاهده اعلان",
+    "backToCareers": "بازگشت به همه فرصت‌های شغلی",
+    "loading": "در حال بارگذاری اعلانات کاریابی…",
+    "empty": "در حال حاضر هیچ اعلان کاریابی در این بخش وجود ندارد.",
+    "error": "بارگذاری اعلانات کاریابی ممکن نشد.",
+    "retry": "تلاش مجدد"
+  },
+  "careerApply": {
+    "heading": "ثبت درخواست برای این بست",
+    "subheading": "لطفاً تمام معلومات خواسته‌شده را تکمیل نموده و عکس و خلص‌سوانح (CV) خود را ضمیمه کنید.",
+    "closedBannerTitle": "مهلت ثبت درخواست به پایان رسیده است",
+    "closedBannerBody": "مهلت ارسال درخواست برای این بست به پایان رسیده یا بست تکمیل گردیده است.",
+    "nameLabel": "نام و تخلص",
+    "namePlaceholder": "نام کامل خود را وارد کنید",
+    "fatherNameLabel": "نام پدر",
+    "fatherNamePlaceholder": "نام پدر خود را وارد کنید",
+    "emailLabel": "ایمیل آدرس",
+    "emailPlaceholder": "you@example.com",
+    "phoneLabel": "شماره تماس",
+    "phonePlaceholder": "+93 7XX XXX XXX",
+    "addressLabel": "آدرس فعلی سکونت",
+    "addressPlaceholder": "سرک، ناحیه، شهر (مثال: وزیر اکبر خان، کابل)",
+    "photoLabel": "عکس متقاضی (JPEG، PNG، WebP — حداکثر ۵ مگابایت)",
+    "photoSelectBtn": "انتخاب عکس",
+    "cvLabel": "خلص‌سوانح / CV (PDF، DOC، DOCX — حداکثر ۵ مگابایت)",
+    "cvSelectBtn": "انتخاب فایل CV",
+    "submitBtn": "ارسال درخواست شغلی",
+    "submitting": "در حال ارسال درخواست…",
+    "successTitle": "درخواست شما با موفقیت ثبت شد",
+    "successBody": "از علاقه‌مندی شما به همکاری با اتایی پراپرتیز سپاسگزاریم. تیم منابع بشری ما درخواست شما را بررسی نموده و با واجدین شرایط تماس خواهد گرفت.",
+    "errPhotoRequired": "لطفاً عکس خود را انتخاب کنید (JPEG، PNG یا WebP، حداکثر ۵ مگابایت).",
+    "errCvRequired": "لطفاً فایل خلص‌سوانح (CV) خود را انتخاب کنید (PDF، DOC یا DOCX، حداکثر ۵ مگابایت).",
+    "errFileTooLarge": "حجم فایل انتخاب‌شده بیشتر از ۵ مگابایت است."
+  },
+  "breadcrumbs": {
+    "propertyDetails": "جزئیات ملک",
+    "projectDetails": "جزئیات پروژه",
+    "agentDetails": "پروفایل مشاور",
+    "careerDetails": "جزئیات بست شغلی"
   }
 }
+
 

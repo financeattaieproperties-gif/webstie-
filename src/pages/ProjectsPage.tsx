@@ -5,7 +5,7 @@ import { Footer } from '../components/layout/Footer';
 import { ProjectCard } from '../components/ui/ProjectCard';
 import { getProjects, type Project } from '../lib/dbService';
 import { SeoHead } from '../components/seo/SeoHead';
-import { PAGE_SEO } from '../lib/seoConfig';
+import { Breadcrumbs } from '../components/ui/Breadcrumbs';
 
 const FILTER_STATUSES = ['All', 'Coming Soon', 'In Progress', 'Sold Out'] as const;
 
@@ -30,10 +30,15 @@ export default function ProjectsPage() {
 
   return (
     <main className="min-h-screen bg-brand-cream flex flex-col">
-      <SeoHead seo={PAGE_SEO.projects} />
+      <SeoHead context={{ filterStatus: filter }} />
       <Navbar />
       <section className="bg-brand-navy pt-36 pb-16 islamic-pattern">
         <div className="container-custom">
+          <Breadcrumbs
+            variant="light"
+            items={[{ label: t('nav.projects', 'Projects') }]}
+            className="mb-4"
+          />
           <p className="text-brand-gold text-xs font-bold uppercase tracking-[.25em]">
             {t('projectsPage.eyebrow')}
           </p>

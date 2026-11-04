@@ -1,11 +1,20 @@
 import { defineConfig, type Plugin, type ViteDevServer, type PreviewServer } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import fs from 'fs';
 import path from 'path';
 import type { IncomingMessage, ServerResponse } from 'http';
 
-// Prevent Vite 5 from exiting when stdin sends EOF in non-interactive container environments
+// Prevent Vite CLI from exiting when stdin sends EOF in non-interactive container environments
 process.env.CI = 'true';
+const origStdinOn = process.stdin.on.bind(process.stdin);
+process.stdin.on = ((event: string, listener: (...args: any[]) => void) => {
+  if (event === 'end' || event === 'close') {
+    return process.stdin;
+  }
+  return origStdinOn(event, listener);
+}) as typeof process.stdin.on;
+process.stdin.addListener = process.stdin.on;
 
 function readBody(req: IncomingMessage): Promise<Record<string, any>> {
   return new Promise((resolve) => {
@@ -356,7 +365,7 @@ function createMockPhpApiPlugin(): Plugin {
     twitter_image: null,
     twitter_card: 'summary_large_image',
     twitter_site: '@AttaieProps',
-    canonical_base_url: 'https://website.attaieproperties.com',
+    canonical_base_url: 'https://www.attaieproperties.com',
     robots_index: true,
     updated_at: new Date().toISOString(),
   };
@@ -364,19 +373,334 @@ function createMockPhpApiPlugin(): Plugin {
   let leads: any[] = [];
   let visitRequests: any[] = [];
 
+  let careerJobs: any[] = [
+    {
+      id: 1,
+      title: 'Senior Real Estate Sales Advisor',
+      location: 'Wazir Akbar Khan, Kabul',
+      employment_type: 'Full-Time',
+      description: 'We are seeking an experienced Senior Real Estate Sales Advisor to represent our luxury residential and diplomatic property portfolio across Wazir Akbar Khan, Sherpur, and Shahr-e-Naw.\n\nYou will advise high-net-worth buyers, corporate clients, and diaspora investors from initial consultation and property tours through negotiation and deed transfer.',
+      qualifications: '- Minimum 3 years of experience in real estate brokerage, luxury sales, or client advisory in Kabul\n- Fluency in Dari and Pashto; strong working proficiency in English\n- Deep familiarity with Kabul neighborhoods, property valuation, and legal deed verification\n- Professional communication, negotiation, and CRM follow-up discipline',
+      deadline_at: '2027-03-31 23:59:59',
+      status: 'published',
+      created_at: '2026-10-15T09:00:00.000Z',
+      updated_at: '2026-10-15T09:00:00.000Z',
+    },
+    {
+      id: 2,
+      title: 'Architectural & 3D Visualization Specialist',
+      location: 'Shahr-e-Naw, Kabul',
+      employment_type: 'Full-Time',
+      description: 'Join our development marketing and technical design team to prepare 2D floor plans, 3D architectural renders, and interactive masterplans for signature residential towers and commercial plazas in Kabul.',
+      qualifications: '- Bachelor degree in Architecture, Civil Engineering, or related design field\n- Advanced proficiency in AutoCAD, Revit, 3ds Max / V-Ray, or Lumion\n- Strong portfolio of residential apartment layouts and exterior architectural visualizations\n- Ability to collaborate with site engineers and marketing teams under tight deadlines',
+      deadline_at: '2027-02-28 23:59:59',
+      status: 'published',
+      created_at: '2026-10-20T11:00:00.000Z',
+      updated_at: '2026-10-20T11:00:00.000Z',
+    },
+    {
+      id: 3,
+      title: 'Digital Marketing & Content Coordinator',
+      location: 'Wazir Akbar Khan, Kabul',
+      employment_type: 'Full-Time',
+      description: 'Lead bilingual (Dari & English) social media campaigns, property video walk-through production, and digital lead generation for Attaie Properties.',
+      qualifications: '- 2+ years experience in digital marketing, real estate media, or brand communications\n- Excellent written Dari and English copywriting skills\n- Experience with property photography/videography coordination and social ad campaigns',
+      deadline_at: '2026-10-25 23:59:59',
+      status: 'closed',
+      created_at: '2026-09-25T08:00:00.000Z',
+      updated_at: '2026-10-26T08:00:00.000Z',
+    },
+  ];
+
+  let careerApplications: any[] = [];
+
+  const computeCareerWithStatus = (job: any) => {
+    const raw = (job.deadline_at || '').trim();
+    const datePart = raw.slice(0, 10);
+    const isoCutoff = /^\d{4}-\d{2}-\d{2}$/.test(raw) || raw.endsWith('00:00:00')
+      ? `${datePart}T23:59:59+04:30`
+      : `${raw.replace(' ', 'T')}+04:30`;
+    const cutoffMs = Date.parse(isoCutoff);
+    const isExpired = (Number.isFinite(cutoffMs) && Date.now() > cutoffMs) || job.status === 'closed';
+    return {
+      ...job,
+      is_expired: isExpired,
+      effective_status: isExpired ? 'closed' : 'published',
+      application_count: careerApplications.filter((a) => a.job_id === job.id).length,
+    };
+  };
+
+  const escapeXml = (str: unknown) =>
+    String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
+
+  const toIsoDate = (dateStr?: string | null) => {
+    const today = new Date().toISOString().slice(0, 10);
+    if (!dateStr || typeof dateStr !== 'string') return today;
+    const match = dateStr.match(/^(\d{4}-\d{2}-\d{2})/);
+    return match ? match[1] : today;
+  };
+
+  const buildLiveSitemap = (overrideBaseUrl?: string, persistToDisk = true) => {
+    const siteUrl = (
+      overrideBaseUrl ||
+      seoSettings?.canonical_base_url ||
+      'https://www.attaieproperties.com'
+    )
+      .trim()
+      .replace(/\/+$/, '');
+    const today = new Date().toISOString().slice(0, 10);
+    const nowIso = new Date().toISOString();
+
+    const toAbs = (u?: string | null) => {
+      if (!u || typeof u !== 'string') return null;
+      const t = u.trim();
+      if (!t) return null;
+      if (/^https?:\/\//i.test(t)) return t;
+      return `${siteUrl}${t.startsWith('/') ? '' : '/'}${t}`;
+    };
+
+    const staticRoutes = [
+      { path: '/',           changefreq: 'daily',   priority: '1.0', title: 'Home — Attaie Properties' },
+      { path: '/properties', changefreq: 'daily',   priority: '0.9', title: 'Properties for Sale & Rent in Kabul' },
+      { path: '/projects',   changefreq: 'weekly',  priority: '0.8', title: 'Real Estate Development Projects in Kabul' },
+      { path: '/careers',    changefreq: 'daily',   priority: '0.8', title: 'Careers & Job Openings — Attaie Properties' },
+      { path: '/agents',     changefreq: 'weekly',  priority: '0.7', title: 'Licensed Property Advisors & Agents' },
+      { path: '/about',      changefreq: 'monthly', priority: '0.6', title: 'About Attaie Properties' },
+      { path: '/contact',    changefreq: 'monthly', priority: '0.7', title: 'Contact Attaie Properties Kabul' },
+    ];
+
+    const entries: Array<{
+      loc: string;
+      lastmod: string;
+      changefreq: string;
+      priority: string;
+      category: 'static' | 'properties' | 'projects' | 'careers' | 'agents';
+      title: string;
+      images: Array<{ loc: string; title?: string; caption?: string }>;
+    }> = [];
+
+    for (const st of staticRoutes) {
+      entries.push({
+        loc: `${siteUrl}${st.path}`,
+        lastmod: today,
+        changefreq: st.changefreq,
+        priority: st.priority,
+        category: 'static',
+        title: st.title,
+        images: [],
+      });
+    }
+
+    let propertyCount = 0;
+    for (const prop of properties) {
+      const id = Number(prop?.id);
+      if (!Number.isInteger(id) || id <= 0) continue;
+      propertyCount++;
+      const images: Array<{ loc: string; title?: string; caption?: string }> = [];
+      const primary = toAbs(prop.image_url);
+      if (primary) {
+        images.push({
+          loc: primary,
+          title: `${prop.title || `Property #${id}`}${prop.serial_number ? ` (${prop.serial_number})` : ''}`,
+          caption: prop.location ? `${prop.title || 'Property'} in ${prop.location}` : prop.title,
+        });
+      }
+      if (Array.isArray(prop.gallery_images)) {
+        for (const g of prop.gallery_images.slice(0, 5)) {
+          const absG = toAbs(g);
+          if (absG && !images.some((i) => i.loc === absG)) {
+            images.push({
+              loc: absG,
+              title: `${prop.title || `Property #${id}`} — Gallery`,
+              caption: prop.location || 'Kabul, Afghanistan',
+            });
+          }
+        }
+      }
+      const isAvail = !prop.status || prop.status === 'available';
+      entries.push({
+        loc: `${siteUrl}/properties/${id}`,
+        lastmod: toIsoDate(prop.updated_at || prop.created_at),
+        changefreq: isAvail ? 'daily' : 'weekly',
+        priority: isAvail ? '0.85' : '0.70',
+        category: 'properties',
+        title: prop.title || `Property #${id}`,
+        images,
+      });
+    }
+
+    let projectCount = 0;
+    for (const proj of projects) {
+      const id = Number(proj?.id);
+      if (!Number.isInteger(id) || id <= 0) continue;
+      projectCount++;
+      const images: Array<{ loc: string; title?: string; caption?: string }> = [];
+      const primary = toAbs(proj.image_url);
+      if (primary) {
+        images.push({
+          loc: primary,
+          title: proj.name || `Project #${id}`,
+          caption: proj.location ? `${proj.name || 'Project'} — ${proj.location}` : proj.name,
+        });
+      }
+      const mp = toAbs(proj.masterplan_image);
+      if (mp && !images.some((i) => i.loc === mp)) {
+        images.push({
+          loc: mp,
+          title: `${proj.name || `Project #${id}`} Masterplan`,
+          caption: `Architectural Masterplan — ${proj.name || 'Project'}`,
+        });
+      }
+      entries.push({
+        loc: `${siteUrl}/projects/${id}`,
+        lastmod: toIsoDate(proj.updated_at || proj.created_at),
+        changefreq: 'weekly',
+        priority: '0.85',
+        category: 'projects',
+        title: proj.name || `Project #${id}`,
+        images,
+      });
+    }
+
+    let careerCount = 0;
+    for (const job of careerJobs) {
+      const id = Number(job?.id);
+      if (!Number.isInteger(id) || id <= 0) continue;
+      if (job.status === 'draft') continue;
+      careerCount++;
+      const isOpen = job.status === 'published';
+      entries.push({
+        loc: `${siteUrl}/careers/${id}`,
+        lastmod: toIsoDate(job.updated_at || job.created_at),
+        changefreq: isOpen ? 'daily' : 'weekly',
+        priority: isOpen ? '0.75' : '0.55',
+        category: 'careers',
+        title: job.title || `Career Opportunity #${id}`,
+        images: [],
+      });
+    }
+
+    let agentCount = 0;
+    for (const agent of agents) {
+      const id = Number(agent?.id);
+      if (!Number.isInteger(id) || id <= 0 || !agent.published) continue;
+      agentCount++;
+      const images: Array<{ loc: string; title?: string; caption?: string }> = [];
+      const portrait = toAbs(agent.portrait_url);
+      if (portrait) {
+        images.push({
+          loc: portrait,
+          title: `${agent.name || `Agent #${id}`} — ${agent.role || 'Property Advisor'}`,
+          caption: `${agent.name || 'Agent'} at Attaie Properties`,
+        });
+      }
+      entries.push({
+        loc: `${siteUrl}/agents/${id}`,
+        lastmod: toIsoDate(agent.updated_at || agent.created_at),
+        changefreq: 'monthly',
+        priority: '0.65',
+        category: 'agents',
+        title: agent.name || `Agent #${id}`,
+        images,
+      });
+    }
+
+    const xmlLines = [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
+      '        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">',
+    ];
+
+    for (const entry of entries) {
+      xmlLines.push('  <url>');
+      xmlLines.push(`    <loc>${escapeXml(entry.loc)}</loc>`);
+      xmlLines.push(`    <lastmod>${escapeXml(entry.lastmod)}</lastmod>`);
+      xmlLines.push(`    <changefreq>${escapeXml(entry.changefreq)}</changefreq>`);
+      xmlLines.push(`    <priority>${escapeXml(entry.priority)}</priority>`);
+      for (const img of entry.images) {
+        xmlLines.push('    <image:image>');
+        xmlLines.push(`      <image:loc>${escapeXml(img.loc)}</image:loc>`);
+        if (img.title) xmlLines.push(`      <image:title>${escapeXml(img.title)}</image:title>`);
+        if (img.caption) xmlLines.push(`      <image:caption>${escapeXml(img.caption)}</image:caption>`);
+        xmlLines.push('    </image:image>');
+      }
+      xmlLines.push('  </url>');
+    }
+    xmlLines.push('</urlset>');
+    xmlLines.push('');
+    const xml = xmlLines.join('\n');
+
+    const report = {
+      generated_at: nowIso,
+      canonical_base_url: siteUrl,
+      sitemap_url: `${siteUrl}/sitemap.xml`,
+      counts: {
+        static: staticRoutes.length,
+        properties: propertyCount,
+        projects: projectCount,
+        careers: careerCount,
+        agents: agentCount,
+        total: entries.length,
+      },
+      urls: entries.map((e) => ({
+        loc: e.loc,
+        lastmod: e.lastmod,
+        changefreq: e.changefreq,
+        priority: e.priority,
+        category: e.category,
+        title: e.title,
+        image_count: e.images.length,
+      })),
+      xml,
+    };
+
+    if (persistToDisk) {
+      try {
+        const pubDir = path.resolve(import.meta.dirname, './public');
+        fs.writeFileSync(path.join(pubDir, 'sitemap.xml'), xml, 'utf8');
+        const { xml: _omitXml, ...statusOnly } = report;
+        fs.writeFileSync(path.join(pubDir, 'sitemap-status.json'), JSON.stringify(statusOnly, null, 2), 'utf8');
+      } catch {
+        // ignore write errors in read-only environments
+      }
+    }
+
+    return report;
+  };
+
   const attachMiddleware = (server: ViteDevServer | PreviewServer) => {
     // Keep process alive if stdin closes in container
     process.stdin.removeAllListeners('end');
     process.stdin.on('error', () => {});
 
     server.middlewares.use(async (req, res, next) => {
-      if (!req.url || !req.url.startsWith('/api/')) {
-        return next();
-      }
+      if (!req.url) return next();
 
       const parsedUrl = new URL(req.url, 'http://localhost:3000');
       const pathname = parsedUrl.pathname;
       const method = req.method || 'GET';
+
+      if ((pathname === '/sitemap.xml' || pathname === '/sitemap.php') && method === 'GET') {
+        const report = buildLiveSitemap(undefined, false);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+        res.end(report.xml);
+        return;
+      }
+
+      if (pathname === '/sitemap-status.json' && method === 'GET') {
+        const { xml: _xml, ...statusOnly } = buildLiveSitemap(undefined, false);
+        return sendJson(res, statusOnly);
+      }
+
+      if (!pathname.startsWith('/api/')) {
+        return next();
+      }
 
       // Public endpoints
       if (pathname === '/api/get-properties.php' && method === 'GET') {
@@ -424,6 +748,8 @@ function createMockPhpApiPlugin(): Plugin {
         const projectId = Number(parsedUrl.searchParams.get('project_id') || 0);
         const all = parsedUrl.searchParams.get('all') === '1';
         const status = parsedUrl.searchParams.get('status');
+        const page = Math.max(1, Number(parsedUrl.searchParams.get('page') || 1));
+        const limit = Math.min(100, Math.max(1, Number(parsedUrl.searchParams.get('limit') || 50)));
         let items = projectId > 0
           ? projectUnits.filter((u) => u.project_id === projectId)
           : all
@@ -438,7 +764,16 @@ function createMockPhpApiPlugin(): Plugin {
             project_location: parent?.location || 'Kabul',
           };
         });
-        return sendJson(res, { items, page: 1, limit: 50 });
+        const total = items.length;
+        const offset = (page - 1) * limit;
+        const paged = items.slice(offset, offset + limit);
+        return sendJson(res, {
+          items: paged,
+          page,
+          limit,
+          total,
+          has_more: offset + paged.length < total,
+        });
       }
 
       if (pathname === '/api/get-agents.php' && method === 'GET') {
@@ -454,6 +789,48 @@ function createMockPhpApiPlugin(): Plugin {
 
       if (pathname === '/api/get-branches.php' && method === 'GET') {
         return sendJson(res, branches);
+      }
+
+      if (pathname === '/api/get-careers.php' && method === 'GET') {
+        const visible = careerJobs
+          .filter((j) => j.status === 'published' || j.status === 'closed')
+          .map(computeCareerWithStatus);
+        return sendJson(res, visible);
+      }
+
+      if (pathname === '/api/get-career.php' && method === 'GET') {
+        const id = Number(parsedUrl.searchParams.get('id'));
+        const found = careerJobs.find((j) => j.id === id && (j.status === 'published' || j.status === 'closed'));
+        if (!found) return sendJson(res, { error: 'Job announcement not found' }, 404);
+        return sendJson(res, computeCareerWithStatus(found));
+      }
+
+      if (pathname === '/api/submit-career-application.php' && method === 'POST') {
+        // Consume request stream for multipart/form-data
+        await new Promise<void>((resolve) => {
+          req.on('data', () => {});
+          req.on('end', () => resolve());
+          req.on('error', () => resolve());
+        });
+        const id = careerApplications.length + 1;
+        careerApplications.unshift({
+          id,
+          job_id: 1,
+          job_title: careerJobs[0]?.title || 'Senior Real Estate Sales Advisor',
+          name: 'Applicant #' + id,
+          father_name: 'Submitted via Preview',
+          email: 'applicant@example.com',
+          phone: '+93 780 000 000',
+          address: 'Kabul, Afghanistan',
+          photo_original_name: 'applicant_photo.jpg',
+          photo_mime_type: 'image/jpeg',
+          photo_size: 145000,
+          cv_original_name: 'applicant_cv.pdf',
+          cv_mime_type: 'application/pdf',
+          cv_size: 320000,
+          created_at: new Date().toISOString(),
+        });
+        return sendJson(res, { success: true, id }, 201);
       }
 
       if (pathname === '/api/get-seo-settings.php' && method === 'GET') {
@@ -526,16 +903,19 @@ function createMockPhpApiPlugin(): Plugin {
           const body = await readBody(req);
           const id = properties.reduce((max, p) => Math.max(max, p.id), 0) + 1;
           properties.unshift({ ...body, id, created_at: new Date().toISOString() } as any);
+          buildLiveSitemap();
           return sendJson(res, { id }, 201);
         }
         if (method === 'PUT') {
           const body = await readBody(req);
           properties = properties.map((p) => (p.id === Number(body.id) ? { ...p, ...body } : p));
+          buildLiveSitemap();
           return sendJson(res, { updated: 1 });
         }
         if (method === 'DELETE') {
           const id = Number(parsedUrl.searchParams.get('id'));
           properties = properties.filter((p) => p.id !== id);
+          buildLiveSitemap();
           return sendJson(res, { deleted: 1 });
         }
       }
@@ -546,16 +926,19 @@ function createMockPhpApiPlugin(): Plugin {
           const body = await readBody(req);
           const id = projects.reduce((max, p) => Math.max(max, p.id), 0) + 1;
           projects.unshift({ ...body, id, created_at: new Date().toISOString() } as any);
+          buildLiveSitemap();
           return sendJson(res, { id }, 201);
         }
         if (method === 'PUT') {
           const body = await readBody(req);
           projects = projects.map((p) => (p.id === Number(body.id) ? { ...p, ...body } : p));
+          buildLiveSitemap();
           return sendJson(res, { updated: 1 });
         }
         if (method === 'DELETE') {
           const id = Number(parsedUrl.searchParams.get('id'));
           projects = projects.filter((p) => p.id !== id);
+          buildLiveSitemap();
           return sendJson(res, { deleted: 1 });
         }
       }
@@ -589,16 +972,19 @@ function createMockPhpApiPlugin(): Plugin {
           const body = await readBody(req);
           const id = agents.reduce((max, a) => Math.max(max, a.id), 0) + 1;
           agents.push({ ...body, id, created_at: new Date().toISOString() } as any);
+          buildLiveSitemap();
           return sendJson(res, { id }, 201);
         }
         if (method === 'PUT') {
           const body = await readBody(req);
           agents = agents.map((a) => (a.id === Number(body.id) ? { ...a, ...body } : a));
+          buildLiveSitemap();
           return sendJson(res, { updated: 1 });
         }
         if (method === 'DELETE') {
           const id = Number(parsedUrl.searchParams.get('id'));
           agents = agents.filter((a) => a.id !== id);
+          buildLiveSitemap();
           return sendJson(res, { deleted: 1 });
         }
       }
@@ -623,12 +1009,78 @@ function createMockPhpApiPlugin(): Plugin {
         }
       }
 
-      if (pathname === '/api/admin/seo-settings.php') {
-        if (method === 'GET') return sendJson(res, seoSettings);
+      if (pathname === '/api/admin/careers.php') {
+        if (method === 'GET') {
+          return sendJson(res, careerJobs.map(computeCareerWithStatus));
+        }
+        if (method === 'POST') {
+          const body = await readBody(req);
+          const id = careerJobs.reduce((max, j) => Math.max(max, j.id), 0) + 1;
+          careerJobs.unshift({
+            ...body,
+            id,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+          buildLiveSitemap();
+          return sendJson(res, { id }, 201);
+        }
         if (method === 'PUT') {
           const body = await readBody(req);
+          careerJobs = careerJobs.map((j) =>
+            j.id === Number(body.id) ? { ...j, ...body, updated_at: new Date().toISOString() } : j
+          );
+          buildLiveSitemap();
+          return sendJson(res, { updated: 1 });
+        }
+        if (method === 'DELETE') {
+          const id = Number(parsedUrl.searchParams.get('id'));
+          const hasApps = careerApplications.some((a) => a.job_id === id);
+          if (hasApps) {
+            return sendJson(
+              res,
+              { error: 'Cannot delete a job announcement that has received applications. Please close or unpublish it instead.' },
+              409
+            );
+          }
+          careerJobs = careerJobs.filter((j) => j.id !== id);
+          buildLiveSitemap();
+          return sendJson(res, { deleted: 1 });
+        }
+      }
+
+      if (pathname === '/api/admin/career-applications.php' && method === 'GET') {
+        const jobId = Number(parsedUrl.searchParams.get('job_id') || 0);
+        const list = jobId > 0
+          ? careerApplications.filter((a) => a.job_id === jobId)
+          : careerApplications;
+        return sendJson(res, list);
+      }
+
+      if (pathname === '/api/admin/career-file.php' && method === 'GET') {
+        res.writeHead(302, { Location: '/logo.png' });
+        res.end();
+        return;
+      }
+
+      if (pathname === '/api/admin/seo-settings.php') {
+        if (method === 'GET') return sendJson(res, seoSettings);
+        if (method === 'PUT' || method === 'POST') {
+          const body = await readBody(req);
           seoSettings = { ...seoSettings, ...body, updated_at: new Date().toISOString() };
+          buildLiveSitemap(seoSettings.canonical_base_url);
           return sendJson(res, seoSettings);
+        }
+      }
+
+      if (pathname === '/api/admin/sitemap.php') {
+        if (method === 'GET') {
+          return sendJson(res, buildLiveSitemap(undefined, false));
+        }
+        if (method === 'POST') {
+          const body = await readBody(req);
+          const report = buildLiveSitemap(body?.canonical_base_url, true);
+          return sendJson(res, report);
         }
       }
 
@@ -693,7 +1145,7 @@ export default defineConfig({
     hmr: false,
   },
   resolve: {
-    alias: { '@': path.resolve(__dirname, './src') },
+    alias: { '@': path.resolve(import.meta.dirname, './src') },
   },
   build: {
     outDir: 'dist',

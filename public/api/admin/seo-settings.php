@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/../sitemap-helper.php';
 cors();
 require_admin();
 
@@ -18,7 +19,7 @@ CREATE TABLE IF NOT EXISTS seo_settings (
   twitter_image       VARCHAR(500)  DEFAULT NULL,
   twitter_card        ENUM('summary_large_image','summary') NOT NULL DEFAULT 'summary_large_image',
   twitter_site        VARCHAR(100)  DEFAULT NULL,
-  canonical_base_url  VARCHAR(255)  DEFAULT 'https://website.attaieproperties.com',
+  canonical_base_url  VARCHAR(255)  DEFAULT 'https://www.attaieproperties.com',
   robots_index        TINYINT(1)    NOT NULL DEFAULT 1,
   updated_at          TIMESTAMP     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -37,7 +38,7 @@ $defaults = [
     'twitter_image'       => null,
     'twitter_card'        => 'summary_large_image',
     'twitter_site'        => '@AttaieProps',
-    'canonical_base_url'  => 'https://website.attaieproperties.com',
+    'canonical_base_url'  => 'https://www.attaieproperties.com',
     'robots_index'        => true,
     'updated_at'          => null,
 ];
@@ -74,7 +75,7 @@ if ($method === 'POST' || $method === 'PUT') {
         ? $twitter_card_raw
         : 'summary_large_image';
     $twitter_site        = trim((string) ($b['twitter_site'] ?? '')) ?: null;
-    $canonical_base_url  = rtrim(trim((string) ($b['canonical_base_url'] ?? '')), '/') ?: 'https://website.attaieproperties.com';
+    $canonical_base_url  = rtrim(trim((string) ($b['canonical_base_url'] ?? '')), '/') ?: 'https://www.attaieproperties.com';
     $robots_index        = !empty($b['robots_index']) ? 1 : 0;
 
     if ($site_name === '' || $default_title === '' || $default_description === '') {
@@ -115,6 +116,7 @@ if ($method === 'POST' || $method === 'PUT') {
         $robots_index
     );
     $stmt->execute();
+    @build_and_save_sitemap($canonical_base_url);
 
     json_out([
         'success'             => true,

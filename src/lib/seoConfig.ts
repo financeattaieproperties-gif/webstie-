@@ -1,4 +1,4 @@
-import type { Property, Project, Agent, SiteSeoSettings } from './dbService';
+import type { Property, Project, Agent, CareerJob, SiteSeoSettings } from './dbService';
 
 export interface SeoMetadata {
   title: string;
@@ -42,14 +42,18 @@ export function getRuntimeSeoSettings(): SiteSeoSettings | null {
 function getBaseSiteUrl(): string {
   const overrides = getInitialOverrides();
   if (overrides?.canonical_base_url?.trim()) {
-    return overrides.canonical_base_url.trim().replace(/\/+$/, '');
+    const cleaned = overrides.canonical_base_url.trim().replace(/\/+$/, '');
+    if (cleaned === 'https://attaieproperties.af' || cleaned === 'https://website.attaieproperties.com') {
+      return 'https://www.attaieproperties.com';
+    }
+    return cleaned;
   }
   const envUrl = (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/+$/, '');
   if (envUrl) return envUrl;
   if (typeof window !== 'undefined' && window.location?.origin) {
     return window.location.origin;
   }
-  return 'https://website.attaieproperties.com';
+  return 'https://www.attaieproperties.com';
 }
 
 export const SEO_CONFIG = {
@@ -521,9 +525,70 @@ export function buildAgentSeo(agent: Agent | null, fallbackId?: string | number)
 }
 
 /**
+ * Dynamically generates SEO metadata and JobPosting JSON-LD for a Career Detail page.
+ */
+export function buildCareerSeo(job: CareerJob | null, fallbackId?: string | number): SeoMetadata {
+  const idPart = job?.id ?? fallbackId ?? '';
+  const canonicalUrl = resolveAbsoluteUrl(`/careers/${idPart}`);
+
+  if (!job) {
+    return {
+      title: 'Career Opportunity | Attaie Properties',
+      description: 'Explore career opportunities and apply to join Attaie Properties in Kabul, Afghanistan.',
+      canonicalUrl,
+      ogType: 'article',
+      ogImage: SEO_CONFIG.defaultImage,
+    };
+  }
+
+  const title = `${job.title} (${job.employment_type}) — Careers in ${job.location} | ${SEO_CONFIG.siteName}`;
+  const description = truncateMetaDescription(
+    job.description && job.description.trim().length > 20
+      ? `${job.title} in ${job.location}: ${job.description.trim()}`
+      : `Apply for ${job.title} (${job.employment_type}) at Attaie Properties in ${job.location}.`,
+    158
+  );
+
+  const jsonLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'JobPosting',
+    title: job.title,
+    description,
+    employmentType: job.employment_type,
+    datePosted: job.created_at ? job.created_at.slice(0, 10) : undefined,
+    validThrough: job.deadline_at,
+    hiringOrganization: {
+      '@type': 'Organization',
+      name: SEO_CONFIG.siteName,
+      sameAs: SEO_CONFIG.siteUrl,
+      logo: SEO_CONFIG.defaultImage,
+    },
+    jobLocation: {
+      '@type': 'Place',
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: job.location || 'Kabul',
+        addressCountry: 'AF',
+      },
+    },
+  };
+
+  return {
+    title,
+    description,
+    canonicalUrl,
+    ogType: 'article',
+    ogImage: SEO_CONFIG.defaultImage,
+    ogImageAlt: `${job.title} — ${SEO_CONFIG.siteName}`,
+    keywords: [job.title, job.employment_type, 'Kabul jobs', 'Attaie Properties careers', 'real estate jobs Afghanistan'].filter(Boolean),
+    jsonLd,
+  };
+}
+
+/**
  * Static page SEO presets for core routes.
  */
-export const PAGE_SEO: Record<'home' | 'properties' | 'projects' | 'agents' | 'about' | 'contact' | 'notFound', SeoMetadata> = {
+export const PAGE_SEO: Record<'home' | 'properties' | 'projects' | 'agents' | 'careers' | 'about' | 'contact' | 'notFound', SeoMetadata> = {
   home: {
     get title() {
       return SEO_CONFIG.defaultTitle;
@@ -659,6 +724,36 @@ export const PAGE_SEO: Record<'home' | 'properties' | 'projects' | 'agents' | 'a
         name: 'Our Real Estate Advisors & Agents | Attaie Properties',
         description:
           'Meet the experienced Kabul property advisors and agents at Attaie Properties ready to assist with buying, selling, and leasing.',
+        url,
+      };
+    },
+  },
+  careers: {
+    title: 'Careers & Job Opportunities in Kabul | Attaie Properties',
+    description:
+      'Join Attaie Properties in Kabul, Afghanistan. Browse open real estate sales, engineering, marketing, and operations positions and apply online.',
+    get canonicalUrl() {
+      return `${SEO_CONFIG.siteUrl}/careers`;
+    },
+    ogType: 'website',
+    get ogImage() {
+      return SEO_CONFIG.defaultImage;
+    },
+    ogImageAlt: 'Careers at Attaie Properties Kabul',
+    keywords: [
+      'Attaie Properties careers',
+      'jobs in Kabul',
+      'real estate jobs Afghanistan',
+      'property advisor jobs Kabul',
+    ],
+    get jsonLd() {
+      const url = `${SEO_CONFIG.siteUrl}/careers`;
+      return {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: 'Careers & Job Opportunities in Kabul | Attaie Properties',
+        description:
+          'Join Attaie Properties in Kabul, Afghanistan. Browse open positions and submit your job application online.',
         url,
       };
     },

@@ -99,6 +99,11 @@ const Footer = () => {
                   {t('nav.projects')}
                 </a>
               </motion.li>
+              <motion.li variants={{ hidden: { opacity: 0, x: -8 }, visible: { opacity: 1, x: 0 } }}>
+                <a href="/careers" className="text-neutral-600 hover:text-brand-gold transition-colors text-sm link-underline">
+                  {t('nav.careers')}
+                </a>
+              </motion.li>
             </motion.ul>
           </div>
 
