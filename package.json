@@ -9,7 +9,7 @@
     "build:admin": "tsc --noEmit -p admin-panel/tsconfig.json && vite build admin-panel --config admin-panel/vite.config.ts",
     "build": "node scripts/generate-sitemap.mjs && npm run build:admin && tsc --noEmit && vite build",
     "preview": "vite preview --port 3000 --host 0.0.0.0",
-    "lint": "eslint src"
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

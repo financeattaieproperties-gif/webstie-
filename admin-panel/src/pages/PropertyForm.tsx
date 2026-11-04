@@ -30,7 +30,8 @@ const S = {
 const blank: PropertyInput = {
   serial_number: '', title: '', price: 0, location: '', beds: null, baths: null,
   area: null, floor: null, status: 'available', type: 'Villa',
-  listing_type: 'sale', image_url: null, gallery_images: [], video_url: null, description: null,
+  listing_type: 'sale', image_url: null, gallery_images: [], video_url: null,
+  floor_plan_url: null, three_d_plan_url: null, description: null,
 };
 
 export default function PropertyForm() {
@@ -49,7 +50,12 @@ export default function PropertyForm() {
       const found = list.find(p => Number(p.id) === Number(id));
       if (found) {
         const { id: _id, created_at: _ca, ...rest } = found;
-        setForm(rest);
+        setForm({
+          ...blank,
+          ...rest,
+          floor_plan_url: rest.floor_plan_url ?? null,
+          three_d_plan_url: rest.three_d_plan_url ?? null,
+        });
       }
     }).finally(() => setLoading(false));
   }, [id, isEdit]);
@@ -209,6 +215,32 @@ export default function PropertyForm() {
                   )}
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Blueprints: 2D Floor Plan & 3D Plan */}
+          <div style={{ ...S.section, ...S.divider }}>
+            <p style={S.secTitle}>Property Blueprints (Floor Plan & 3D Plan)</p>
+            <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '1rem' }}>
+              Optional technical drawings (JPEG or PNG only). Shown in a dedicated Blueprint viewer on the property page and kept separate from the photo gallery.
+            </p>
+            <div style={S.grid}>
+              <div>
+                <label style={S.label}>2D Floor Plan (JPEG / PNG)</label>
+                <ImageUpload
+                  purpose="blueprint"
+                  value={form.floor_plan_url ?? null}
+                  onChange={url => set('floor_plan_url', url)}
+                />
+              </div>
+              <div>
+                <label style={S.label}>3D Plan (JPEG / PNG)</label>
+                <ImageUpload
+                  purpose="blueprint"
+                  value={form.three_d_plan_url ?? null}
+                  onChange={url => set('three_d_plan_url', url)}
+                />
+              </div>
             </div>
           </div>
 

@@ -19,7 +19,9 @@ function format_property_row(array $row): array {
     $row['baths'] = $row['baths'] !== null ? (int) $row['baths']  : null;
     $row['area']  = $row['area']  !== null ? (float) $row['area'] : null;
     $row['floor'] = $row['floor'] !== null ? (int) $row['floor']  : null;
-    $row['gallery_images'] = decode_gallery($row['gallery_images'] ?? null);
+    $row['gallery_images']   = decode_gallery($row['gallery_images'] ?? null);
+    $row['floor_plan_url']   = !empty($row['floor_plan_url']) ? $row['floor_plan_url'] : null;
+    $row['three_d_plan_url'] = !empty($row['three_d_plan_url']) ? $row['three_d_plan_url'] : null;
     return $row;
 }
 
@@ -58,17 +60,19 @@ if ($method === 'POST') {
     $gallery = isset($b['gallery_images']) && is_array($b['gallery_images'])
                ? json_encode(array_values(array_filter($b['gallery_images'])))
                : null;
-    $video   = isset($b['video_url']) && trim((string) $b['video_url']) !== '' ? trim((string) $b['video_url']) : null;
+    $video      = isset($b['video_url']) && trim((string) $b['video_url']) !== '' ? trim((string) $b['video_url']) : null;
+    $floorPlan  = isset($b['floor_plan_url']) && trim((string) $b['floor_plan_url']) !== '' ? trim((string) $b['floor_plan_url']) : null;
+    $threeDPlan = isset($b['three_d_plan_url']) && trim((string) $b['three_d_plan_url']) !== '' ? trim((string) $b['three_d_plan_url']) : null;
 
     $stmt = db()->prepare(
-        'INSERT INTO properties (serial_number,title,price,location,beds,baths,area,floor,status,type,listing_type,image_url,description,gallery_images,video_url)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+        'INSERT INTO properties (serial_number,title,price,location,beds,baths,area,floor,status,type,listing_type,image_url,description,gallery_images,video_url,floor_plan_url,three_d_plan_url)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
     );
-    $stmt->bind_param('ssdsiidisssssss',
+    $stmt->bind_param('ssdsiidisssssssss',
         $serial, $title, $price, $loc,
         $beds, $baths, $area, $floor,
         $status, $type, $ltype,
-        $img, $desc, $gallery, $video
+        $img, $desc, $gallery, $video, $floorPlan, $threeDPlan
     );
     if (!$stmt->execute()) {
         if (db()->errno === 1062) {
@@ -104,17 +108,19 @@ if ($method === 'PUT') {
     $gallery = isset($b['gallery_images']) && is_array($b['gallery_images'])
                ? json_encode(array_values(array_filter($b['gallery_images'])))
                : null;
-    $video   = isset($b['video_url']) && trim((string) $b['video_url']) !== '' ? trim((string) $b['video_url']) : null;
+    $video      = isset($b['video_url']) && trim((string) $b['video_url']) !== '' ? trim((string) $b['video_url']) : null;
+    $floorPlan  = isset($b['floor_plan_url']) && trim((string) $b['floor_plan_url']) !== '' ? trim((string) $b['floor_plan_url']) : null;
+    $threeDPlan = isset($b['three_d_plan_url']) && trim((string) $b['three_d_plan_url']) !== '' ? trim((string) $b['three_d_plan_url']) : null;
 
     $stmt = db()->prepare(
         'UPDATE properties SET serial_number=?,title=?,price=?,location=?,beds=?,baths=?,area=?,floor=?,
-         status=?,type=?,listing_type=?,image_url=?,description=?,gallery_images=?,video_url=? WHERE id=?'
+         status=?,type=?,listing_type=?,image_url=?,description=?,gallery_images=?,video_url=?,floor_plan_url=?,three_d_plan_url=? WHERE id=?'
     );
-    $stmt->bind_param('ssdsiidisssssssi',
+    $stmt->bind_param('ssdsiidisssssssssi',
         $serial, $title, $price, $loc,
         $beds, $baths, $area, $floor,
         $status, $type, $ltype,
-        $img, $desc, $gallery, $video, $id
+        $img, $desc, $gallery, $video, $floorPlan, $threeDPlan, $id
     );
     if (!$stmt->execute()) {
         if (db()->errno === 1062) {

@@ -1,9 +1,7 @@
 <?php
 require_once __DIR__ . '/db.php';
 cors();
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+init_secure_session();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     json_out(['error' => 'POST only'], 405);
@@ -45,7 +43,10 @@ if (!$authenticated) {
     json_out(['error' => 'Invalid credentials'], 401);
 }
 
+session_regenerate_id(true);
 $_SESSION['admin'] = true;
 $_SESSION['admin_user'] = $user;
-json_out(['success' => true]);
+$_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+json_out(['success' => true, 'csrf_token' => $_SESSION['csrf_token']]);
+
 

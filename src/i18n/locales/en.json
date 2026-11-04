@@ -52,5 +52,68 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "langToggle": "فارسی"
+  },
+  "blueprint": {
+    "button": "Blueprint",
+    "eyebrow": "Technical Plans",
+    "title": "{{title}} — Blueprint",
+    "floorPlanTab": "Floor plan",
+    "threeDPlanTab": "3D plan",
+    "floorPlanAlt": "2D floor plan for {{title}}",
+    "threeDPlanAlt": "3D architectural plan for {{title}}",
+    "openFullSize": "Open full size",
+    "close": "Close blueprint viewer"
+  },
+  "visitDialog": {
+    "requestVisitBtn": "Request a Visit",
+    "eyebrow": "Request a visit",
+    "titlePrefix": "Visit {{target}}",
+    "subtitle": "We will confirm your requested time by phone.",
+    "closeLabel": "Close visit form",
+    "successTitle": "Visit requested",
+    "successBody": "Your requested time is pending confirmation. Our team will call you shortly.",
+    "closeBtn": "Close",
+    "fullName": "Full name",
+    "phone": "Afghan mobile number",
+    "date": "Date",
+    "time": "Time",
+    "hoursHint": "Saturday–Thursday, 07:00–20:00 Afghanistan Time. Friday is closed.",
+    "fridayClosed": "Friday is closed. Select another date.",
+    "fridayError": "Friday is unavailable. Choose Saturday through Thursday.",
+    "sending": "Sending request…",
+    "submitBtn": "Request visit",
+    "defaultError": "Could not request a visit."
+  },
+  "projectUnits": {
+    "eyebrow": "Apartments by floor",
+    "title": "Available apartments",
+    "masterPlan": "Master plan",
+    "loading": "Loading apartments…",
+    "empty": "Apartment availability will be published soon.",
+    "error": "Could not load apartments right now.",
+    "retry": "Try again",
+    "floor": "Floor {{floor}}",
+    "otherFloor": "Other",
+    "apartmentsCount": "({{count}} apartments)",
+    "unitPrefix": "Unit {{number}}",
+    "beds": "{{count}} beds",
+    "baths": "{{count}} baths",
+    "requestVisit": "Request a visit",
+    "projectApartmentBadge": "Project Apartment",
+    "viewInProject": "View in {{project}}"
+  },
+  "projectsPage": {
+    "eyebrow": "Kabul developments",
+    "title": "Signature Projects",
+    "subtitle": "Explore projects by status, then open a project to see its gallery, video, master plan, and apartments by floor.",
+    "loading": "Loading projects…",
+    "empty": "No projects in this category yet.",
+    "filters": {
+      "All": "All",
+      "Coming Soon": "Coming Soon",
+      "In Progress": "In Progress",
+      "Sold Out": "Sold Out"
+    }
   }
 }
+

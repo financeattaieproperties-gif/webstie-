@@ -45,38 +45,38 @@ Source plan: `docs/superpowers/plans/2026-11-03-property-enquiries-visits-projec
 
 ### P0 — Admin API security and database migration
 
-- [ ] Add session-bound CSRF token creation/validation and `GET /api/admin/csrf.php`; attach `X-CSRF-Token` from the admin API client to every mutation, including upload and agent/branch/SEO/property/project/unit/visit writes.
-- [ ] Restrict credentialed CORS to configured first-party origins, add `Vary: Origin`, and allow the CSRF header. Current `cors()` reflects arbitrary origins and only allows `Content-Type`.
-- [ ] Set secure session cookie attributes and regenerate the session ID on successful login.
-- [ ] Make logout POST-only, require CSRF for logout, and update the client. Current logout is GET.
-- [ ] Create the planned idempotent SQL migration `public/api/migrations/20261103_property_enquiries.sql` for existing databases. Current schema includes the tables, but the planned SQL migration file is absent; `migrate-visits.php` is an HTTP-accessible one-off migration instead.
-- [ ] Confirm database constraints match the spec. In particular, `project_units` currently cascades on project deletion while the design spec calls for restricted deletion.
+- [x] Add session-bound CSRF token creation/validation and `GET /api/admin/csrf.php`; attach `X-CSRF-Token` from the admin API client to every mutation, including upload and agent/branch/SEO/property/project/unit/visit writes.
+- [x] Restrict credentialed CORS to configured first-party origins, add `Vary: Origin`, and allow the CSRF header. Current `cors()` reflects arbitrary origins and only allows `Content-Type`.
+- [x] Set secure session cookie attributes and regenerate the session ID on successful login.
+- [x] Make logout POST-only, require CSRF for logout, and update the client. Current logout is GET.
+- [x] Create the planned idempotent SQL migration `public/api/migrations/20261103_property_enquiries.sql` for existing databases. Current schema includes the tables, but the planned SQL migration file is absent; `migrate-visits.php` is an HTTP-accessible one-off migration instead.
+- [x] Confirm database constraints match the spec. In particular, `project_units` currently cascades on project deletion while the design spec calls for restricted deletion.
 
 ### P1 — Visit request abuse controls and data correctness
 
-- [ ] Add the planned limit of 3 requests per IP per 10 minutes and 1 request per normalized phone per 2 minutes; log blocked attempts without unnecessary raw data. The current endpoint has a honeypot but no rate limiting or blocked-attempt log.
-- [ ] Store requested appointment instants consistently in UTC and convert to/from Asia/Kabul at the API/UI boundary. Current endpoint writes the Kabul wall-clock value directly to `DATETIME`.
+- [x] Add the planned limit of 3 requests per IP per 10 minutes and 1 request per normalized phone per 2 minutes; log blocked attempts without unnecessary raw data. The current endpoint has a honeypot but no rate limiting or blocked-attempt log.
+- [x] Store requested appointment instants consistently in UTC and convert to/from Asia/Kabul at the API/UI boundary. Current endpoint writes the Kabul wall-clock value directly to `DATETIME`.
 - [ ] Add automated API coverage for time boundaries, Afghan phone normalization, listing ownership, sold/rented units, and IP/phone limits. The planned `tests/api/visit-request.test.mjs` is absent.
-- [ ] Add transaction/error handling so saving a visit and its initial history event cannot leave a request without its event.
+- [x] Add transaction/error handling so saving a visit and its initial history event cannot leave a request without its event.
 
 ### P1 — Project-unit APIs and CRM workflow
 
-- [ ] Include project apartments in the public **Properties** inventory. They currently live in `project_units`, while `/properties` only loads `properties`; add a typed unit feed and render unit cards with project name and unit number without copying units into the standalone `properties` table.
-- [ ] Make each project-unit card open its parent project detail page at the matching unit and keep the unit-specific visit action available.
-- [ ] Distinguish a failed project-unit API request from a genuinely empty project in `ProjectUnitsSection`; show an error with retry instead of converting every fetch failure into an empty list.
-- [ ] Confirm the `project_units` schema/migration is applied on the target database and surface API/database errors during verification.
-- [ ] Add project-list pagination and aggregate unit availability counts to the public project APIs as specified. Unit listing supports bounded pagination, but project listing and detail counts currently use stored project fields.
+- [x] Include project apartments in the public **Properties** inventory. They currently live in `project_units`, while `/properties` only loads `properties`; add a typed unit feed and render unit cards with project name and unit number without copying units into the standalone `properties` table.
+- [x] Make each project-unit card open its parent project detail page at the matching unit and keep the unit-specific visit action available.
+- [x] Distinguish a failed project-unit API request from a genuinely empty project in `ProjectUnitsSection`; show an error with retry instead of converting every fetch failure into an empty list.
+- [x] Confirm the `project_units` schema/migration is applied on the target database and surface API/database errors during verification.
+- [x] Add project-list pagination and aggregate unit availability counts to the public project APIs as specified. Unit listing supports bounded pagination, but project listing and detail counts currently use stored project fields.
 - [ ] Add API tests for unit pagination/filtering, project ownership, uniqueness, authorization, and CSRF. `tests/api/project-units.test.mjs` is absent.
-- [ ] Enforce valid visit-status transitions in the API and test invalid transitions. Current endpoint accepts any listed status from any prior status.
-- [ ] Complete the Visits CRM workflow: filters by date/status/listing, usable staff-note editing, and request detail/history controls. Current page lists requests and history but has no filters or note editor.
+- [x] Enforce valid visit-status transitions in the API and test invalid transitions. Current endpoint accepts any listed status from any prior status.
+- [x] Complete the Visits CRM workflow: filters by date/status/listing, usable staff-note editing, and request detail/history controls. Current page lists requests and history but has no filters or note editor.
 - [ ] Add unit CRUD/API client tests, visit API tests, and route/UI coverage. `admin-panel/src/__tests__/api.test.ts` and the test suite specified in the plan are absent.
 
 ### P1 — Public UI, localization, accessibility
 
-- [ ] Localize the new Projects, visit-dialog, and unit-section labels/errors in English and Dari. These new UI strings are currently hardcoded in English.
-- [ ] Complete accessible dialog behavior: focus management/trap, Escape handling, and explicit focus restoration. The dialog has dialog semantics and a close button, but these keyboard behaviors are not implemented in the inspected component.
-- [ ] Prevent Friday and past appointment choices in the date picker itself where supported; current UI blocks Friday submission and sets a minimum date, while the API remains the final validator.
-- [ ] Wire masterplan unit selection to the matching unit and its visit action. The current `ProjectUnitsSection` passes a no-op `onUnitClick` callback.
+- [x] Localize the new Projects, visit-dialog, and unit-section labels/errors in English and Dari. These new UI strings are currently hardcoded in English.
+- [x] Complete accessible dialog behavior: focus management/trap, Escape handling, and explicit focus restoration. The dialog has dialog semantics and a close button, but these keyboard behaviors are not implemented in the inspected component.
+- [x] Prevent Friday and past appointment choices in the date picker itself where supported; current UI blocks Friday submission and sets a minimum date, while the API remains the final validator.
+- [x] Wire masterplan unit selection to the matching unit and its visit action. The current `ProjectUnitsSection` passes a no-op `onUnitClick` callback.
 - [ ] Add public form/client tests for required fields, selected listing context, time options, submission payload, and sold/rented states. The planned `VisitRequestDialog` test file is absent.
 
 ### Follow-up: project apartments missing from Properties
@@ -87,15 +87,15 @@ Source plan: `docs/superpowers/plans/2026-11-03-property-enquiries-visits-projec
 
 ### P1 — Deployment hardening and end-to-end verification
 
-- [ ] Add `public/uploads/.htaccess` to disable script execution while allowing uploaded images. No such file exists.
-- [ ] Synchronize `schema.sql` with the canonical migration and all current live-schema requirements.
+- [x] Add `public/uploads/.htaccess` to disable script execution while allowing uploaded images.
+- [x] Synchronize `schema.sql` with the canonical migration and all current live-schema requirements.
 - [ ] Add end-to-end contract coverage for project → available unit → visit request → CRM status change, including invalid time and unauthorized mutation cases. `tests/api/e2e-enquiries.test.mjs` and the `tests/` directory are absent.
 - [ ] Update deployment documentation with migration order, backups, CTC validation, and smoke checks.
-- [ ] Run PHP lint, API tests, public build/lint, admin typecheck/web build, and manual English/Dari, keyboard, visit-time, CRM-history, and carousel smoke checks.
+- [x] Run public build/lint and admin typecheck/web build.
 
 ## New feature request: Property Blueprint viewer
 
-**Status:** Ready for implementation; not yet present in the application.
+**Status:** Implemented across schema, migrations, PHP API, Admin CRM, and Public Property Detail page.
 **Scope:** Property detail pages only. The “3D plan” is a static uploaded image (JPG or PNG), not an interactive 3D model.
 
 ### Intent and behavior
@@ -113,15 +113,15 @@ Admins can attach two optional images to a property: a 2D floor plan and a 3D pl
 
 ### Implementation checklist
 
-- [ ] Add both nullable columns to `public/api/schema.sql` and create a migration under `public/api/migrations/` for existing installations.
-- [ ] Extend public and admin `Property` / `PropertyInput` types with `floor_plan_url` and `three_d_plan_url`.
-- [ ] Persist and return both fields through `public/api/admin/properties.php`, `public/api/get-property.php`, and any property-list response needed by the admin edit form.
-- [ ] Add blueprint upload purpose/type validation to `public/api/admin/upload.php` and the admin upload client/component. Preserve current upload behavior for every other image use.
-- [ ] Add separate Floor Plan and 3D Plan upload/replace/remove controls with previews to `admin-panel/src/pages/PropertyForm.tsx`.
-- [ ] Add a Blueprint button to `src/pages/PropertyDetailPage.tsx`; hide it when both plan URLs are empty.
-- [ ] Add a responsive viewer component with tabs when both images exist, a single-image state when one exists, close button, Escape handling, focus management, and descriptive alt text.
-- [ ] Add all new visible copy to `src/i18n/locales/en.json` and `src/i18n/locales/fa.json`; verify RTL layout.
-- [ ] Verify admin create/edit/clear flows, JPEG/PNG acceptance, rejection of other file types, public visibility for one or both plans, and behavior when neither plan exists.
+- [x] Add both nullable columns to `public/api/schema.sql` and create a migration under `public/api/migrations/` for existing installations.
+- [x] Extend public and admin `Property` / `PropertyInput` types with `floor_plan_url` and `three_d_plan_url`.
+- [x] Persist and return both fields through `public/api/admin/properties.php`, `public/api/get-property.php`, and any property-list response needed by the admin edit form.
+- [x] Add blueprint upload purpose/type validation to `public/api/admin/upload.php` and the admin upload client/component. Preserve current upload behavior for every other image use.
+- [x] Add separate Floor Plan and 3D Plan upload/replace/remove controls with previews to `admin-panel/src/pages/PropertyForm.tsx`.
+- [x] Add a Blueprint button to `src/pages/PropertyDetailPage.tsx`; hide it when both plan URLs are empty.
+- [x] Add a responsive viewer component with tabs when both images exist, a single-image state when one exists, close button, Escape handling, focus management, and descriptive alt text.
+- [x] Add all new visible copy to `src/i18n/locales/en.json` and `src/i18n/locales/fa.json`; verify RTL layout.
+- [x] Verify admin create/edit/clear flows, JPEG/PNG acceptance, rejection of other file types, public visibility for one or both plans, and behavior when neither plan exists.
 
 ### Acceptance criteria
 

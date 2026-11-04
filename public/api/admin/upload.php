@@ -12,11 +12,24 @@ if (empty($_FILES['image'])) {
 }
 
 $file     = $_FILES['image'];
-$allowed  = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+$purpose  = trim((string) ($_POST['purpose'] ?? $_GET['purpose'] ?? ''));
+$isBlueprint = ($purpose === 'blueprint');
+
+$allowed  = $isBlueprint
+    ? ['image/jpeg', 'image/png']
+    : ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+$allowedExts = $isBlueprint
+    ? ['jpg', 'jpeg', 'png']
+    : ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 $maxBytes = 5 * 1024 * 1024;
 
-if (!in_array($file['type'], $allowed)) {
-    json_out(['error' => 'Only JPEG, PNG, WebP, GIF allowed'], 400);
+$ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+if (!in_array($file['type'], $allowed, true) || !in_array($ext, $allowedExts, true)) {
+    json_out([
+        'error' => $isBlueprint
+            ? 'Only JPEG and PNG files are allowed for blueprints'
+            : 'Only JPEG, PNG, WebP, GIF allowed'
+    ], 400);
 }
 if ($file['size'] > $maxBytes) {
     json_out(['error' => 'File exceeds 5 MB limit'], 400);
@@ -27,8 +40,8 @@ if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0755, true);
 }
 
-$ext      = pathinfo($file['name'], PATHINFO_EXTENSION);
-$filename = uniqid('img_', true) . '.' . strtolower($ext);
+$prefix   = $isBlueprint ? 'plan_' : 'img_';
+$filename = uniqid($prefix, true) . '.' . $ext;
 $dest     = $uploadDir . $filename;
 
 if (!move_uploaded_file($file['tmp_name'], $dest)) {
@@ -36,3 +49,4 @@ if (!move_uploaded_file($file['tmp_name'], $dest)) {
 }
 
 json_out(['url' => '/uploads/' . $filename]);
+

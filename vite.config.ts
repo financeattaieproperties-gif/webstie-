@@ -31,11 +31,336 @@ function sendJson(res: ServerResponse, data: unknown, status = 200) {
 }
 
 function createMockPhpApiPlugin(): Plugin {
-  let properties: any[] = [];
-  let projects: any[] = [];
-  let projectUnits: any[] = [];
-  let agents: any[] = [];
-  let branches: any[] = [];
+  let properties: any[] = [
+    {
+      id: 1,
+      serial_number: 'AP-101',
+      title: 'Exclusive Luxury Villa in Wazir Akbar Khan',
+      price: 650000,
+      location: 'Street 13, Wazir Akbar Khan, Kabul',
+      beds: 5,
+      baths: 6,
+      area: 650,
+      floor: 2,
+      status: 'available',
+      type: 'Villa',
+      listing_type: 'sale',
+      image_url: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1200&q=80',
+      gallery_images: [
+        'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80',
+      ],
+      video_url: null,
+      floor_plan_url: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1200&q=80',
+      three_d_plan_url: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=1200&q=80',
+      description: 'A prestigious 5-bedroom luxury estate in the heart of diplomatic Wazir Akbar Khan. Features landscaped courtyard gardens, high-security perimeter, imported marble flooring, dual generator backup, and modern central heating.',
+      created_at: '2026-01-15T10:00:00.000Z',
+    },
+    {
+      id: 2,
+      serial_number: 'AP-102',
+      title: 'Contemporary High-Rise Apartment in Shahr-e-Naw',
+      price: 185000,
+      location: 'Ansari Square, Shahr-e-Naw, Kabul',
+      beds: 3,
+      baths: 2,
+      area: 175,
+      floor: 7,
+      status: 'available',
+      type: 'Apartment',
+      listing_type: 'sale',
+      image_url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
+      gallery_images: [
+        'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80',
+      ],
+      video_url: null,
+      floor_plan_url: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1200&q=80',
+      three_d_plan_url: null,
+      description: 'Sunlit 3-bedroom luxury apartment with sweeping views across the Kabul skyline. Includes smart climate control, elevator access with continuous power, underground parking, and 24/7 building reception.',
+      created_at: '2026-02-01T12:00:00.000Z',
+    },
+    {
+      id: 3,
+      serial_number: 'AP-103',
+      title: 'Prime Commercial Plaza Space on Kolola Pushta Main',
+      price: 3200,
+      location: 'Kolola Pushta Main Boulevard, Kabul',
+      beds: null,
+      baths: 2,
+      area: 320,
+      floor: 1,
+      status: 'available',
+      type: 'Commercial',
+      listing_type: 'rent',
+      image_url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
+      gallery_images: [
+        'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1200&q=80',
+      ],
+      video_url: null,
+      floor_plan_url: null,
+      three_d_plan_url: null,
+      description: 'High-visibility retail and corporate office premises directly fronting Kolola Pushta thoroughfare. Features floor-to-ceiling glass display, dedicated customer parking, and backup generator.',
+      created_at: '2026-02-10T14:30:00.000Z',
+    },
+    {
+      id: 4,
+      serial_number: 'AP-104',
+      title: 'Classic Family Residence with Private Garden',
+      price: 290000,
+      location: 'Street 5, Karte Se, Kabul',
+      beds: 4,
+      baths: 3,
+      area: 350,
+      floor: 2,
+      status: 'available',
+      type: 'House',
+      listing_type: 'sale',
+      image_url: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=80',
+      gallery_images: [
+        'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=80',
+      ],
+      video_url: null,
+      floor_plan_url: null,
+      three_d_plan_url: null,
+      description: 'Charming family home in quiet residential Karte Se with fruit trees, traditional Afghan reception room (Mehman Khana), modern kitchen, and solar electrical integration.',
+      created_at: '2026-02-15T09:00:00.000Z',
+    },
+    {
+      id: 5,
+      serial_number: 'AP-105',
+      title: 'Luxury Penthouse with Mountain Panoramas',
+      price: 1600,
+      location: 'Block 4, Macrorayan, Kabul',
+      beds: 3,
+      baths: 3,
+      area: 220,
+      floor: 9,
+      status: 'available',
+      type: 'Apartment',
+      listing_type: 'rent',
+      image_url: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80',
+      gallery_images: [
+        'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80',
+      ],
+      video_url: null,
+      floor_plan_url: null,
+      three_d_plan_url: null,
+      description: 'Top-floor penthouse apartment with wrap-around terrace offering unobstructed views of the Hindu Kush mountains. High security, 24/7 power, and fiber optic connection.',
+      created_at: '2026-02-20T11:00:00.000Z',
+    },
+    {
+      id: 6,
+      serial_number: 'AP-106',
+      title: 'Diplomatic Compound with Enhanced Security',
+      price: 850000,
+      location: 'Sherpur Diplomatic Enclave, Kabul',
+      beds: 6,
+      baths: 7,
+      area: 780,
+      floor: 3,
+      status: 'available',
+      type: 'Villa',
+      listing_type: 'sale',
+      image_url: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80',
+      gallery_images: [
+        'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80',
+      ],
+      video_url: null,
+      floor_plan_url: null,
+      three_d_plan_url: null,
+      description: 'High-spec diplomatic villa with gated vehicular entrance, secure guard post, conference room, swimming pool, and independent staff quarters.',
+      created_at: '2026-03-01T08:00:00.000Z',
+    },
+  ];
+
+  let projects: any[] = [
+    {
+      id: 1,
+      name: 'The Kabul Heights',
+      location: 'Ansari Boulevard, Shahr-e-Naw, Kabul',
+      delivery_date: 'Q4 2027',
+      status: 'Under Construction',
+      available_units: 2,
+      total_units: 3,
+      image_url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80',
+      gallery_images: [
+        'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
+      ],
+      video_url: null,
+      masterplan_image: null,
+      description: "Kabul's premiere mixed-use architectural landmark. Combining luxury residences with executive retail, fitness center, underground parking, and smart building automation.",
+      created_at: '2026-01-10T00:00:00.000Z',
+    },
+    {
+      id: 2,
+      name: 'Wazir Luxury Residences',
+      location: 'Street 15, Wazir Akbar Khan, Kabul',
+      delivery_date: 'Ready to Move',
+      status: 'Ready',
+      available_units: 6,
+      total_units: 18,
+      image_url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+      gallery_images: [
+        'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+      ],
+      video_url: null,
+      masterplan_image: null,
+      description: "A boutique development of ultra-luxury apartments situated in Kabul's most secure diplomatic neighborhood.",
+      created_at: '2026-01-20T00:00:00.000Z',
+    },
+    {
+      id: 3,
+      name: 'Emerald Business Tower',
+      location: 'Kolola Pushta Central, Kabul',
+      delivery_date: 'Q2 2027',
+      status: 'In Progress',
+      available_units: 14,
+      total_units: 32,
+      image_url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
+      gallery_images: [
+        'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
+      ],
+      video_url: null,
+      masterplan_image: null,
+      description: 'State-of-the-art office spaces designed for international organizations, tech companies, and corporate headquarters.',
+      created_at: '2026-02-05T00:00:00.000Z',
+    },
+  ];
+
+  let projectUnits: any[] = [
+    {
+      id: 1,
+      project_id: 1,
+      unit_number: 'KH-402',
+      title: 'Standard 2-Bedroom Suite',
+      beds: 2,
+      baths: 2,
+      area: 130,
+      floor: 4,
+      price: 145000,
+      currency: 'USD',
+      status: 'available',
+      image_url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
+      description: 'Spacious 2-bedroom with west-facing balcony.',
+    },
+    {
+      id: 2,
+      project_id: 1,
+      unit_number: 'KH-701',
+      title: 'Executive 3-Bedroom Corner Suite',
+      beds: 3,
+      baths: 3,
+      area: 185,
+      floor: 7,
+      price: 195000,
+      currency: 'USD',
+      status: 'available',
+      image_url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80',
+      description: 'Panoramic corner unit with city views.',
+    },
+    {
+      id: 3,
+      project_id: 1,
+      unit_number: 'KH-901',
+      title: 'Sky Penthouse',
+      beds: 4,
+      baths: 4,
+      area: 270,
+      floor: 9,
+      price: 320000,
+      currency: 'USD',
+      status: 'reserved',
+      image_url: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80',
+      description: 'Top-floor penthouse with private rooftop terrace.',
+    },
+  ];
+
+  let agents: any[] = [
+    {
+      id: 1,
+      name: 'Ahmad Attaie',
+      role: 'Founder & Managing Director',
+      background: 'With over 15 years in Afghan and international real estate, Ahmad founded Attaie Properties to bring institutional transparency, security compliance, and premium service to Kabul property transactions.',
+      portrait_url: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80',
+      phone: '+93 78 222 2279',
+      email: 'ahmad@attaieproperties.com',
+      whatsapp: '93782222279',
+      published: true,
+      created_at: '2026-01-01T00:00:00.000Z',
+    },
+    {
+      id: 2,
+      name: 'Zahra Karimi',
+      role: 'Senior Residential Advisor',
+      background: 'Specializing in luxury villas and family residences across Wazir Akbar Khan and Shahr-e-Naw, Zahra guides buyers and expatriate tenants through every stage of their search.',
+      portrait_url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80',
+      phone: '+93 78 222 2280',
+      email: 'zahra@attaieproperties.com',
+      whatsapp: '93782222280',
+      published: true,
+      created_at: '2026-01-05T00:00:00.000Z',
+    },
+    {
+      id: 3,
+      name: 'Mohammad Ramin',
+      role: 'Commercial & Land Specialist',
+      background: "Expert in commercial plazas, development plots, and retail leases throughout Kabul's business districts, providing thorough deed verification and valuation.",
+      portrait_url: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=800&q=80',
+      phone: '+93 78 222 2281',
+      email: 'ramin@attaieproperties.com',
+      whatsapp: '93782222281',
+      published: true,
+      created_at: '2026-01-10T00:00:00.000Z',
+    },
+  ];
+
+  let branches: any[] = [
+    {
+      id: 1,
+      name: 'Main Headquarters — Wazir Akbar Khan',
+      address: 'Street 13, Wazir Akbar Khan, Kabul, Afghanistan',
+      phone: '+93 78 222 2279',
+      email: 'info@attaieproperties.com',
+      created_at: '2026-01-01T00:00:00.000Z',
+    },
+    {
+      id: 2,
+      name: 'Shahr-e-Naw Branch',
+      address: 'Ansari Square, Beside Park Mall, Shahr-e-Naw, Kabul',
+      phone: '+93 78 222 2280',
+      email: 'shahrenaw@attaieproperties.com',
+      created_at: '2026-01-05T00:00:00.000Z',
+    },
+    {
+      id: 3,
+      name: 'Kolola Pushta Office',
+      address: 'Opposite Traffic Square, Kolola Pushta, Kabul',
+      phone: '+93 78 222 2281',
+      email: 'kololapushta@attaieproperties.com',
+      created_at: '2026-01-10T00:00:00.000Z',
+    },
+  ];
+
+  let seoSettings: any = {
+    id: 1,
+    site_name: 'Attaie Properties',
+    default_title: 'Attaie Properties — Premier Real Estate in Kabul, Afghanistan',
+    title_template: '%s | Attaie Properties',
+    default_description: 'Browse verified luxury villas, modern apartments, commercial spaces, and development projects for sale and rent across Kabul with Attaie Properties.',
+    keywords: 'Attaie Properties, Kabul real estate, properties for sale in Kabul, properties for rent in Kabul, luxury villas Kabul, apartments in Kabul, Afghanistan property agency',
+    og_image: '/logo.png',
+    twitter_image: null,
+    twitter_card: 'summary_large_image',
+    twitter_site: '@AttaieProps',
+    canonical_base_url: 'https://website.attaieproperties.com',
+    robots_index: true,
+    updated_at: new Date().toISOString(),
+  };
+
   let leads: any[] = [];
   let visitRequests: any[] = [];
 
@@ -96,10 +421,23 @@ function createMockPhpApiPlugin(): Plugin {
       }
 
       if (pathname === '/api/get-project-units.php' && method === 'GET') {
-        const projectId = Number(parsedUrl.searchParams.get('project_id'));
+        const projectId = Number(parsedUrl.searchParams.get('project_id') || 0);
+        const all = parsedUrl.searchParams.get('all') === '1';
         const status = parsedUrl.searchParams.get('status');
-        let items = projectUnits.filter((u) => u.project_id === projectId);
+        let items = projectId > 0
+          ? projectUnits.filter((u) => u.project_id === projectId)
+          : all
+            ? [...projectUnits]
+            : [];
         if (status) items = items.filter((u) => u.status === status);
+        items = items.map((u) => {
+          const parent = projects.find((p) => p.id === u.project_id);
+          return {
+            ...u,
+            project_name: parent?.name || 'Development Project',
+            project_location: parent?.location || 'Kabul',
+          };
+        });
         return sendJson(res, { items, page: 1, limit: 50 });
       }
 
@@ -116,6 +454,10 @@ function createMockPhpApiPlugin(): Plugin {
 
       if (pathname === '/api/get-branches.php' && method === 'GET') {
         return sendJson(res, branches);
+      }
+
+      if (pathname === '/api/get-seo-settings.php' && method === 'GET') {
+        return sendJson(res, seoSettings);
       }
 
       if (pathname === '/api/submit-lead.php' && method === 'POST') {
@@ -166,8 +508,12 @@ function createMockPhpApiPlugin(): Plugin {
       }
 
       // Admin endpoints
+      if (pathname === '/api/admin/csrf.php' && method === 'GET') {
+        return sendJson(res, { csrf_token: 'dev-csrf-token' });
+      }
+
       if (pathname === '/api/admin-login.php' && method === 'POST') {
-        return sendJson(res, { success: true });
+        return sendJson(res, { success: true, csrf_token: 'dev-csrf-token' });
       }
 
       if (pathname === '/api/admin-logout.php') {
@@ -277,6 +623,22 @@ function createMockPhpApiPlugin(): Plugin {
         }
       }
 
+      if (pathname === '/api/admin/seo-settings.php') {
+        if (method === 'GET') return sendJson(res, seoSettings);
+        if (method === 'PUT') {
+          const body = await readBody(req);
+          seoSettings = { ...seoSettings, ...body, updated_at: new Date().toISOString() };
+          return sendJson(res, seoSettings);
+        }
+      }
+
+      if (pathname === '/api/admin/upload.php' && method === 'POST') {
+        // Return a mock URL for uploaded assets
+        return sendJson(res, {
+          url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+        });
+      }
+
       if (pathname === '/api/admin/leads.php' && method === 'GET') {
         return sendJson(res, leads);
       }
@@ -285,9 +647,20 @@ function createMockPhpApiPlugin(): Plugin {
         if (method === 'GET') return sendJson(res, visitRequests);
         if (method === 'PUT') {
           const body = await readBody(req);
-          visitRequests = visitRequests.map((v) =>
-            v.id === Number(body.id) ? { ...v, status: body.status, staff_note: body.staff_note } : v
-          );
+          visitRequests = visitRequests.map((v) => {
+            if (v.id !== Number(body.id)) return v;
+            const nextEvents = [
+              ...(v.events || []),
+              {
+                previous_status: v.status,
+                next_status: body.status,
+                actor: 'admin',
+                note: body.staff_note || null,
+                created_at: new Date().toISOString(),
+              },
+            ];
+            return { ...v, status: body.status, staff_note: body.staff_note, events: nextEvents };
+          });
           return sendJson(res, { success: true });
         }
       }
@@ -316,6 +689,8 @@ export default defineConfig({
   server: {
     port: 3000,
     host: '0.0.0.0',
+    allowedHosts: true,
+    hmr: false,
   },
   resolve: {
     alias: { '@': path.resolve(__dirname, './src') },

@@ -16,6 +16,8 @@ export interface Property {
   image_url: string | null;
   gallery_images: string[];
   video_url: string | null;
+  floor_plan_url?: string | null;
+  three_d_plan_url?: string | null;
   description: string | null;
   created_at: string;
 }
@@ -68,6 +70,8 @@ export interface Lead {
 export interface ProjectUnit {
   id: number;
   project_id: number;
+  project_name?: string;
+  project_location?: string;
   unit_number: string;
   title: string | null;
   beds: number | null;
@@ -145,6 +149,14 @@ export async function getBranches(): Promise<Branch[]> {
 export async function getProjectUnits(projectId: number): Promise<{ items: ProjectUnit[]; page: number; limit: number }> {
   const res = await fetch(`${API}/get-project-units.php?project_id=${projectId}`);
   if (!res.ok) throw new Error('Failed to fetch apartments');
+  return res.json();
+}
+
+export async function getAllProjectUnits(status?: string): Promise<{ items: ProjectUnit[]; page: number; limit: number }> {
+  const params = new URLSearchParams({ all: '1' });
+  if (status) params.set('status', status);
+  const res = await fetch(`${API}/get-project-units.php?${params.toString()}`);
+  if (!res.ok) throw new Error('Failed to fetch project apartments');
   return res.json();
 }
 

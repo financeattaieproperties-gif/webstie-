@@ -4,6 +4,7 @@ import { api } from '../api';
 interface Props {
   value: string | null;
   onChange: (url: string | null) => void;
+  purpose?: 'blueprint' | 'gallery';
 }
 
 // Convert base64 + mime → File object (used for Electron native dialog result)
@@ -15,33 +16,48 @@ function base64ToFile(b64: string, mimeType: string, fileName: string): File {
   return new File([ab], fileName, { type: mimeType });
 }
 
-export default function ImageUpload({ value, onChange }: Props) {
+export default function ImageUpload({ value, onChange, purpose }: Props) {
   const inputRef                  = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress]   = useState(0);
   const [error, setError]         = useState('');
   const [dragging, setDragging]   = useState(false);
+  const isBlueprint               = purpose === 'blueprint';
 
   const upload = useCallback(async (file: File) => {
-    if (!file.type.startsWith('image/')) { setError('Only image files allowed.'); return; }
-    if (file.size > 5 * 1024 * 1024)    { setError('File exceeds 5 MB limit.'); return; }
+    if (isBlueprint) {
+      const lower = file.name.toLowerCase();
+      const validMime = file.type === 'image/jpeg' || file.type === 'image/png';
+      const validExt  = lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.png');
+      if (!validMime || !validExt) {
+        setError('Only JPEG and PNG files are allowed for blueprints.');
+        return;
+      }
+    } else if (!file.type.startsWith('image/')) {
+      setError('Only image files allowed.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError('File exceeds 5 MB limit.');
+      return;
+    }
     setUploading(true);
     setError('');
     setProgress(10);
     try {
       const ticker = setInterval(() => setProgress(p => Math.min(p + 15, 85)), 300);
-      const url = await api.uploadImage(file);
+      const url = await api.uploadImage(file, purpose);
       clearInterval(ticker);
       setProgress(100);
       onChange(url);
       setTimeout(() => setProgress(0), 600);
-    } catch {
-      setError('Upload failed. Try again.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed. Try again.');
       setProgress(0);
     } finally {
       setUploading(false);
     }
-  }, [onChange]);
+  }, [onChange, isBlueprint, purpose]);
 
   // Electron: use native file dialog
   const openNativeDialog = async () => {
@@ -87,7 +103,7 @@ export default function ImageUpload({ value, onChange }: Props) {
           <img
             src={value}
             alt="preview"
-            style={{ width: '100%', maxHeight: 240, objectFit: 'cover', display: 'block' }}
+            style={{ width: '100%', maxHeight: 240, objectFit: isBlueprint ? 'contain' : 'cover', background: isBlueprint ? '#f8fafc' : undefined, display: 'block' }}
           />
           <button
             type="button"
@@ -113,7 +129,13 @@ export default function ImageUpload({ value, onChange }: Props) {
 
       {/* CTA */}
       <div style={{ padding: '1.25rem', textAlign: 'center' }}>
-        <input ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onFileChange} />
+        <input
+          ref={inputRef}
+          type="file"
+          accept={isBlueprint ? 'image/jpeg,image/png,.jpg,.jpeg,.png' : 'image/*'}
+          style={{ display: 'none' }}
+          onChange={onFileChange}
+        />
 
         {uploading ? (
           <p style={{ color: '#6B7280', fontSize: '0.9rem', margin: 0 }}>Uploading… {progress}%</p>
@@ -135,7 +157,7 @@ export default function ImageUpload({ value, onChange }: Props) {
                 : (value ? 'Choose Different Image' : 'Browse Files')}
             </button>
             <p style={{ color: '#9CA3AF', fontSize: '0.75rem', marginTop: '0.5rem' }}>
-              JPEG · PNG · WebP · GIF · max 5 MB
+              {isBlueprint ? 'JPEG · PNG · max 5 MB' : 'JPEG · PNG · WebP · GIF · max 5 MB'}
             </p>
           </>
         )}
@@ -147,3 +169,4 @@ export default function ImageUpload({ value, onChange }: Props) {
     </div>
   );
 }
+

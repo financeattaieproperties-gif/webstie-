@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 /* Self-hosted fonts — no Google Fonts dependency, works behind GFW */
 @font-face {
   font-family: 'DM Sans';
@@ -69,8 +71,6 @@
   font-display: swap;
   src: url('/fonts/tajawal-700.ttf') format('truetype');
 }
-
-@import "tailwindcss";
 
 @theme {
   /* ── Core brand ── */

@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
 import { InquiryForm } from '../components/forms/InquiryForm';
 import { ImageGallery } from '../components/property/ImageGallery';
 import { VideoPlayer } from '../components/property/VideoPlayer';
+import { BlueprintViewer } from '../components/property/BlueprintViewer';
 import { Badge } from '../components/ui/Badge';
 import { Skeleton } from '../components/ui/Skeleton';
-import { MapPin, Bed, Bath, Maximize2, Building, ArrowLeft } from 'lucide-react';
+import { MapPin, Bed, Bath, Maximize2, Building, ArrowLeft, Layers } from 'lucide-react';
 import { getProperty, type Property } from '../lib/dbService';
 import { ClickToCallButton } from '../components/ui/ClickToCallButton';
 import { VisitRequestDialog } from '../components/forms/VisitRequestDialog';
@@ -16,13 +18,15 @@ import { SeoHead } from '../components/seo/SeoHead';
 import { buildPropertySeo } from '../lib/seoConfig';
 
 export default function PropertyDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const propertyId = Number(id);
 
-  const [property, setProperty] = useState<Property | null>(null);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState<string | null>(null);
-  const [visitOpen, setVisitOpen] = useState(false);
+  const [property, setProperty]       = useState<Property | null>(null);
+  const [loading, setLoading]         = useState(true);
+  const [error, setError]             = useState<string | null>(null);
+  const [visitOpen, setVisitOpen]     = useState(false);
+  const [blueprintOpen, setBlueprintOpen] = useState(false);
 
   useEffect(() => {
     if (!propertyId) return;
@@ -32,7 +36,8 @@ export default function PropertyDetailPage() {
       .finally(() => setLoading(false));
   }, [propertyId]);
 
-  // Build final images array: gallery_images takes precedence; image_url as fallback
+  // Build final images array: gallery_images takes precedence; image_url as fallback.
+  // Technical plans (floor_plan_url / three_d_plan_url) are strictly excluded from the photo gallery.
   const allImages: string[] = property
     ? property.gallery_images.length > 0
       ? property.gallery_images
@@ -41,6 +46,7 @@ export default function PropertyDetailPage() {
       : []
     : [];
 
+  const hasBlueprint = Boolean(property?.floor_plan_url || property?.three_d_plan_url);
   const seo = buildPropertySeo(property, id);
 
   return (
@@ -119,7 +125,23 @@ export default function PropertyDetailPage() {
 
               <div className="flex flex-wrap gap-3 mb-8">
                 <ClickToCallButton />
-                <button onClick={() => setVisitOpen(true)} className="rounded-xl bg-brand-navy px-5 py-3 text-sm font-bold text-white hover:bg-brand-navy-light">Request a Visit</button>
+                <button
+                  type="button"
+                  onClick={() => setVisitOpen(true)}
+                  className="rounded-xl bg-brand-navy px-5 py-3 text-sm font-bold text-white hover:bg-brand-navy-light transition-colors"
+                >
+                  {t('visitDialog.requestVisitBtn')}
+                </button>
+                {hasBlueprint && (
+                  <button
+                    type="button"
+                    onClick={() => setBlueprintOpen(true)}
+                    className="inline-flex items-center gap-2 rounded-xl border-2 border-brand-gold bg-white px-5 py-3 text-sm font-bold text-brand-gold hover:bg-brand-gold hover:text-white transition-colors"
+                  >
+                    <Layers size={17} />
+                    {t('blueprint.button')}
+                  </button>
+                )}
               </div>
 
               {/* Spec badges */}
@@ -215,9 +237,24 @@ export default function PropertyDetailPage() {
         )}
       </div>
 
-      {property && visitOpen && <VisitRequestDialog target={{ label: property.title, propertyId: property.id }} onClose={() => setVisitOpen(false)} />}
+      {property && visitOpen && (
+        <VisitRequestDialog
+          target={{ label: property.title, propertyId: property.id }}
+          onClose={() => setVisitOpen(false)}
+        />
+      )}
+
+      {property && blueprintOpen && hasBlueprint && (
+        <BlueprintViewer
+          propertyTitle={property.title}
+          floorPlanUrl={property.floor_plan_url}
+          threeDPlanUrl={property.three_d_plan_url}
+          onClose={() => setBlueprintOpen(false)}
+        />
+      )}
 
       <Footer />
     </main>
   );
 }
+

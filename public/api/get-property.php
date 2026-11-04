@@ -31,5 +31,9 @@ if (!empty($row['gallery_images'])) {
     $row['gallery_images'] = [];
 }
 
+$row['floor_plan_url']   = !empty($row['floor_plan_url']) ? $row['floor_plan_url'] : null;
+$row['three_d_plan_url'] = !empty($row['three_d_plan_url']) ? $row['three_d_plan_url'] : null;
+
 echo json_encode($row);
+
 

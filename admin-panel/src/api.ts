@@ -1,14 +1,48 @@
 const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? '/api';
+const CSRF_STORAGE_KEY = 'admin_csrf_token';
+
+async function getCsrfToken(): Promise<string> {
+  const cached = sessionStorage.getItem(CSRF_STORAGE_KEY);
+  if (cached) return cached;
+  try {
+    const res = await fetch(`${BASE}/admin/csrf.php`, { credentials: 'include' });
+    if (res.ok) {
+      const data = (await res.json()) as { csrf_token?: string };
+      if (data.csrf_token) {
+        sessionStorage.setItem(CSRF_STORAGE_KEY, data.csrf_token);
+        return data.csrf_token;
+      }
+    }
+  } catch {
+    // fallback if offline
+  }
+  return '';
+}
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const method = (options?.method ?? 'GET').toUpperCase();
+  const isMutation = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method);
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...((options?.headers as Record<string, string>) ?? {}),
+  };
+
+  if (isMutation && !path.includes('admin-login')) {
+    const token = await getCsrfToken();
+    if (token) {
+      headers['X-CSRF-Token'] = token;
+    }
+  }
+
   const res = await fetch(`${BASE}${path}`, {
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
     ...options,
+    headers,
   });
   if (!res.ok) {
     if (res.status === 401 && !path.includes('admin-login')) {
       sessionStorage.removeItem('admin_logged_in');
+      sessionStorage.removeItem(CSRF_STORAGE_KEY);
       window.location.reload();
     }
     const body = await res.json().catch(() => ({})) as { error?: string };
@@ -18,12 +52,24 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  login:  (username: string, password: string) =>
-    request<{ success: boolean }>('/admin-login.php', {
+  login: async (username: string, password: string) => {
+    const res = await request<{ success: boolean; csrf_token?: string }>('/admin-login.php', {
       method: 'POST',
       body: JSON.stringify({ username, password }),
-    }),
-  logout: () => request<{ success: boolean }>('/admin-logout.php'),
+    });
+    if (res.csrf_token) {
+      sessionStorage.setItem(CSRF_STORAGE_KEY, res.csrf_token);
+    }
+    return res;
+  },
+  logout: async () => {
+    try {
+      return await request<{ success: boolean }>('/admin-logout.php', { method: 'POST' });
+    } finally {
+      sessionStorage.removeItem(CSRF_STORAGE_KEY);
+    }
+  },
+  getCsrf: () => getCsrfToken(),
 
   getProperties:    () => request<Property[]>('/admin/properties.php'),
   createProperty:   (data: PropertyInput) =>
@@ -115,15 +161,27 @@ export const api = {
     }
   },
 
-  uploadImage: async (file: File): Promise<string> => {
+  uploadImage: async (file: File, purpose?: 'blueprint' | 'gallery'): Promise<string> => {
     const form = new FormData();
     form.append('image', file);
-    const res = await fetch(`${BASE}/admin/upload.php`, {
+    if (purpose) {
+      form.append('purpose', purpose);
+    }
+    const token = await getCsrfToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['X-CSRF-Token'] = token;
+    }
+    const res = await fetch(`${BASE}/admin/upload.php${purpose ? `?purpose=${encodeURIComponent(purpose)}` : ''}`, {
       method: 'POST',
       credentials: 'include',
+      headers,
       body: form,
     });
-    if (!res.ok) throw new Error('Upload failed');
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({})) as { error?: string };
+      throw new Error(errBody.error || 'Upload failed');
+    }
     const data = await res.json() as { url: string };
     return data.url;
   },
@@ -181,6 +239,8 @@ export interface Property {
   image_url: string | null;
   gallery_images: string[];
   video_url: string | null;
+  floor_plan_url: string | null;
+  three_d_plan_url: string | null;
   description: string | null;
   created_at: string;
 }

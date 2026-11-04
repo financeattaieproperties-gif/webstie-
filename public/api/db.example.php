@@ -53,13 +53,70 @@ function db(): mysqli {
     return $conn;
 }
 
+function init_secure_session(): void {
+    if (session_status() === PHP_SESSION_NONE) {
+        $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+        session_set_cookie_params([
+            'lifetime' => 0,
+            'path'     => '/',
+            'secure'   => $isHttps,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+        session_start();
+    }
+}
+
+function csrf_token(): string {
+    init_secure_session();
+    if (empty($_SESSION['csrf_token']) || !is_string($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+function verify_csrf_token(): void {
+    $expected = csrf_token();
+    $provided = trim((string) ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? ''));
+    if ($provided === '' || !hash_equals($expected, $provided)) {
+        json_out(['error' => 'Invalid or missing CSRF token'], 403);
+    }
+}
+
 function cors(): void {
-    $origin = $_SERVER['HTTP_ORIGIN'] ?? '*';
-    header("Access-Control-Allow-Origin: $origin");
-    header('Access-Control-Allow-Credentials: true');
+    header('Vary: Origin');
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+    $allowed = [
+        'https://attaieproperties.af',
+        'https://www.attaieproperties.af',
+        'https://attaieproperties.com',
+        'https://www.attaieproperties.com',
+        'https://website.attaieproperties.com',
+        'http://localhost:3000',
+        'http://localhost:5173',
+        'http://localhost:8888',
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:5173',
+    ];
+    $extra = ctc_env('ALLOWED_ORIGINS', '');
+    if ($extra !== '') {
+        foreach ( explode(',', $extra) as $item ) {
+            $trimmed = trim($item);
+            if ($trimmed !== '') $allowed[] = $trimmed;
+        }
+    }
+    $isAllowed = in_array($origin, $allowed, true)
+        || (bool) preg_match('#^https://[a-z0-9-]+\.run\.app$#i', $origin)
+        || strpos($origin, 'file://') === 0;
+
+    if ($origin !== '' && $isAllowed) {
+        header("Access-Control-Allow-Origin: $origin");
+        header('Access-Control-Allow-Credentials: true');
+    }
     header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type');
-    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
+    if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
         http_response_code(200);
         exit;
     }
@@ -73,11 +130,13 @@ function json_out(mixed $data, int $code = 200): void {
 }
 
 function require_admin(): void {
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
+    init_secure_session();
     if (empty($_SESSION['admin'])) {
         json_out(['error' => 'Unauthorized'], 401);
+    }
+    $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+    if (in_array($method, ['POST', 'PUT', 'DELETE', 'PATCH'], true)) {
+        verify_csrf_token();
     }
 }
 
@@ -85,4 +144,5 @@ function body(): array {
     $raw = file_get_contents('php://input');
     return json_decode($raw, true) ?? [];
 }
+
 

@@ -56,7 +56,10 @@ while ($row = $result->fetch_assoc()) {
     } else {
         $row['gallery_images'] = [];
     }
+    $row['floor_plan_url']   = !empty($row['floor_plan_url']) ? $row['floor_plan_url'] : null;
+    $row['three_d_plan_url'] = !empty($row['three_d_plan_url']) ? $row['three_d_plan_url'] : null;
     $rows[] = $row;
 }
 echo json_encode($rows);
+
 
