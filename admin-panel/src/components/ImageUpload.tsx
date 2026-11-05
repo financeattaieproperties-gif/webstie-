@@ -16,6 +16,100 @@ function base64ToFile(b64: string, mimeType: string, fileName: string): File {
   return new File([ab], fileName, { type: mimeType });
 }
 
+/**
+ * Automatically normalizes & compresses images in the browser before uploading so they:
+ * 1. Stay safely below cPanel's default 2 MB PHP `upload_max_filesize` limit (< 1.45 MB)
+ * 2. Keep dimensions within ≤ 2560 px (or ≤ 3200 px for blueprints) so `getimagesize` never rejects high-MP camera photos
+ * 3. Convert unsupported browser formats (AVIF/HEIC/BMP/WebP-for-blueprints) into genuine JPEG/PNG
+ */
+async function optimizeImageForUpload(file: File, isBlueprint: boolean): Promise<File> {
+  const maxSafeBytes = 1.45 * 1024 * 1024; // 1.45 MB (safely under default cPanel 2M limit)
+  const maxDim = isBlueprint ? 3200 : 2400;
+  const standardTypes = isBlueprint
+    ? ['image/jpeg', 'image/png']
+    : ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+  if (file.type === 'image/gif' && file.size <= maxSafeBytes) {
+    return file;
+  }
+
+  return new Promise<File>((resolve) => {
+    const objectUrl = URL.createObjectURL(file);
+    const img = new Image();
+
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const origW = img.naturalWidth || img.width;
+      const origH = img.naturalHeight || img.height;
+
+      const needsResize = origW > maxDim || origH > maxDim || origW * origH > 12_000_000;
+      const needsSizeReduction = file.size > maxSafeBytes;
+      const needsFormatConversion = !standardTypes.includes(file.type);
+
+      if (!needsResize && !needsSizeReduction && !needsFormatConversion) {
+        resolve(file);
+        return;
+      }
+
+      let targetW = origW;
+      let targetH = origH;
+      if (origW > maxDim || origH > maxDim) {
+        const scale = Math.min(maxDim / origW, maxDim / origH);
+        targetW = Math.max(1, Math.round(origW * scale));
+        targetH = Math.max(1, Math.round(origH * scale));
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = targetW;
+      canvas.height = targetH;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(file);
+        return;
+      }
+
+      // Fill white background when converting to JPEG so transparent areas don't turn black
+      const keepPng = file.type === 'image/png' && !needsSizeReduction;
+      const outputMime = keepPng ? 'image/png' : 'image/jpeg';
+      if (outputMime === 'image/jpeg') {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, targetW, targetH);
+      }
+      ctx.drawImage(img, 0, 0, targetW, targetH);
+
+      const baseName = file.name.replace(/\.[^.]+$/, '') || 'upload';
+      const ext = outputMime === 'image/png' ? 'png' : 'jpg';
+
+      const tryExport = (quality: number) => {
+        canvas.toBlob(
+          blob => {
+            if (!blob) {
+              resolve(file);
+              return;
+            }
+            if (blob.size > maxSafeBytes && quality > 0.55 && outputMime === 'image/jpeg') {
+              tryExport(Number((quality - 0.12).toFixed(2)));
+              return;
+            }
+            resolve(new File([blob], `${baseName}.${ext}`, { type: outputMime }));
+          },
+          outputMime,
+          outputMime === 'image/jpeg' ? quality : undefined
+        );
+      };
+
+      tryExport(0.86);
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(file);
+    };
+
+    img.src = objectUrl;
+  });
+}
+
 export default function ImageUpload({ value, onChange, purpose }: Props) {
   const inputRef                  = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -25,33 +119,29 @@ export default function ImageUpload({ value, onChange, purpose }: Props) {
   const isBlueprint               = purpose === 'blueprint';
 
   const upload = useCallback(async (file: File) => {
-    if (isBlueprint) {
-      const lower = file.name.toLowerCase();
-      const validMime = file.type === 'image/jpeg' || file.type === 'image/png';
-      const validExt  = lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.png');
-      if (!validMime || !validExt) {
-        setError('Only JPEG and PNG files are allowed for blueprints.');
-        return;
-      }
-    } else if (!file.type.startsWith('image/')) {
-      setError('Only image files allowed.');
+    if (!file.type.startsWith('image/') && !/\.(jpe?g|png|webp|gif)$/i.test(file.name)) {
+      setError('Only image files are allowed.');
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      setError('File exceeds 5 MB limit.');
+    if (file.size > 15 * 1024 * 1024) {
+      setError('File exceeds 15 MB limit.');
       return;
     }
     setUploading(true);
     setError('');
     setProgress(10);
+    let ticker: ReturnType<typeof setInterval> | null = null;
     try {
-      const ticker = setInterval(() => setProgress(p => Math.min(p + 15, 85)), 300);
-      const url = await api.uploadImage(file, purpose);
+      const preparedFile = await optimizeImageForUpload(file, isBlueprint);
+      setProgress(25);
+      ticker = setInterval(() => setProgress(p => Math.min(p + 15, 88)), 300);
+      const url = await api.uploadImage(preparedFile, purpose);
       clearInterval(ticker);
       setProgress(100);
       onChange(url);
       setTimeout(() => setProgress(0), 600);
     } catch (err) {
+      if (ticker) clearInterval(ticker);
       setError(err instanceof Error ? err.message : 'Upload failed. Try again.');
       setProgress(0);
     } finally {
@@ -132,13 +222,13 @@ export default function ImageUpload({ value, onChange, purpose }: Props) {
         <input
           ref={inputRef}
           type="file"
-          accept={isBlueprint ? 'image/jpeg,image/png,.jpg,.jpeg,.png' : 'image/*'}
+          accept={isBlueprint ? 'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp' : 'image/*'}
           style={{ display: 'none' }}
           onChange={onFileChange}
         />
 
         {uploading ? (
-          <p style={{ color: '#6B7280', fontSize: '0.9rem', margin: 0 }}>Uploading… {progress}%</p>
+          <p style={{ color: '#6B7280', fontSize: '0.9rem', margin: 0 }}>Optimizing & uploading… {progress}%</p>
         ) : (
           <>
             <p style={{ color: '#6B7280', fontSize: '0.85rem', marginBottom: '0.6rem' }}>
@@ -157,7 +247,7 @@ export default function ImageUpload({ value, onChange, purpose }: Props) {
                 : (value ? 'Choose Different Image' : 'Browse Files')}
             </button>
             <p style={{ color: '#9CA3AF', fontSize: '0.75rem', marginTop: '0.5rem' }}>
-              {isBlueprint ? 'JPEG · PNG · max 5 MB' : 'JPEG · PNG · WebP · GIF · max 5 MB'}
+              {isBlueprint ? 'JPEG · PNG · WebP · auto-optimized (up to 15 MB)' : 'JPEG · PNG · WebP · GIF · auto-optimized (up to 15 MB)'}
             </p>
           </>
         )}
@@ -169,4 +259,3 @@ export default function ImageUpload({ value, onChange, purpose }: Props) {
     </div>
   );
 }
-

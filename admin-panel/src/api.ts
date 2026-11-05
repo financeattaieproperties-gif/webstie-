@@ -274,18 +274,58 @@ export const api = {
     if (token) {
       headers['X-CSRF-Token'] = token;
     }
-    const res = await fetch(`${BASE}/admin/upload.php${purpose ? `?purpose=${encodeURIComponent(purpose)}` : ''}`, {
+    const endpoint = `${BASE}/admin/upload.php${purpose ? `?purpose=${encodeURIComponent(purpose)}` : ''}`;
+    const res = await fetch(endpoint, {
       method: 'POST',
       credentials: 'include',
       headers,
       body: form,
     });
-    if (!res.ok) {
-      const errBody = await res.json().catch(() => ({})) as { error?: string };
-      throw new Error(errBody.error || 'Upload failed');
+    if (res.ok) {
+      const data = (await res.json()) as { url: string };
+      return data.url;
     }
-    const data = await res.json() as { url: string };
-    return data.url;
+
+    const errBody = (await res.json().catch(() => ({}))) as { error?: string };
+
+    // Fallback: if multipart upload returned 400 (e.g. cPanel tmp dir or multipart limit), retry as base64 JSON
+    if (res.status === 400) {
+      try {
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ''));
+          reader.onerror = () => reject(new Error('Failed to read file'));
+          reader.readAsDataURL(file);
+        });
+        const retryRes = await fetch(endpoint, {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            ...headers,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            image_base64: base64,
+            filename: file.name,
+            purpose: purpose ?? '',
+          }),
+        });
+        if (retryRes.ok) {
+          const retryData = (await retryRes.json()) as { url: string };
+          return retryData.url;
+        }
+        const retryErr = (await retryRes.json().catch(() => ({}))) as { error?: string };
+        if (retryErr.error) {
+          throw new Error(retryErr.error);
+        }
+      } catch (fallbackErr) {
+        if (fallbackErr instanceof Error && fallbackErr.message !== 'Failed to read file') {
+          throw fallbackErr;
+        }
+      }
+    }
+
+    throw new Error(errBody.error || `Upload failed (HTTP ${res.status})`);
   },
 };
 
