@@ -2,6 +2,34 @@
 
 A guide for AI coding agents working in this repository. Read this before making changes.
 
+## Mandatory Session Rules: Protect Deployed Version 1
+
+The owner has confirmed that the website deployed to the main domain is working and is **Version 1 (V1)**. This deployment is the protected production baseline. Every AI coding agent must read and apply the following four rules at the beginning of every session, before planning, editing files, running commands, or delegating work. These rules apply across the entire repository and take precedence over conflicting project notes, historical plans, setup instructions, and deployment examples below.
+
+### 1. Preserve the working production deployment
+
+Future development must never crash, disrupt, or regress V1. Preserve existing routes, features, integrations, authentication, and working user journeys. Develop and validate changes locally or in an isolated staging environment before considering production release. Never use production for experiments or tests that change state. Before release, verify affected existing behavior as well as new behavior, and prepare a rollback using the known working release. Do not deploy changes with unresolved failures or unverified compatibility. A development request alone does not authorize a production deployment.
+
+### 2. Do not change the current MySQL database
+
+The existing production MySQL database is protected. Future development must not modify, edit, delete, recreate, reset, migrate, seed, or overwrite its data or structure. This includes tables, columns, indexes, constraints, triggers, procedures, and database configuration. Do not run SQL scripts, migration helpers, imports, or test writes against it, directly or through an API. Use isolated development data for validation. Preserve normal existing application operations; this rule prohibits development actions and new features from changing the protected database. A feature requiring database changes must be redesigned to use separate isolated storage without changing the current database, or reported as blocked by this rule.
+
+### 3. Do not change existing APIs or PHP endpoints
+
+Existing working APIs and PHP endpoints are frozen. Do not edit, delete, rename, replace, refactor, or change their behavior, either in source or on the server. This protection includes shared PHP helpers, authentication, configuration, routing, request and response formats, and dependencies that could alter endpoint behavior. It applies wherever the backend exists, including `public/api/` and `backend-php/` if present. New frontend work must use the existing API contracts. Any new backend capability must be separate and must not alter existing endpoints or the protected database. Deployment packages must exclude protected backend files and configuration so that a frontend release cannot overwrite them accidentally.
+
+### 4. Follow the existing UX and UI design
+
+All future features, pages, and components must use the current V1 UX and UI as their design foundation. Reuse existing components, layout patterns, design tokens, typography, colors, spacing, navigation, forms, and interaction behavior. Preserve responsive behavior, accessibility, English/Dari translations, and RTL support. Follow the established design of the relevant surface (public website or admin CRM). Do not introduce an unrelated visual style, redesign the existing interface, or replace shared design foundations as part of feature work.
+
+### Required agent conduct
+
+- At session start, identify how the requested work will comply with all four rules.
+- Include these rules in any delegated task and review proposed changes against them before completion.
+- Treat earlier setup, migration, backend-editing, and full-upload instructions in this document as historical guidance where they conflict with these rules; never apply them to protected V1 resources.
+- If a task cannot meet these rules, stop the conflicting action and explain the constraint. Do not infer an exception from a general feature request or silently weaken these rules.
+- Report the files changed, validation performed, and any remaining uncertainty. Never claim that documentation alone guarantees production safety.
+
 ---
 
 ## Project Overview
